@@ -1,0 +1,8 @@
+{
+  "name": "_dev_testing_module",
+  "displayName": "Testing module",
+  "description": "Testing module",
+  "type": "app",
+  "entry": "http://localhost:24011/dev.html",
+  "icon": "dist/react.svg"
+}

@@ -1,0 +1,15 @@
+{
+  "name": "testing_module",
+  "displayName": "Testing module",
+  "version": "1.0.0",
+  "targetWalletVersion": "3.1.0",
+  "description": "Testing module",
+  "type": "app",
+  "entry": "dist/index.html",
+  "icon": "dist/react.svg",
+  "files": ["dist/index.html", "dist/react.svg", "dist/syncing.svg", "dist/js/app.js"],
+  "author": {
+    "name": "AkstonCap",
+    "email": "arne_skeide@hotmail.com"
+  }
+}
