@@ -172,7 +172,6 @@ export default function Main() {
           </div>
           <div style={gridStyleOrderbook}>
             <p>
-            Bids
             <table>
               <thead>
                 <tr>
@@ -187,7 +186,6 @@ export default function Main() {
             </table>
             </p>
             <p>
-            Asks
             <table>
               <thead>
                 <tr>
