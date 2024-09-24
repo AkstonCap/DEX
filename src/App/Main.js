@@ -25,7 +25,7 @@ import { fetchExecuted } from 'actions/fetchExecuted';
 import { setMarketPair } from 'actions/setMarket';
 
 const DemoTextField = styled(TextField)({
-  maxWidth: 300,
+  maxWidth: 200,
 });
 
 const ButtonContainer = styled.div`
@@ -72,6 +72,17 @@ export default function Main() {
   const [executedAsks, setExecutedAsks] = useState([]);
   const [executedOrders, setExecutedOrders] = useState([]);
 
+  const handleRefreshClick = () => {
+    let newOrderToken = inputOrderToken || DEFAULT_ORDER_TOKEN;
+    let newBaseToken = inputBaseToken || DEFAULT_BASE_TOKEN;
+  
+    setOrderToken(newOrderToken);
+    setBaseToken(newBaseToken);
+    
+    const newMarketPair = `${newOrderToken}/${newBaseToken}`;
+    setMarketPairState(newMarketPair);
+  };
+
   useEffect(() => {
     fetchLastPrice(marketPair, checkingMarket, 
       setCheckingMarket, setLastPrice, showErrorDialog);
@@ -84,17 +95,6 @@ export default function Main() {
     fetchExecuted(marketPair, checkingMarket, setCheckingMarket, 
       setExecutedOrders, setExecutedBids, setExecutedAsks, showErrorDialog, '1y');
   }, [marketPair]);
-
-  const handleRefreshClick = () => {
-    let newOrderToken = inputOrderToken || DEFAULT_ORDER_TOKEN;
-    let newBaseToken = inputBaseToken || DEFAULT_BASE_TOKEN;
-  
-    setOrderToken(newOrderToken);
-    setBaseToken(newBaseToken);
-    
-    const newMarketPair = `${newOrderToken}/${newBaseToken}`;
-    setMarketPairState(newMarketPair);
-  };
 
   const renderTableRows = (data) => {
     return data.slice(0, 5).map((item, index) => (
