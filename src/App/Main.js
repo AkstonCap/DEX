@@ -84,16 +84,27 @@ export default function Main() {
   };
 
   useEffect(() => {
-    fetchLastPrice(marketPair, checkingMarket, 
-      setCheckingMarket, setLastPrice, showErrorDialog);
-    fetchHighestBid(marketPair, setHighestBid, showErrorDialog);
-    fetchLowestAsk(marketPair, setLowestAsk, showErrorDialog);
-    fetchVolume(marketPair, checkingMarket, setCheckingMarket, 
-      setOrderTokenVolume, setBaseTokenVolume, showErrorDialog, '1y');
-    fetchOrderBook(marketPair, checkingMarket, setCheckingMarket, 
-      setOrderBook, setOrderBookBids, setOrderBookAsks, showErrorDialog);
-    fetchExecuted(marketPair, checkingMarket, setCheckingMarket, 
-      setExecutedOrders, setExecutedBids, setExecutedAsks, showErrorDialog, '1y');
+    const fetchData = async () => {
+      try {
+        fetchLastPrice(marketPair, checkingMarket, 
+          setCheckingMarket, setLastPrice, showErrorDialog);
+        fetchHighestBid(marketPair, setHighestBid, showErrorDialog);
+        fetchLowestAsk(marketPair, setLowestAsk, showErrorDialog);
+        fetchVolume(marketPair, checkingMarket, setCheckingMarket, 
+          setOrderTokenVolume, setBaseTokenVolume, showErrorDialog, '1y');
+        fetchOrderBook(marketPair, checkingMarket, setCheckingMarket, 
+          setOrderBook, setOrderBookBids, setOrderBookAsks, showErrorDialog);
+        fetchExecuted(marketPair, checkingMarket, setCheckingMarket, 
+          setExecutedOrders, setExecutedBids, setExecutedAsks, showErrorDialog, '1y');
+      } catch (error) {
+        showErrorDialog({
+          message: 'Cannot fetch data',
+          note: error?.message || 'Unknown error',
+        });
+      }
+    };
+
+    fetchData();
   }, [marketPair]);
 
   const renderTableRows = (data) => {
@@ -116,7 +127,7 @@ export default function Main() {
   const gridStyleOrderbook = {
     display: 'grid',
     gridTemplateColumns: 'repeat(2, 1fr)',
-    gridTemplateRows: 'repeat(1, auto)',
+    gridTemplateRows: 'repeat(2, auto)',
     gap: '10px' // Adjust the gap as needed
   };
 
@@ -171,66 +182,66 @@ export default function Main() {
            
           </div>
           <div style={gridStyleOrderbook}>
-            <p>
-            <table>
-              <thead>
-                <tr>
-                  <th>Price</th>
-                  <th>Order token amount</th>
-                  <th>Base token amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {renderTableRows(orderBookBids)}
-              </tbody>
-            </table>
-            </p>
-            <p>
-            <table>
-              <thead>
-                <tr>
-                  <th>Price</th>
-                  <th>Order token amount</th>
-                  <th>Base token amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {renderTableRows(orderBookAsks)}
-              </tbody>
-            </table>
-            </p>
-          </div>
-          <div style={gridStyleOrderbook}>
-            <p>
-            Bids
-            <table>
-              <thead>
-                <tr>
-                  <th>Price</th>
-                  <th>Order token amount</th>
-                  <th>Base token amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {renderTableRows(executedBids)}
-              </tbody>
-            </table>
-            </p>
-            <p>
-            Asks
-            <table>
-              <thead>
-                <tr>
-                  <th>Price</th>
-                  <th>Order token amount</th>
-                  <th>Base token amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {renderTableRows(executedAsks)}
-              </tbody>
-            </table>
-            </p>
+            <div>
+              <p>Bids</p>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Price</th>
+                    <th>Order token amount</th>
+                    <th>Base token amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {renderTableRows(orderBookBids)}
+                </tbody>
+              </table>
+            </div>
+            <div>
+              <p>Asks</p>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Price</th>
+                    <th>Order token amount</th>
+                    <th>Base token amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {renderTableRows(orderBookAsks)}
+                </tbody>
+              </table>
+            </div>
+            <div>
+              <p>Executed Bids</p>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Price</th>
+                    <th>Order token amount</th>
+                    <th>Base token amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {renderTableRows(executedBids)}
+                </tbody>
+              </table>
+            </div>
+            <div>
+              <p>Executed Asks</p>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Price</th>
+                    <th>Order token amount</th>
+                    <th>Base token amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {renderTableRows(executedAsks)}
+                </tbody>
+              </table>
+            </div>
           </div>
         </FieldSet>
       </div>
