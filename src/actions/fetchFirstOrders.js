@@ -16,7 +16,8 @@ export const fetchHighestBid = async (
       const pair = inputMarket;
       const result = await listMarket(
         pair, 
-        'bid', 
+        'bid',
+        '', 
         'price', 
         'desc', 
         'all', 

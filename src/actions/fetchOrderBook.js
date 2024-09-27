@@ -13,11 +13,11 @@ export const fetchOrderBook = async (
         try {
         setCheckingMarket(true);
         const pair = inputMarket;
-        const orders = await listMarket(pair, 'order', 'time', 'desc', 'all', 0);
+        const orders = await listMarket(pair, 'order', '', 'time', 'desc', 'all', 0);
         setOrderBook(orders);
-        const bids = await listMarket(pair, 'bids', 'price', 'desc', 'all', 0);
+        const bids = await listMarket(pair, 'bids', '', 'price', 'desc', 'all', 0);
         setOrderBookBids(bids);
-        const asks = await listMarket(pair, 'asks', 'price', 'asc', 'all', 0);
+        const asks = await listMarket(pair, 'asks', '', 'price', 'asc', 'all', 0);
         setOrderBookAsks(asks);
         } catch (error) {
         showErrorDialog({

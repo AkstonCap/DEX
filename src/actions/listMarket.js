@@ -4,7 +4,8 @@ export const DEFAULT_MARKET_PAIR = 'DIST/NXS';
 
 export const listMarket = async (
   marketPair = DEFAULT_MARKET_PAIR, 
-  path,  
+  path,
+  dataFilter = '',  
   sort = 'time',
   asc_desc = 'desc', 
   timeFilter = 'all',
@@ -41,7 +42,7 @@ export const listMarket = async (
     }
 
     const resultInit = await apiCall(
-      'market/list/' + path, 
+      'market/list/' + path + '/' + dataFilter, 
       params, 
       filtering
     );

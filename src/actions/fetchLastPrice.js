@@ -15,17 +15,35 @@ export const fetchLastPrice = async (
     try {
       setCheckingMarket(true);
       const pair = inputMarket;
-      const result = await listMarket(
+      const resultBid = await listMarket(
         pair, 
-        'executed', 
+        'executed',
+        'timestamp,type,order.amount,contract.amount',
         'time', 
         'desc', 
         'all', 
         5,
-        null
+        'Bid'
       );
+
+      const resultAsk = await listMarket(
+        pair, 
+        'executed',
+        'timestamp,type,order.amount,contract.amount',
+        'time', 
+        'desc', 
+        'all', 
+        5,
+        'Ask'
+      );
+
+      resultTotal = [...resultBid, ...resultAsk];
       
-      const lastPrice = (result[0].order.amount * MULTIPLIER) / result[0].contract.amount;
+      const lastPriceBid = (resultBid[0].contract.amount * MULTIPLIER) / result[0].order.amount;
+      const lastPriceAsk = resultAsk[0].order.amount / (resultAsk[0].contract.amount * MULTIPLIER);
+      const lastPrice = max()
+
+      
       setLastPrice(lastPrice);
     
     } catch (error) {
