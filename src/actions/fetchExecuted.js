@@ -14,7 +14,15 @@ export const fetchExecuted = async (
     try {
       setCheckingMarket(true);
       const pair = inputMarket;
-      const data = await listMarket(pair, 'executed', 'time', 'desc', timeFilter, 0);
+      const data = await listMarket(
+        pair, 
+        'executed', 
+        'time', 
+        'desc', 
+        timeFilter, 
+        0,
+        
+      );
 
       //const data = [...dataInit.bids, ...dataInit.asks]; // Adjust this if data structure is different
 

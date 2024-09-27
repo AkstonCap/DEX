@@ -22,7 +22,7 @@ export const fetchLastPrice = async (
         'desc', 
         'all', 
         5,
-        'timestamp'
+        null
       );
       
       const lastPrice = (result[0].order.amount * MULTIPLIER) / result[0].contract.amount;

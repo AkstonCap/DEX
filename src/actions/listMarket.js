@@ -9,7 +9,7 @@ export const listMarket = async (
   asc_desc = 'desc', 
   timeFilter = 'all',
   numOfRes = 0,
-  typeFilter
+  typeFilter = null
 ) => {
   try {
     const params = {
@@ -34,13 +34,17 @@ export const listMarket = async (
         timestamp: {
           gt: timeFilters[timeFilter] || 0,
         },
-        type: {
-          eq: typeFilter,
-        },
+        ...(typeFilter && { type: {
+          eq: typeFilter
+        } }),
       },
     }
 
-    const resultInit = await apiCall('market/list/' + path, params, filtering);
+    const resultInit = await apiCall(
+      'market/list/' + path, 
+      params, 
+      filtering
+    );
     // const result = await resultInit.json();
     
     let result = [];

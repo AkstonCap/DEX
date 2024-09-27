@@ -14,7 +14,15 @@ export const fetchHighestBid = async (
     try {
       setCheckingMarket(true);
       const pair = inputMarket;
-      const result = await listMarket(pair, 'bid', 'price', 'desc', 'all', 5);
+      const result = await listMarket(
+        pair, 
+        'bid', 
+        'price', 
+        'desc', 
+        'all', 
+        5,
+      'Bid'
+      );
       
       //const bids = [...result.bids];
       const topBid = (result[0]?.order.amount * MULTIPLIER) / bids[0]?.contract.amount;
@@ -41,11 +49,19 @@ export const fetchLowestAsk = async (
     try {
       setCheckingMarket(true);
       const pair = inputMarket;
-      const result = await listMarket(pair, 'ask', 'price', 'asc', 'all', 5);
+      const result = await listMarket(
+        pair, 
+        'ask', 
+        'price', 
+        'asc', 
+        'all', 
+        5,
+        'Ask'
+      );
       
       //const asks = [...result.asks];
-      const topAsk = (result[0]?.order.amount * MULTIPLIER) / asks[0]?.contract.amount;
-      setLowestAsk( topAsk || 'N/A');
+      const bottomAsk = (result[0]?.order.amount * MULTIPLIER) / asks[0]?.contract.amount;
+      setLowestAsk( bottomAsk || 'N/A');
 
     } catch (error) {
       showErrorDialog({
