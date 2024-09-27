@@ -1,4 +1,3 @@
-import * as TYPE from './types';
 import { apiCall } from 'nexus-module';
 
 export const DEFAULT_MARKET_PAIR = 'DIST/NXS';
@@ -60,7 +59,7 @@ export const listMarket = async (
 
     const filteredResult = Array.isArray(result) ? result.filter((item) => { 
       const itemTime = new Date(item.timestamp).getTime();
-      return itemTime > (timeFilters[filter] || 0);
+      return itemTime > (timeFilters[timeFilter] || 0);
     }) : [];
 
     const sortFunctions = {
