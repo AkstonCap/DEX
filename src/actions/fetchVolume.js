@@ -13,16 +13,44 @@ export const fetchVolume = async (
     try {
       setCheckingMarket(true);
       const pair = inputMarket;
-      const data = await listMarket(pair, 'executed', 'time', 'desc', timeFilter, 0);
+      const dataBids = await listMarket(
+        pair, 
+        'executed', 
+        '', 
+        'time', 
+        'desc', 
+        timeFilter, 
+        0, 
+        'Bid'
+      );
+      const dataAsks = await listMarket(
+        pair, 
+        'executed', 
+        '', 
+        'time', 
+        'desc', 
+        timeFilter, 
+        0, 
+        'Ask'
+      );
 
       //const data = [...dataInit.bids, ...dataInit.asks]; // Adjust this if data structure is different
 
-      let orderTokenVolume = 0;
-      let baseTokenVolume = 0;
-      data.forEach((item) => {
-        orderTokenVolume += item.order.amount;
-        baseTokenVolume += item.contract.amount; // Adjust this if base token volume calculation is different
+      let orderTokenVolumeBids = 0;
+      let baseTokenVolumeBids = 0;
+      let orderTokenVolumeAsks = 0;
+      let baseTokenVolumeAsks = 0;
+
+      dataBids.forEach((item) => {
+        orderTokenVolumeBids += item.order.amount;
+        baseTokenVolumeBids += item.contract.amount; // Adjust this if base token volume calculation is different
       });
+      dataAsks.forEach((item) => {
+        orderTokenVolumeAsks += item.contract.amount;
+        baseTokenVolumeAsks += item.order.amount; // Adjust this if base token volume calculation is different
+      });
+      const orderTokenVolume = orderTokenVolumeBids + orderTokenVolumeAsks;
+      const baseTokenVolume = baseTokenVolumeBids + baseTokenVolumeAsks;
 
       setOrderTokenVolume(orderTokenVolume);
       setBaseTokenVolume(baseTokenVolume);

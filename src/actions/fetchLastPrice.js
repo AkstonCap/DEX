@@ -36,9 +36,8 @@ export const fetchLastPrice = async (
         5,
         'Ask'
       );
-      
-      let lastPrice;
 
+      let lastPrice;
       if (resultBid[0].timestamp > resultAsk[0].timestamp) {
         const lastPrice = (resultBid[0].contract.amount * MULTIPLIER) / resultBid[0].order.amount;
       } else {

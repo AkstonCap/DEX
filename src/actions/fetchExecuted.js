@@ -16,12 +16,13 @@ export const fetchExecuted = async (
       const pair = inputMarket;
       const data = await listMarket(
         pair, 
-        'executed', 
+        'executed',
+        '', 
         'time', 
         'desc', 
         timeFilter, 
         0,
-        
+        null
       );
 
       //const data = [...dataInit.bids, ...dataInit.asks]; // Adjust this if data structure is different
