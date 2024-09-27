@@ -35,7 +35,7 @@ export const viewMarket = async (
         },
       }
 
-      const result = await apiCall('market/list/' + path, params, filtering);
+      let result = await apiCall('market/list/' + path, params, filtering);
 
       // Check if result is a JSON string and parse it
       if (typeof result === 'string') {
