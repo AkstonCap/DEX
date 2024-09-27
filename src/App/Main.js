@@ -79,7 +79,7 @@ export default function Main() {
     setOrderToken(newOrderToken);
     setBaseToken(newBaseToken);
     
-    const newMarketPair = `${newOrderToken}/${newBaseToken}`;
+    let newMarketPair = `${newOrderToken}/${newBaseToken}`;
     setMarketPairState(newMarketPair);
   };
 
