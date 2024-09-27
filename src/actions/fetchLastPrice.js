@@ -15,7 +15,15 @@ export const fetchLastPrice = async (
     try {
       setCheckingMarket(true);
       const pair = inputMarket;
-      const result = await listMarket(pair, 'executed', 'time', 'desc', 'all', 5);
+      const result = await listMarket(
+        pair, 
+        'executed', 
+        'time', 
+        'desc', 
+        'all', 
+        5,
+        'timestamp'
+      );
       
       const lastPrice = (result[0].order.amount * MULTIPLIER) / result[0].contract.amount;
       setLastPrice(lastPrice);
