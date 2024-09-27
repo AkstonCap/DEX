@@ -36,14 +36,15 @@ export const fetchLastPrice = async (
         5,
         'Ask'
       );
-
-      resultTotal = [...resultBid, ...resultAsk];
       
-      const lastPriceBid = (resultBid[0].contract.amount * MULTIPLIER) / result[0].order.amount;
-      const lastPriceAsk = resultAsk[0].order.amount / (resultAsk[0].contract.amount * MULTIPLIER);
-      const lastPrice = max()
+      let lastPrice;
 
-      
+      if (resultBid[0].timestamp > resultAsk[0].timestamp) {
+        const lastPrice = (resultBid[0].contract.amount * MULTIPLIER) / resultBid[0].order.amount;
+      } else {
+        const lastPrice = resultAsk[0].order.amount / (resultAsk[0].contract.amount * MULTIPLIER);
+      }
+
       setLastPrice(lastPrice);
     
     } catch (error) {
