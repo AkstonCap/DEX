@@ -1,14 +1,16 @@
 import { setLowestAsk } from './actionCreators';
 import { listMarket, DEFAULT_MARKET_PAIR } from './listMarket';
 
-const MULTIPLIER = 1e6;
+let MULTIPLIER = 1e6;
 
 export const fetchHighestBid = async (
   inputMarket = DEFAULT_MARKET_PAIR, 
   checkingMarket, 
   setCheckingMarket, 
   setHighestBid, 
-  showErrorDialog
+  showErrorDialog,
+  orderToken,
+  baseToken
 ) => {
     if (checkingMarket) return;
     try {
@@ -25,7 +27,14 @@ export const fetchHighestBid = async (
       'Bid'
       );
       
-      //const bids = [...result.bids];
+      if (orderToken === 'NXS') {
+        MULTIPLIER = 1e-6;
+      } else if (baseToken === 'NXS') {
+        MULTIPLIER = 1e6;
+      } else {
+        MULTIPLIER = 1;
+      }
+
       const topBid = (result[0]?.order.amount * MULTIPLIER) / bids[0]?.contract.amount;
       setHighestBid(topBid || 'N/A');
     
@@ -44,7 +53,9 @@ export const fetchLowestAsk = async (
   checkingMarket, 
   setCheckingMarket, 
   setLowestAsk, 
-  showErrorDialog
+  showErrorDialog,
+  orderToken,
+  baseToken
 ) => {
     if (checkingMarket) return;
     try {
@@ -52,16 +63,24 @@ export const fetchLowestAsk = async (
       const pair = inputMarket;
       const result = await listMarket(
         pair, 
-        'ask', 
+        'ask',
+        '', 
         'price', 
         'asc', 
         'all', 
         5,
-        'Ask'
+        null
       );
       
-      //const asks = [...result.asks];
-      const bottomAsk = (result[0]?.order.amount * MULTIPLIER) / asks[0]?.contract.amount;
+      if (orderToken === 'NXS') {
+        MULTIPLIER = 1e-6;
+      } else if (baseToken === 'NXS') {
+        MULTIPLIER = 1e6;
+      } else {
+        MULTIPLIER = 1;
+      }
+
+      const bottomAsk = (result[0]?.contract.amount * MULTIPLIER) / asks[0]?.order.amount;
       setLowestAsk( bottomAsk || 'N/A');
 
     } catch (error) {
