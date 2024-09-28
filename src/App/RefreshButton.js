@@ -20,7 +20,7 @@ export default function RefreshButton({ onClick, disabled }) {
     if (onClick) onClick();
     setTimeout(() => {
       setRefreshing(false);
-    }, 3000);
+    }, 2000);
   };
 
   return (
@@ -31,7 +31,7 @@ export default function RefreshButton({ onClick, disabled }) {
           style={
             refreshing
               ? {
-                  animation: `${spin} 3s linear infinite`,
+                  animation: `${spin} 2s linear infinite`,
                 }
               : undefined
           }
