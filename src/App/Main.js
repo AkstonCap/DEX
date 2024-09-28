@@ -87,15 +87,15 @@ export default function Main() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await fetchLastPrice(marketPair, checkingMarket, 
+        fetchLastPrice(marketPair, checkingMarket, 
           setCheckingMarket, setLastPrice, showErrorDialog, orderToken, baseToken);
-        await fetchHighestBid(marketPair, setHighestBid, showErrorDialog, orderToken, baseToken);
-        await fetchLowestAsk(marketPair, setLowestAsk, showErrorDialog, orderToken, baseToken);
-        await fetchVolume(marketPair, checkingMarket, setCheckingMarket, 
+        fetchHighestBid(marketPair, setHighestBid, showErrorDialog, orderToken, baseToken);
+        fetchLowestAsk(marketPair, setLowestAsk, showErrorDialog, orderToken, baseToken);
+        fetchVolume(marketPair, checkingMarket, setCheckingMarket, 
           setOrderTokenVolume, setBaseTokenVolume, showErrorDialog, '1y');
-        await fetchOrderBook(marketPair, checkingMarket, setCheckingMarket, 
+        fetchOrderBook(marketPair, checkingMarket, setCheckingMarket, 
           setOrderBook, setOrderBookBids, setOrderBookAsks, showErrorDialog);
-        await fetchExecuted(marketPair, checkingMarket, setCheckingMarket, 
+        fetchExecuted(marketPair, checkingMarket, setCheckingMarket, 
           setExecutedOrders, setExecutedBids, setExecutedAsks, showErrorDialog, '1y');
       } catch (error) {
         showErrorDialog({
@@ -106,7 +106,7 @@ export default function Main() {
     };
 
     fetchData();
-  }, [marketPair, orderToken, baseToken, checkingMarket]);
+  }, [marketPair, orderToken, baseToken]);
 
   const renderTableRows = (data) => {
     return data.slice(0, 5).map((item, index) => (
