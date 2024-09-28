@@ -46,6 +46,7 @@ export default function Main() {
     inputBaseToken: state.ui.inputBaseToken,
     inputOrderToken: state.ui.inputOrderToken
   }));
+
   const dispatch = useDispatch();
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -86,15 +87,15 @@ export default function Main() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        fetchLastPrice(marketPair, checkingMarket, 
-          setCheckingMarket, setLastPrice, showErrorDialog);
-        fetchHighestBid(marketPair, setHighestBid, showErrorDialog);
-        fetchLowestAsk(marketPair, setLowestAsk, showErrorDialog);
-        fetchVolume(marketPair, checkingMarket, setCheckingMarket, 
+        await fetchLastPrice(marketPair, checkingMarket, 
+          setCheckingMarket, setLastPrice, showErrorDialog, orderToken, baseToken);
+        await fetchHighestBid(marketPair, setHighestBid, showErrorDialog, orderToken, baseToken);
+        await fetchLowestAsk(marketPair, setLowestAsk, showErrorDialog, orderToken, baseToken);
+        await fetchVolume(marketPair, checkingMarket, setCheckingMarket, 
           setOrderTokenVolume, setBaseTokenVolume, showErrorDialog, '1y');
-        fetchOrderBook(marketPair, checkingMarket, setCheckingMarket, 
+        await fetchOrderBook(marketPair, checkingMarket, setCheckingMarket, 
           setOrderBook, setOrderBookBids, setOrderBookAsks, showErrorDialog);
-        fetchExecuted(marketPair, checkingMarket, setCheckingMarket, 
+        await fetchExecuted(marketPair, checkingMarket, setCheckingMarket, 
           setExecutedOrders, setExecutedBids, setExecutedAsks, showErrorDialog, '1y');
       } catch (error) {
         showErrorDialog({
@@ -105,7 +106,7 @@ export default function Main() {
     };
 
     fetchData();
-  }, [marketPair]);
+  }, [marketPair, orderToken, baseToken, checkingMarket]);
 
   const renderTableRows = (data) => {
     return data.slice(0, 5).map((item, index) => (
