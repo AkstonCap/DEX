@@ -37,14 +37,14 @@ export const fetchLastPrice = async (
         'Ask'
       );
 
-      let lastPrice;
+      let result;
       if (resultBid[0].timestamp > resultAsk[0].timestamp) {
-        const lastPrice = (resultBid[0].contract.amount * MULTIPLIER) / resultBid[0].order.amount;
+        result = (resultBid[0].contract.amount * MULTIPLIER) / resultBid[0].order.amount;
       } else {
-        const lastPrice = resultAsk[0].order.amount / (resultAsk[0].contract.amount * MULTIPLIER);
+        result = resultAsk[0].order.amount / (resultAsk[0].contract.amount * MULTIPLIER);
       }
 
-      setLastPrice(lastPrice);
+      setLastPrice(result);
     
     } catch (error) {
       showErrorDialog({
