@@ -1,13 +1,28 @@
 import * as TYPE from 'actions/types';
 
-const initialState = '';
+const initialState = {
+  inputValue: '',
+  inputBaseToken: '',
+  inputOrderToken: '',
+};
 
-export default (state = initialState, action) => {
+const inputValueReducer = (state = initialState, action) => {
   switch (action.type) {
     case TYPE.UPDATE_INPUT:
       return action.payload;
-
+    case TYPE.UPDATE_INPUT_BASE_TOKEN:
+      return {
+        ...state,
+        inputBaseToken: action.payload,
+      };
+    case TYPE.UPDATE_INPUT_ORDER_TOKEN:
+      return {
+        ...state,
+        inputOrderToken: action.payload,
+      };
     default:
       return state;
   }
 };
+
+export default inputValueReducer;

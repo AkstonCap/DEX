@@ -1,7 +1,7 @@
 import { combineReducers } from 'redux';
 
-import inputValue from './inputValue';
+import inputValueReducer from './inputValue';
 
 export default combineReducers({
-  inputValue,
+  ui: inputValueReducer,
 });
