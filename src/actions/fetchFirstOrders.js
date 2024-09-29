@@ -24,7 +24,7 @@ export const fetchHighestBid = async (
         'desc', 
         'all', 
         5,
-      'Bid'
+        'Bid'
       );
       
       if (orderToken === 'NXS') {
@@ -73,9 +73,9 @@ export const fetchLowestAsk = async (
       );
       
       if (orderToken === 'NXS') {
-        MULTIPLIER = 1e-6;
-      } else if (baseToken === 'NXS') {
         MULTIPLIER = 1e6;
+      } else if (baseToken === 'NXS') {
+        MULTIPLIER = 1e-6;
       } else {
         MULTIPLIER = 1;
       }
