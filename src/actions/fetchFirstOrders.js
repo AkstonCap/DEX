@@ -34,7 +34,7 @@ export const fetchHighestBid = async (
         MULTIPLIER = 1;
       }
 
-      const topBid = (result[0]?.contract.amount * MULTIPLIER) / bids[0]?.order.amount;
+      const topBid = (result[0]?.contract.amount * MULTIPLIER) / result[0]?.order.amount;
       setHighestBid(topBid || 'N/A');
     
     } catch (error) {
