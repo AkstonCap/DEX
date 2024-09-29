@@ -37,11 +37,19 @@ export const fetchLastPrice = async (
         'Ask'
       );
 
+      if (orderToken === 'NXS') {
+        MULTIPLIER = 1e6;
+      } else if (baseToken === 'NXS') {
+        MULTIPLIER = 1e-6;
+      } else {
+        MULTIPLIER = 1;
+      }
+
       let result;
       if (resultBid[0].timestamp > resultAsk[0].timestamp) {
         result = (resultBid[0].contract.amount * MULTIPLIER) / resultBid[0].order.amount;
       } else {
-        result = resultAsk[0].order.amount / (resultAsk[0].contract.amount * MULTIPLIER);
+        result = (resultAsk[0].order.amount * MULTIPLIER) / resultAsk[0].contract.amount;
       }
 
       setLastPrice(result);

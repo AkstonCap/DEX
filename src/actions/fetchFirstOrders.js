@@ -1,7 +1,6 @@
-import { setLowestAsk } from './actionCreators';
 import { listMarket, DEFAULT_MARKET_PAIR } from './listMarket';
 
-let MULTIPLIER = 1e6;
+let MULTIPLIER = 1;
 
 export const fetchHighestBid = async (
   inputMarket = DEFAULT_MARKET_PAIR, 
@@ -28,14 +27,14 @@ export const fetchHighestBid = async (
       );
       
       if (orderToken === 'NXS') {
-        MULTIPLIER = 1e-6;
-      } else if (baseToken === 'NXS') {
         MULTIPLIER = 1e6;
+      } else if (baseToken === 'NXS') {
+        MULTIPLIER = 1e-6;
       } else {
         MULTIPLIER = 1;
       }
 
-      const topBid = (result[0]?.order.amount * MULTIPLIER) / bids[0]?.contract.amount;
+      const topBid = (result[0]?.contract.amount * MULTIPLIER) / bids[0]?.order.amount;
       setHighestBid(topBid || 'N/A');
     
     } catch (error) {
@@ -80,7 +79,7 @@ export const fetchLowestAsk = async (
         MULTIPLIER = 1;
       }
 
-      const bottomAsk = (result[0]?.contract.amount * MULTIPLIER) / asks[0]?.order.amount;
+      const bottomAsk = (result[0]?.order.amount * MULTIPLIER) / result[0]?.contract.amount;
       setLowestAsk( bottomAsk || 'N/A');
 
     } catch (error) {
