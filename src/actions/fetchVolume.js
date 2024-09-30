@@ -18,7 +18,8 @@ export const fetchVolume = async (
       const dataBids = await listMarket(
         pair, 
         'executed', 
-        '/timestamp,contract.amount,order.amount', 
+        '/timestamp,contract.amount,order.amount',
+        '', 
         'time', 
         'desc', 
         timeFilter, 
@@ -28,7 +29,8 @@ export const fetchVolume = async (
       const dataAsks = await listMarket(
         pair, 
         'executed', 
-        '/timestamp,contract.amount,order.amount', 
+        '/timestamp,contract.amount,order.amount',
+        '', 
         'time', 
         'desc', 
         timeFilter, 

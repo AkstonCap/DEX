@@ -19,6 +19,7 @@ export const fetchLastPrice = async (
         pair, 
         'executed',
         '/timestamp,type,order.amount,contract.amount',
+        '',
         'time', 
         'desc', 
         'all', 

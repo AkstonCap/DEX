@@ -19,6 +19,7 @@ export const fetchHighestBid = async (
         pair, 
         'bid',
         '', 
+        '',
         'price', 
         'desc', 
         'all', 
@@ -63,7 +64,8 @@ export const fetchLowestAsk = async (
       const result = await listMarket(
         pair, 
         'ask',
-        '/timestamp,market,contract.amount,contract.ticker,order.amount,order.ticker', 
+        '/timestamp,market,contract.amount,contract.ticker,order.amount,order.ticker',
+        '', 
         'price', 
         'asc', 
         'all', 
