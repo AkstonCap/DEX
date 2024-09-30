@@ -1,8 +1,6 @@
-import * as TYPE from './types';
-import { apiCall } from 'nexus-module';
 import { listMarket, DEFAULT_MARKET_PAIR } from './listMarket';
 
-const MULTIPLIER = 1e6;
+let MULTIPLIER = 1;
 
 export const fetchLastPrice = async (
     inputMarket = DEFAULT_MARKET_PAIR, 
