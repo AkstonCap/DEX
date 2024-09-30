@@ -14,7 +14,7 @@ export const fetchHighestBid = async (
     if (checkingMarket) return;
     try {
       setCheckingMarket(true);
-      
+
       const result = await listMarket(
         pair, 
         'bid',
@@ -63,7 +63,7 @@ export const fetchLowestAsk = async (
       const result = await listMarket(
         pair, 
         'ask',
-        '', 
+        '/timestamp,market,contract.amount,contract.ticker,order.amount,order.ticker', 
         'price', 
         'asc', 
         'all', 

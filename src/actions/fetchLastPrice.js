@@ -20,7 +20,7 @@ export const fetchLastPrice = async (
       const resultBid = await listMarket(
         pair, 
         'executed',
-        'timestamp,type,order.amount,contract.amount',
+        '/timestamp,type,order.amount,contract.amount',
         'time', 
         'desc', 
         'all', 
@@ -31,7 +31,7 @@ export const fetchLastPrice = async (
       const resultAsk = await listMarket(
         pair, 
         'executed',
-        'timestamp,type,order.amount,contract.amount',
+        '/timestamp,type,order.amount,contract.amount',
         'time', 
         'desc', 
         'all', 
