@@ -9,7 +9,9 @@ export const fetchLastPrice = async (
     checkingMarket, 
     setCheckingMarket, 
     setLastPrice, 
-    showErrorDialog
+    showErrorDialog,
+    orderToken,
+    baseToken
 ) => {
     if (checkingMarket) return;
     try {
