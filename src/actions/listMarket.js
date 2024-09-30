@@ -42,7 +42,7 @@ export const listMarket = async (
     }
 
     const resultInit = await apiCall(
-      'market/list/' + path + '/' + dataFilter, 
+      'market/list/' + path + dataFilter, 
       params, 
       filtering
     );

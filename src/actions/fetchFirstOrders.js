@@ -3,7 +3,7 @@ import { listMarket, DEFAULT_MARKET_PAIR } from './listMarket';
 let MULTIPLIER = 1;
 
 export const fetchHighestBid = async (
-  inputMarket = DEFAULT_MARKET_PAIR, 
+  pair = DEFAULT_MARKET_PAIR, 
   checkingMarket, 
   setCheckingMarket, 
   setHighestBid, 
@@ -14,7 +14,7 @@ export const fetchHighestBid = async (
     if (checkingMarket) return;
     try {
       setCheckingMarket(true);
-      const pair = inputMarket;
+      
       const result = await listMarket(
         pair, 
         'bid',
@@ -23,7 +23,7 @@ export const fetchHighestBid = async (
         'desc', 
         'all', 
         5,
-        'Bid'
+        'bid'
       );
       
       if (orderToken === 'NXS') {
