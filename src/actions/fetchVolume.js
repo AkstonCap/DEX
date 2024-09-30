@@ -7,7 +7,9 @@ export const fetchVolume = async (
   setOrderTokenVolume,
   setBaseTokenVolume, 
   showErrorDialog,
-  timeFilter = '1d'
+  timeFilter = '1d',
+  orderToken,
+  baseToken
 ) => {
     if (checkingMarket) return;
     try {
@@ -16,7 +18,7 @@ export const fetchVolume = async (
       const dataBids = await listMarket(
         pair, 
         'executed', 
-        '', 
+        '/timestamp,contract.amount,order.amount', 
         'time', 
         'desc', 
         timeFilter, 
@@ -26,7 +28,7 @@ export const fetchVolume = async (
       const dataAsks = await listMarket(
         pair, 
         'executed', 
-        '', 
+        '/timestamp,contract.amount,order.amount', 
         'time', 
         'desc', 
         timeFilter, 
@@ -35,6 +37,14 @@ export const fetchVolume = async (
       );
 
       //const data = [...dataInit.bids, ...dataInit.asks]; // Adjust this if data structure is different
+
+      if (orderToken === 'NXS') {
+        MULTIPLIER = 1e6;
+      } else if (baseToken === 'NXS') {
+        MULTIPLIER = 1e-6;
+      } else {
+        MULTIPLIER = 1;
+      }
 
       let orderTokenVolumeBids = 0;
       let baseTokenVolumeBids = 0;
