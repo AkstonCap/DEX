@@ -39,7 +39,7 @@ const DEFAULT_BASE_TOKEN = 'NXS';
 
 export default function Main() {
   const dispatch = useDispatch();
-  const marketPair = useSelector((state) => state.market.marketPair);
+  const marketPair = useSelector((state) => state.market.marketPair) || DEFAULT_MARKET_PAIR;
   
   /*
   const handleChange = useCallback((e) => {
