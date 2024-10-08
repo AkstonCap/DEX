@@ -72,7 +72,7 @@ export default function Main() {
 
   const handleRefresh = () => {
     const newOrderToken = orderTokenField || DEFAULT_ORDER_TOKEN;
-    const newBaseToken = baseTokenFIeld || DEFAULT_BASE_TOKEN;
+    const newBaseToken = baseTokenField || DEFAULT_BASE_TOKEN;
   
     setOrderToken(newOrderToken);
     setBaseToken(newBaseToken);
