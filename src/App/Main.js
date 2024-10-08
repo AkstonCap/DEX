@@ -14,7 +14,7 @@ import {
   showSuccessDialog,
 } from 'nexus-module';
 
-import { updateInputOrderToken, updateInputBaseToken } from 'actions/actionCreators';
+import { updateInputOrderToken, updateInputBaseToken, setMarketPair } from 'actions/actionCreators';
 import RefreshButton from './RefreshButton';
 import { viewMarket } from 'actions/viewMarket';
 import { fetchLastPrice } from 'actions/fetchLastPrice';
@@ -38,15 +38,10 @@ const DEFAULT_ORDER_TOKEN = 'DIST';
 const DEFAULT_BASE_TOKEN = 'NXS';
 
 export default function Main() {
-  const { 
-    inputBaseToken, 
-    inputOrderToken 
-  } = useSelector((state) => ({
-    inputBaseToken: state.ui.inputBaseToken,
-    inputOrderToken: state.ui.inputOrderToken
-  }));
-
   const dispatch = useDispatch();
+  const marketPair = useSelector((state) => state.market.marketPair);
+  
+  /*
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
   if (name === 'orderTokenField') {
@@ -55,7 +50,10 @@ export default function Main() {
     dispatch(updateInputBaseToken(value));
   }
   }, [dispatch]);
+  */
 
+  const [orderTokenField, setOrderTokenField] = useState(DEFAULT_ORDER_TOKEN);
+  const [baseTokenField, setBaseTokenField] = useState(DEFAULT_BASE_TOKEN);
   const [lastPrice, setLastPrice] = useState('N/A');
   const [highestBid, setHighestBid] = useState('N/A');
   const [lowestAsk, setLowestAsk] = useState('N/A');
@@ -64,7 +62,7 @@ export default function Main() {
   const [orderTokenVolume, setOrderTokenVolume] = useState('N/A');
   const [baseTokenVolume, setBaseTokenVolume] = useState('N/A');
   const [checkingMarket, setCheckingMarket] = useState(false);
-  const [marketPair, setMarketPairState] = useState(DEFAULT_MARKET_PAIR);
+  //const [marketPair, setMarketPair] = useState(DEFAULT_MARKET_PAIR);
   const [orderBook, setOrderBook] = useState([]);
   const [orderBookBids, setOrderBookBids] = useState([]);
   const [orderBookAsks, setOrderBookAsks] = useState([]);
@@ -72,15 +70,15 @@ export default function Main() {
   const [executedAsks, setExecutedAsks] = useState([]);
   const [executedOrders, setExecutedOrders] = useState([]);
 
-  const handleRefreshClick = () => {
-    let newOrderToken = inputOrderToken || DEFAULT_ORDER_TOKEN;
-    let newBaseToken = inputBaseToken || DEFAULT_BASE_TOKEN;
+  const handleRefresh = () => {
+    const newOrderToken = orderTokenField || DEFAULT_ORDER_TOKEN;
+    const newBaseToken = baseTokenFIeld || DEFAULT_BASE_TOKEN;
   
     setOrderToken(newOrderToken);
     setBaseToken(newBaseToken);
     
-    let newMarketPair = `${newOrderToken}/${newBaseToken}`;
-    setMarketPairState(newMarketPair);
+    const newMarketPair = `${newOrderToken}/${newBaseToken}`;
+    dispatch(setMarketPair(newMarketPair));
   };
 
   useEffect(() => {
@@ -136,21 +134,19 @@ export default function Main() {
       <div className="text-center">
         <ButtonContainer>
           <DemoTextField
-            name="orderTokenField"
-            value={inputOrderToken}
-            onChange={handleChange}
-            placeholder="Type order token here"
+            label="Order Token"
+            value={orderTokenField}
+            onChange={(e) => setOrderTokenField(e.target.value)}
           />
           /
           <DemoTextField
-            name="baseTokenField"
-            value={inputBaseToken}
-            onChange={handleChange}
-            placeholder="Type base token here"
+            label="Base Token"
+            value={baseTokenField}
+            onChange={(e) => setBaseTokenField(e.target.value)}
           />
           <RefreshButton onClick={
-            handleRefreshClick
-            } disabled={checkingMarket} />
+            handleRefresh
+            } />
         </ButtonContainer>
       </div>
 
