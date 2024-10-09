@@ -3,13 +3,14 @@ import { combineReducers } from 'redux';
 import { walletDataReducer } from 'nexus-module';
 
 import settings from './settings';
-import ui from './ui';
+import { ui, market } from './ui';
 
 export default function createReducer() {
   return function (state, action) {
     const baseReducer = combineReducers({
       settings,
       ui,
+      market,
       nexus: walletDataReducer,
     });
     const newState = baseReducer(state, action);

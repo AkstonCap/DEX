@@ -1,5 +1,5 @@
 // src/reducers/marketReducer.js
-import { SET_MARKET_PAIR } from '../actions/types';
+import { SET_MARKET_PAIR } from 'actions/types';
 
 const initialState = {
   marketPair: 'DIST/NXS',
