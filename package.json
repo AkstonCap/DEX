@@ -1,7 +1,7 @@
 {
-  "name": "testing_module",
+  "name": "dex_module",
   "version": "1.0.0",
-  "description": "Testing module",
+  "description": "DEX module",
   "devDependencies": {
     "@babel/core": "^7.18.9",
     "@babel/plugin-proposal-optional-chaining": "^7.18.9",

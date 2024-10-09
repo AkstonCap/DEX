@@ -1,7 +1,7 @@
 {
-  "name": "_dev_testing_module",
-  "displayName": "Testing module",
-  "description": "Testing module",
+  "name": "_dev_dex_module",
+  "displayName": "DEX module",
+  "description": "DEX module",
   "type": "app",
   "entry": "http://localhost:24011/dev.html",
   "icon": "dist/react.svg"

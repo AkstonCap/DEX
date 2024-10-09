@@ -1,9 +1,9 @@
 {
-  "name": "testing_module",
-  "displayName": "Testing module",
+  "name": "dex_module",
+  "displayName": "DEX module",
   "version": "1.0.0",
   "targetWalletVersion": "3.1.0",
-  "description": "Testing module",
+  "description": "DEX module",
   "type": "app",
   "entry": "dist/index.html",
   "icon": "dist/react.svg",
