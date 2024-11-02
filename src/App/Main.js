@@ -84,15 +84,15 @@ export default function Main() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        fetchLastPrice(marketPair, checkingMarket, 
+        await fetchLastPrice(marketPair, checkingMarket, 
           setCheckingMarket, setLastPrice, showErrorDialog, orderToken, baseToken);
-        fetchHighestBid(marketPair, setHighestBid, showErrorDialog, orderToken, baseToken);
-        fetchLowestAsk(marketPair, setLowestAsk, showErrorDialog, orderToken, baseToken);
-        fetchVolume(marketPair, checkingMarket, setCheckingMarket, 
+        await fetchHighestBid(marketPair, setHighestBid, showErrorDialog, orderToken, baseToken);
+        await fetchLowestAsk(marketPair, setLowestAsk, showErrorDialog, orderToken, baseToken);
+        await fetchVolume(marketPair, checkingMarket, setCheckingMarket, 
           setOrderTokenVolume, setBaseTokenVolume, showErrorDialog, '1y');
-        fetchOrderBook(marketPair, checkingMarket, setCheckingMarket, 
+        await fetchOrderBook(marketPair, checkingMarket, setCheckingMarket, 
           setOrderBook, setOrderBookBids, setOrderBookAsks, showErrorDialog);
-        fetchExecuted(marketPair, checkingMarket, setCheckingMarket, 
+        await fetchExecuted(marketPair, checkingMarket, setCheckingMarket, 
           setExecutedOrders, setExecutedBids, setExecutedAsks, showErrorDialog, '1y');
       } catch (error) {
         showErrorDialog({

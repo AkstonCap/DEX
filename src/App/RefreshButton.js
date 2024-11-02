@@ -19,7 +19,7 @@ export default function RefreshButton({ onClick, disabled }) {
   const handleClick = () => {
     setRefreshing(true);
     if (onClick) onClick();
-    dispatchEvent(setMarketPair('NEW_MARKET_PAIR'));
+    dispatch(setMarketPair('NEW_MARKET_PAIR'));
     setTimeout(() => {
       setRefreshing(false);
     }, 2000);

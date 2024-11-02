@@ -45,7 +45,7 @@ export const viewMarket = async (
       // Ensure result is an array before filtering
       const filteredResult = Array.isArray(result) ? result.filter((item) => { 
         const itemTime = new Date(item.timestamp).getTime();
-        return itemTime > (timeFilters[filter] || 0);
+        return itemTime > (timeFilters[timeFilter] || 0);
       }) : [];
 
       const sortFunctions = {

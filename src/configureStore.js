@@ -1,14 +1,17 @@
 import { createStore, compose, applyMiddleware } from 'redux';
 
-import createReducer from './reducers';
+import rootReducer from './reducers';
 import { storageMiddleware, stateMiddleware } from 'nexus-module';
 
 export default function configureStore() {
   //Middlewares will automatically save when the state as changed,
   //ie state.settings will be stored on disk and will save every time state.settings is changed.
   const middlewares = [
-    storageMiddleware(({ settings }) => ({ settings })), //Data saved to disk
-    stateMiddleware(({ ui }) => ({ ui })), //Data saved to session
+    //storageMiddleware(({ settings }) => ({ settings })), //Data saved to disk
+    stateMiddleware((state) => ({
+      inputValue: state.inputValue,
+      market: state.market
+     })), //Data saved to session
   ];
   const enhancers = [applyMiddleware(...middlewares)];
 
