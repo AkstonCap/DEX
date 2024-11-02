@@ -1,7 +1,7 @@
 import { combineReducers } from 'redux';
 
 import inputValueReducer from './inputValue';
-import marketReducer from './market';
+import marketReducer from './marketReducer';
 
 export default combineReducers({
   ui: inputValueReducer,

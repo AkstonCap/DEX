@@ -21,11 +21,11 @@ export default function configureStore() {
         })
       : compose;
 
-  const store = createStore(createReducer(), composeEnhancers(...enhancers));
+  const store = createStore(rootReducer, composeEnhancers(...enhancers));
 
   if (module.hot) {
     module.hot.accept('./reducers', () => {
-      store.replaceReducer(createReducer());
+      store.replaceReducer(rootReducer);
     });
   }
 
