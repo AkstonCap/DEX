@@ -10,7 +10,8 @@ export default function configureStore() {
     //storageMiddleware(({ settings }) => ({ settings })), //Data saved to disk
     stateMiddleware((state) => ({
       inputValue: state.inputValue,
-      market: state.market
+      market: state.market,
+      nexus: state.nexus,
      })), //Data saved to session
   ];
   const enhancers = [applyMiddleware(...middlewares)];
