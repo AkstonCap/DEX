@@ -1,15 +1,12 @@
 import * as TYPE from 'actions/types';
 
 const initialState = {
-  inputValue: '',
   inputBaseToken: '',
   inputOrderToken: '',
 };
 
 const inputValueReducer = (state = initialState, action) => {
   switch (action.type) {
-    case TYPE.UPDATE_INPUT:
-      return action.payload;
     case TYPE.UPDATE_INPUT_BASE_TOKEN:
       return {
         ...state,

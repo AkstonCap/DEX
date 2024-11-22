@@ -37,19 +37,23 @@ export const setLowestAsk = (ask) => ({
   payload: ask });
 
   export const setBaseTokenVolume = (volume) => ({ 
-    type: TYPE.SET_BASE_TOKEN_VOLUME, payload: volume 
+    type: TYPE.SET_BASE_TOKEN_VOLUME, 
+    payload: volume 
   });
   
   export const setOrderTokenVolume = (volume) => ({ 
-    type: TYPE.SET_ORDER_TOKEN_VOLUME, payload: volume 
+    type: TYPE.SET_ORDER_TOKEN_VOLUME, 
+    payload: volume 
   });
   
   export const setInputBaseToken = (token) => ({ 
-    type: TYPE.SET_INPUT_BASE_TOKEN, payload: token 
+    type: TYPE.SET_INPUT_BASE_TOKEN, 
+    payload: token 
   });
   
   export const setInputOrderToken = (token) => ({ 
-    type: TYPE.SET_INPUT_ORDER_TOKEN, payload: token 
+    type: TYPE.SET_INPUT_ORDER_TOKEN, 
+    payload: token 
   });
   
   export const setMarketPair = (marketPair) => ({
