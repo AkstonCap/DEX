@@ -14,7 +14,7 @@ import {
   showSuccessDialog,
 } from 'nexus-module';
 
-import { updateInputOrderToken, updateInputBaseToken, setMarketPair } from 'actions/actionCreators';
+import { updateInputOrderToken, updateInputBaseToken, setMarketPair, setBaseToken, setOrderToken } from 'actions/actionCreators';
 import RefreshButton from './RefreshButton';
 import { viewMarket } from 'actions/viewMarket';
 import { fetchLastPrice } from 'actions/fetchLastPrice';
@@ -40,6 +40,8 @@ const DEFAULT_BASE_TOKEN = 'NXS';
 export default function Main() {
   const dispatch = useDispatch();
   const marketPair = useSelector((state) => state.market.marketPair) || DEFAULT_MARKET_PAIR;
+  const orderToken = useSelector((state) => state.market.orderToken);
+  const baseToken = useSelector((state) => state.market.baseToken);
   
   /*
   const handleChange = useCallback((e) => {
@@ -57,8 +59,8 @@ export default function Main() {
   const [lastPrice, setLastPrice] = useState('N/A');
   const [highestBid, setHighestBid] = useState('N/A');
   const [lowestAsk, setLowestAsk] = useState('N/A');
-  const [baseToken, setBaseToken] = useState(DEFAULT_BASE_TOKEN);
-  const [orderToken, setOrderToken] = useState(DEFAULT_ORDER_TOKEN);
+  //const [baseToken, setBaseToken] = useState(DEFAULT_BASE_TOKEN);
+  //const [orderToken, setOrderToken] = useState(DEFAULT_ORDER_TOKEN);
   const [orderTokenVolume, setOrderTokenVolume] = useState('N/A');
   const [baseTokenVolume, setBaseTokenVolume] = useState('N/A');
   const [checkingMarket, setCheckingMarket] = useState(false);
@@ -74,8 +76,8 @@ export default function Main() {
     const newOrderToken = orderTokenField || DEFAULT_ORDER_TOKEN;
     const newBaseToken = baseTokenField || DEFAULT_BASE_TOKEN;
   
-    setOrderToken(newOrderToken);
-    setBaseToken(newBaseToken);
+    dispatch(setOrderToken(newOrderToken));
+    dispatch(setBaseToken(newBaseToken));
     
     const newMarketPair = `${newOrderToken}/${newBaseToken}`;
     dispatch(setMarketPair(newMarketPair));
@@ -103,7 +105,7 @@ export default function Main() {
     };
 
     fetchData();
-  }, [marketPair, orderToken, baseToken]);
+  }, [marketPair]);
 
   const renderTableRows = (data) => {
     return data.slice(0, 5).map((item, index) => (

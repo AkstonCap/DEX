@@ -70,4 +70,13 @@ export const setLowestAsk = (ask) => ({
     type: TYPE.SET_ORDER_BOOK_BIDS,
     payload: orderBookBids,
   });
-  
+
+export const setOrderToken = (token) => ({
+  type: TYPE.SET_ORDER_TOKEN,
+  payload: token,
+});
+
+export const setBaseToken = (token) => ({
+  type: TYPE.SET_BASE_TOKEN,
+  payload: token,
+});
