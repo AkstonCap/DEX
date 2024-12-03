@@ -1,7 +1,6 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { FieldSet, Button } from 'nexus-module';
-import { viewMarket } from 'actions/viewMarket';
 
 export default function Overview() {
   const dispatch = useDispatch();
@@ -60,20 +59,6 @@ export default function Overview() {
   return (
     <div className="DEX">
       <FieldSet legend={`${marketPair}`}>
-        <p>
-          <Button
-            onClick={() => dispatch(viewMarket(marketPair, 'executed', 10, 'time', '1y'))}
-            disabled={checkingMarket}
-          >
-            View {marketPair} transactions
-          </Button>{' '}
-          <Button
-            onClick={() => dispatch(viewMarket(marketPair, 'order', 10, 'time', '1y'))}
-            disabled={checkingMarket}
-          >
-            View {marketPair} orders
-          </Button>
-        </p>
         <div style={gridStyle}>
           <p>
             Last Price: {lastPrice} {baseToken}
