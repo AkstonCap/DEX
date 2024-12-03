@@ -2,14 +2,12 @@ import { INITIALIZE } from 'nexus-module';
 import { combineReducers } from 'redux';
 import { walletDataReducer } from 'nexus-module';
 
-import inputValueReducer from './inputValue';
-import marketReducer from './marketReducer';
+import ui from './ui';
 
 export default function rootReducer() {
   return function (state, action) {
     const baseReducer = combineReducers({
-      ui: inputValueReducer,
-      market: marketReducer,
+      ui,
       nexus: walletDataReducer,
     });
     const newState = baseReducer(state, action);
