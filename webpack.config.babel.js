@@ -2,8 +2,7 @@ import path from 'path';
 import { webpackAliases } from 'nexus-module';
 
 export default {
-  //mode: process.env.NODE_ENV,
-  mode: 'development',
+  mode: process.env.NODE_ENV,
   devtool: 'source-map',
   entry: './src/index.js',
   output: {
@@ -28,5 +27,4 @@ export default {
   resolve: {
     alias: webpackAliases,
   },
-  plugins: [], // Ensure plugins is an array
 };
