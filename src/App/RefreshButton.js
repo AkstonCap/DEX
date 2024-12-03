@@ -2,7 +2,7 @@ import { keyframes } from '@emotion/react';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Icon, Tooltip, Button } from 'nexus-module';
-import { setMarketPair } from 'actions/actionCreators';
+//import { setMarketPair } from 'actions/actionCreators';
 
 const spin = keyframes`
   from {
@@ -13,18 +13,8 @@ const spin = keyframes`
   }
 `;
 
-export default function RefreshButton({ onClick, disabled }) {
-  const [refreshing, setRefreshing] = useState(false);
-
-  const handleClick = () => {
-    setRefreshing(true);
-    if (onClick) onClick();
-    dispatch(setMarketPair('NEW_MARKET_PAIR'));
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-  };
-
+export default function RefreshButton() {
+  //const [refreshing, setRefreshing] = useRefreshMarket();
   return (
     <Tooltip.Trigger tooltip="Refresh">
       <Button square skin="plain" onClick={handleClick} disabled={refreshing || disabled}>
