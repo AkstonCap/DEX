@@ -1,13 +1,13 @@
 {
   "name": "dex_module",
   "displayName": "DEX module",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "targetWalletVersion": "3.1.0",
   "description": "DEX module",
   "type": "app",
   "entry": "dist/index.html",
   "icon": "dist/react.svg",
-  "files": ["dist/index.html", "dist/react.svg", "dist/syncing.svg", "dist/js/app.js"],
+  "files": ["dist/index.html", "dist/react.svg", "dist/js/app.js"],
   "author": {
     "name": "AkstonCap",
     "email": "arne_skeide@hotmail.com"
