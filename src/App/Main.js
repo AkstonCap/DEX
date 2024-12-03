@@ -14,7 +14,7 @@ import {
   showSuccessDialog,
 } from 'nexus-module';
 
-import { updateInputOrderToken, updateInputBaseToken, setMarketPair, setBaseToken, setOrderToken } from 'actions/actionCreators';
+import { setMarketPair, setBaseToken, setOrderToken } from 'actions/actionCreators';
 import RefreshButton from './RefreshButton';
 import { viewMarket } from 'actions/viewMarket';
 import { fetchLastPrice } from 'actions/fetchLastPrice';
@@ -54,8 +54,8 @@ export default function Main() {
   }, [dispatch]);
   */
 
-  const [orderTokenField, setOrderTokenField] = useState(DEFAULT_ORDER_TOKEN);
-  const [baseTokenField, setBaseTokenField] = useState(DEFAULT_BASE_TOKEN);
+  const [orderTokenField, setOrderTokenField] = useState(orderToken || DEFAULT_ORDER_TOKEN);
+  const [baseTokenField, setBaseTokenField] = useState(baseToken || DEFAULT_BASE_TOKEN);
   const [lastPrice, setLastPrice] = useState('N/A');
   const [highestBid, setHighestBid] = useState('N/A');
   const [lowestAsk, setLowestAsk] = useState('N/A');
@@ -106,6 +106,14 @@ export default function Main() {
 
     fetchData();
   }, [marketPair]);
+
+  useEffect(() => {
+    setOrderTokenField(orderToken);
+  }, [orderToken]);
+
+  useEffect(() => {
+    setBaseTokenField(baseToken);
+  }, [baseToken]);
 
   const renderTableRows = (data) => {
     return data.slice(0, 5).map((item, index) => (
