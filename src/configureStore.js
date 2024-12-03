@@ -1,6 +1,6 @@
 import { createStore, compose, applyMiddleware } from 'redux';
 
-import rootReducer from './reducers';
+import createReducer from './reducers';
 import { storageMiddleware, stateMiddleware } from 'nexus-module';
 
 export default function configureStore() {
@@ -8,11 +8,7 @@ export default function configureStore() {
   //ie state.settings will be stored on disk and will save every time state.settings is changed.
   const middlewares = [
     //storageMiddleware(({ settings }) => ({ settings })), //Data saved to disk
-    stateMiddleware((state) => ({
-      inputValue: state.inputValue,
-      market: state.market,
-      nexus: state.nexus,
-     })), //Data saved to session
+    stateMiddleware(({ ui }) => ({ ui })), //Data saved to session
   ];
   const enhancers = [applyMiddleware(...middlewares)];
 
@@ -25,11 +21,11 @@ export default function configureStore() {
         })
       : compose;
 
-  const store = createStore(rootReducer, composeEnhancers(...enhancers));
+  const store = createStore(createReducer(), composeEnhancers(...enhancers));
 
   if (module.hot) {
     module.hot.accept('./reducers', () => {
-      store.replaceReducer(rootReducer);
+      store.replaceReducer(createReducer());
     });
   }
 
