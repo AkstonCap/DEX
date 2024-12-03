@@ -56,17 +56,6 @@ export default function Main() {
   const orderToken = useSelector((state) => state.market.orderToken);
   const baseToken = useSelector((state) => state.market.baseToken);
   const activeTab = useSelector((state) => state.ui.activeTab);
-  
-  /*
-  const handleChange = useCallback((e) => {
-    const { name, value } = e.target;
-  if (name === 'orderTokenField') {
-    dispatch(updateInputOrderToken(value));
-  } else if (name === 'baseTokenField') {
-    dispatch(updateInputBaseToken(value));
-  }
-  }, [dispatch]);
-  */
 
   const [orderTokenField, setOrderTokenField] = useState(orderToken || DEFAULT_ORDER_TOKEN);
   const [baseTokenField, setBaseTokenField] = useState(baseToken || DEFAULT_BASE_TOKEN);
@@ -132,45 +121,6 @@ export default function Main() {
   useEffect(() => {
     setBaseTokenField(baseToken);
   }, [baseToken]);
-
-  const renderTableRows = (data) => {
-    return data.slice(0, 5).map((item, index) => (
-      <tr key={index}>
-        <td>{(item.order.amount / item.contract.amount)}</td>
-        <td>{item.order.amount}</td>
-        <td>{item.contract.amount}</td>
-      </tr>
-    ));
-  };
-
-  const gridStyle = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    gridTemplateRows: 'repeat(2, auto)',
-    gap: '10px' // Adjust the gap as needed
-  };
-
-  const gridStyleOrderbook = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gridTemplateRows: 'repeat(2, auto)',
-    gap: '10px' // Adjust the gap as needed
-  };
-
-  function renderExecutedOrders() {
-    const combinedOrders = [...executedBids, ...executedAsks];
-  
-    combinedOrders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-  
-    return combinedOrders.map((order, index) => (
-      <tr key={index} style={{ color: order.type === 'bid' ? 'green' : 'red' }}>
-        <td>{order.timestamp}</td>
-        <td>{order.price}</td>
-        <td>{order.orderTokenAmount}</td>
-        <td>{order.baseTokenAmount}</td>
-      </tr>
-    ));
-  }
 
   return (
     <Panel title={"DEX Module"} icon={{ url: 'react.svg', id: 'icon' }}>

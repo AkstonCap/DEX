@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { FieldSet, Button } from 'nexus-module';
 import { viewMarket } from 'actions/viewMarket';
 
-function Overview() {
+export default function Overview() {
   const dispatch = useDispatch();
 
   const marketPair = useSelector((state) => state.market.marketPair);
@@ -139,5 +139,3 @@ function Overview() {
     </div>
   );
 }
-
-export default Overview;
