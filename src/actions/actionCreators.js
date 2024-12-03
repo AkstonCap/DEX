@@ -30,13 +30,13 @@ export const setOrderTokenVolume = (volume) => ({
   payload: volume,
 });
 
-export const setInputBaseToken = (token) => ({
-  type: TYPE.SET_INPUT_BASE_TOKEN,
+export const setBaseTokenField = (token) => ({
+  type: TYPE.SET_BASE_TOKEN_FIELD,
   payload: token,
 });
 
-export const setInputOrderToken = (token) => ({
-  type: TYPE.SET_INPUT_ORDER_TOKEN,
+export const setOrderTokenField = (token) => ({
+  type: TYPE.SET_ORDER_TOKEN_FIELD,
   payload: token,
 });
 

@@ -7,12 +7,12 @@ const initialState = {
 
 const inputValueReducer = (state = initialState, action) => {
   switch (action.type) {
-    case TYPE.UPDATE_INPUT_BASE_TOKEN:
+    case TYPE.SET_BASE_TOKEN_FIELD:
       return {
         ...state,
         inputBaseToken: action.payload,
       };
-    case TYPE.UPDATE_INPUT_ORDER_TOKEN:
+    case TYPE.SET_ORDER_TOKEN_FIELD:
       return {
         ...state,
         inputOrderToken: action.payload,
