@@ -1,5 +1,4 @@
 import path from 'path';
-import webpack from 'webpack';
 import baseConfig from './webpack.config.babel';
 
 const port = 24011;
@@ -19,12 +18,7 @@ const config = {
       directory: path.join(process.cwd(), 'dist'),
       watch: true,
     },
-    hot: true, // Enable hot module replacement
   },
-  plugins: [
-    ...(baseConfig.plugins || []), // Ensure plugins is an array
-    new webpack.HotModuleReplacementPlugin(), // Add hot module replacement plugin
-  ],
 };
 
 export default config;
