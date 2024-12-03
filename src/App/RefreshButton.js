@@ -17,7 +17,7 @@ export default function RefreshButton() {
   //const [refreshing, setRefreshing] = useRefreshMarket();
   return (
     <Tooltip.Trigger tooltip="Refresh">
-      <Button square skin="plain" onClick={handleClick} disabled={refreshing || disabled}>
+      <Button square skin="plain" onClick={handleClick}>
         <Icon
           icon={{ url: 'syncing.svg', id: 'icon' }}
           style={
