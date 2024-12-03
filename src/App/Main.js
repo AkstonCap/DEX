@@ -29,7 +29,6 @@ import {
 
 import RefreshButton from './RefreshButton';
 
-import { viewMarket } from 'actions/viewMarket';
 import { fetchLastPrice } from 'actions/fetchLastPrice';
 import { fetchHighestBid, fetchLowestAsk } from 'actions/fetchFirstOrders';
 import { fetchVolume } from 'actions/fetchVolume';
@@ -62,12 +61,9 @@ export default function Main() {
   const [lastPrice, setLastPrice] = useState('N/A');
   const [highestBid, setHighestBid] = useState('N/A');
   const [lowestAsk, setLowestAsk] = useState('N/A');
-  //const [baseToken, setBaseToken] = useState(DEFAULT_BASE_TOKEN);
-  //const [orderToken, setOrderToken] = useState(DEFAULT_ORDER_TOKEN);
   const [orderTokenVolume, setOrderTokenVolume] = useState('N/A');
   const [baseTokenVolume, setBaseTokenVolume] = useState('N/A');
   const [checkingMarket, setCheckingMarket] = useState(false);
-  //const [marketPair, setMarketPair] = useState(DEFAULT_MARKET_PAIR);
   const [orderBook, setOrderBook] = useState([]);
   const [orderBookBids, setOrderBookBids] = useState([]);
   const [orderBookAsks, setOrderBookAsks] = useState([]);
@@ -173,8 +169,6 @@ export default function Main() {
       <div>{activeTab === 'Trade' && <Trade />}</div>
       <div>{activeTab === 'Chart' && <Chart />}</div>
       <div>{activeTab === 'MarketDepth' && <MarketDepth />}</div>
-
-      
     </Panel>
   );
 }
