@@ -14,7 +14,11 @@ import {
   showSuccessDialog,
 } from 'nexus-module';
 
-import { setMarketPair, setBaseToken, setOrderToken } from 'actions/actionCreators';
+import { 
+  setMarketPair, 
+  setBaseToken, 
+  setOrderToken
+ } from 'actions/actionCreators';
 import RefreshButton from './RefreshButton';
 import { viewMarket } from 'actions/viewMarket';
 import { fetchLastPrice } from 'actions/fetchLastPrice';
