@@ -3,6 +3,7 @@ import styled from '@emotion/styled';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   Panel,
+  HorizontalTab,
   Switch,
   Tooltip,
   TextField,
@@ -14,12 +15,20 @@ import {
   showSuccessDialog,
 } from 'nexus-module';
 
+import Overview from './overview';
+import Trade from './trade';
+import Chart from './chart';
+import MarketDepth from './marketDepth';
+
 import { 
   setMarketPair, 
   setBaseToken, 
-  setOrderToken
+  setOrderToken,
+  switchTab,
  } from 'actions/actionCreators';
+
 import RefreshButton from './RefreshButton';
+
 import { viewMarket } from 'actions/viewMarket';
 import { fetchLastPrice } from 'actions/fetchLastPrice';
 import { fetchHighestBid, fetchLowestAsk } from 'actions/fetchFirstOrders';
@@ -46,6 +55,7 @@ export default function Main() {
   const marketPair = useSelector((state) => state.market.marketPair) || DEFAULT_MARKET_PAIR;
   const orderToken = useSelector((state) => state.market.orderToken);
   const baseToken = useSelector((state) => state.market.baseToken);
+  const activeTab = useSelector((state) => state.ui.activeTab);
   
   /*
   const handleChange = useCallback((e) => {
@@ -85,6 +95,10 @@ export default function Main() {
     
     const newMarketPair = `${newOrderToken}/${newBaseToken}`;
     dispatch(setMarketPair(newMarketPair));
+  };
+
+  const handleSwitchTab = (tab) => {
+    dispatch(switchTab(tab));
   };
 
   useEffect(() => {
@@ -178,88 +192,39 @@ export default function Main() {
             } />
         </ButtonContainer>
       </div>
+      <HorizontalTab.TabBar>
+        <HorizontalTab
+          active={activeTab === 'Overview'}
+          onClick={() => handleSwitchTab('Overview')}
+        >
+          Overview
+        </HorizontalTab>
+        <HorizontalTab
+          active={activeTab === 'Trade'}
+          onClick={() => handleSwitchTab('Trade')}
+        >
+          Trade (tba)
+        </HorizontalTab>
+        <HorizontalTab
+          active={activeTab === 'Chart'}
+          onClick={() => handleSwitchTab('Chart')}
+        >
+          Chart (tba)
+        </HorizontalTab>
+        <HorizontalTab
+          active={activeTab === 'MarketDepth'}
+          onClick={() => handleSwitchTab('MarketDepth')}
+        >
+          Market Depth (tba)
+        </HorizontalTab>
+      </HorizontalTab.TabBar>
+      
+      <div>{activeTab === 'Overview' && <Overview />}</div>
+      <div>{activeTab === 'Trade' && <Trade />}</div>
+      <div>{activeTab === 'Chart' && <Chart />}</div>
+      <div>{activeTab === 'MarketDepth' && <MarketDepth />}</div>
 
-      <div className="DEX">
-        <FieldSet legend={`${marketPair}`}>
-          <p>
-            <Button onClick={() => viewMarket(
-              marketPair, 'executed', 10, 'time', '1y', setCheckingMarket
-              )} disabled={checkingMarket}>
-              View {marketPair} transactions
-            </Button>{' '}
-            
-            <Button onClick={() => viewMarket(
-              marketPair, 'order', 10, 'time', '1y', setCheckingMarket
-              )} disabled={checkingMarket}>
-              View {marketPair} orders
-            </Button>{' '}
-          </p>
-          <div style={gridStyle}>
-            <p>Last Price: {lastPrice} {baseToken}</p>
-            
-            <p>Bid: {highestBid} {baseToken}</p>
-            
-            <p>Ask: {lowestAsk} {baseToken}</p>
-            
-            <p>1yr Volume: {baseTokenVolume} {baseToken}</p>
-           
-            <p>1yr Volume: {orderTokenVolume} {orderToken}</p>
-           
-          </div>
-          <div style={gridStyleOrderbook}>
-            {/* Left Column */}
-            <div>
-              {/* Asks Table */}
-              <p>Asks</p>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Price</th>
-                    <th>Order Token Amount</th>
-                    <th>Base Token Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {renderTableRows(orderBookAsks)}
-                </tbody>
-              </table>
-
-              {/* Bids Table */}
-              <p>Bids</p>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Price</th>
-                    <th>Order Token Amount</th>
-                    <th>Base Token Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {renderTableRows(orderBookBids)}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Right Column */}
-            <div>
-              <p>Executed Orders</p>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Timestamp</th>
-                    <th>Price</th>
-                    <th>Order Token Amount</th>
-                    <th>Base Token Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {renderExecutedOrders()}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </FieldSet>
-      </div>
+      
     </Panel>
   );
 }
