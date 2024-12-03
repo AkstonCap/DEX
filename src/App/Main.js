@@ -51,9 +51,9 @@ const DEFAULT_BASE_TOKEN = 'NXS';
 
 export default function Main() {
   const dispatch = useDispatch();
-  const marketPair = useSelector((state) => state.market.marketPair) || DEFAULT_MARKET_PAIR;
-  const orderToken = useSelector((state) => state.market.orderToken);
-  const baseToken = useSelector((state) => state.market.baseToken);
+  const marketPair = useSelector((state) => state.ui.market.marketPair) || DEFAULT_MARKET_PAIR;
+  const orderToken = useSelector((state) => state.ui.market.orderToken);
+  const baseToken = useSelector((state) => state.ui.market.baseToken);
   const activeTab = useSelector((state) => state.ui.activeTab);
 
   const [orderTokenField, setOrderTokenField] = useState(orderToken || DEFAULT_ORDER_TOKEN);

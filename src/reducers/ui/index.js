@@ -1,11 +1,11 @@
 import { combineReducers } from 'redux';
 
 import activeTab from './activeTab';
-import inputValueReducer from './inputValue';
-import marketReducer from './marketReducer';
+import inputValue from './inputValue';
+import market from './market';
 
 export default combineReducers({
   activeTab,
-  inputValue: inputValueReducer,
-  market: marketReducer,
+  inputValue,
+  market,
 });

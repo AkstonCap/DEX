@@ -5,19 +5,19 @@ import { FieldSet, Button } from 'nexus-module';
 export default function Overview() {
   const dispatch = useDispatch();
 
-  const marketPair = useSelector((state) => state.market.marketPair);
-  const lastPrice = useSelector((state) => state.market.lastPrice);
-  const baseToken = useSelector((state) => state.market.baseToken);
-  const highestBid = useSelector((state) => state.market.highestBid);
-  const lowestAsk = useSelector((state) => state.market.lowestAsk);
-  const baseTokenVolume = useSelector((state) => state.market.baseTokenVolume);
-  const orderTokenVolume = useSelector((state) => state.market.orderTokenVolume);
-  const orderToken = useSelector((state) => state.market.orderToken);
-  const checkingMarket = useSelector((state) => state.market.checkingMarket);
-  const orderBookAsks = useSelector((state) => state.market.orderBookAsks);
-  const orderBookBids = useSelector((state) => state.market.orderBookBids);
-  const executedBids = useSelector((state) => state.market.executedBids);
-  const executedAsks = useSelector((state) => state.market.executedAsks);
+  const marketPair = useSelector((state) => state.ui.market.marketPair);
+  const lastPrice = useSelector((state) => state.ui.market.lastPrice);
+  const baseToken = useSelector((state) => state.ui.market.baseToken);
+  const highestBid = useSelector((state) => state.ui.market.highestBid);
+  const lowestAsk = useSelector((state) => state.ui.market.lowestAsk);
+  const baseTokenVolume = useSelector((state) => state.ui.market.baseTokenVolume);
+  const orderTokenVolume = useSelector((state) => state.ui.market.orderTokenVolume);
+  const orderToken = useSelector((state) => state.ui.market.orderToken);
+  const checkingMarket = useSelector((state) => state.ui.market.checkingMarket);
+  const orderBookAsks = useSelector((state) => state.ui.market.orderBookAsks);
+  const orderBookBids = useSelector((state) => state.ui.market.orderBookBids);
+  const executedBids = useSelector((state) => state.ui.market.executedBids);
+  const executedAsks = useSelector((state) => state.ui.market.executedAsks);
 
   const gridStyle = {
     display: 'grid',
