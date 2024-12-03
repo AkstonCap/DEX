@@ -131,6 +131,21 @@ export default function Main() {
     gap: '10px' // Adjust the gap as needed
   };
 
+  function renderExecutedOrders() {
+    const combinedOrders = [...executedBids, ...executedAsks];
+  
+    combinedOrders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  
+    return combinedOrders.map((order, index) => (
+      <tr key={index} style={{ color: order.type === 'bid' ? 'green' : 'red' }}>
+        <td>{order.timestamp}</td>
+        <td>{order.price}</td>
+        <td>{order.orderTokenAmount}</td>
+        <td>{order.baseTokenAmount}</td>
+      </tr>
+    ));
+  }
+
   return (
     <Panel title={"DEX Module"} icon={{ url: 'react.svg', id: 'icon' }}>
       <div className="text-center">
@@ -180,14 +195,31 @@ export default function Main() {
            
           </div>
           <div style={gridStyleOrderbook}>
+            {/* Left Column */}
             <div>
+              {/* Asks Table */}
+              <p>Asks</p>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Price</th>
+                    <th>Order Token Amount</th>
+                    <th>Base Token Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {renderTableRows(orderBookAsks)}
+                </tbody>
+              </table>
+
+              {/* Bids Table */}
               <p>Bids</p>
               <table>
                 <thead>
                   <tr>
                     <th>Price</th>
-                    <th>Order token amount</th>
-                    <th>Base token amount</th>
+                    <th>Order Token Amount</th>
+                    <th>Base Token Amount</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -195,48 +227,21 @@ export default function Main() {
                 </tbody>
               </table>
             </div>
+
+            {/* Right Column */}
             <div>
-              <p>Asks</p>
+              <p>Executed Orders</p>
               <table>
                 <thead>
                   <tr>
+                    <th>Timestamp</th>
                     <th>Price</th>
-                    <th>Order token amount</th>
-                    <th>Base token amount</th>
+                    <th>Order Token Amount</th>
+                    <th>Base Token Amount</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {renderTableRows(orderBookAsks)}
-                </tbody>
-              </table>
-            </div>
-            <div>
-              <p>Executed Bids</p>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Price</th>
-                    <th>Order token amount</th>
-                    <th>Base token amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {renderTableRows(executedBids)}
-                </tbody>
-              </table>
-            </div>
-            <div>
-              <p>Executed Asks</p>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Price</th>
-                    <th>Order token amount</th>
-                    <th>Base token amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {renderTableRows(executedAsks)}
+                  {renderExecutedOrders()}
                 </tbody>
               </table>
             </div>
