@@ -13,11 +13,12 @@ export default function Overview() {
   const baseTokenVolume = useSelector((state) => state.ui.market.baseTokenVolume);
   const orderTokenVolume = useSelector((state) => state.ui.market.orderTokenVolume);
   const orderToken = useSelector((state) => state.ui.market.orderToken);
-  const checkingMarket = useSelector((state) => state.ui.market.checkingMarket);
   const orderBookAsks = useSelector((state) => state.ui.market.orderBookAsks);
   const orderBookBids = useSelector((state) => state.ui.market.orderBookBids);
+  const orderBook = useSelector((state) => state.ui.market.orderBook);
   const executedBids = useSelector((state) => state.ui.market.executedBids);
   const executedAsks = useSelector((state) => state.ui.market.executedAsks);
+  const executedOrders = useSelector((state) => state.ui.market.executedOrders);
 
   const gridStyle = {
     display: 'grid',
@@ -34,6 +35,9 @@ export default function Overview() {
   };
 
   const renderTableRows = (data) => {
+    if (!Array.isArray(data)) {
+      return null; 
+    }
     return data.slice(0, 5).map((item, index) => (
       <tr key={index}>
         <td>{item.price}</td>
@@ -44,11 +48,10 @@ export default function Overview() {
   };
 
   const renderExecutedOrders = () => {
-    const combinedOrders = [...executedBids, ...executedAsks];
-    combinedOrders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    return combinedOrders.map((order, index) => (
+    executedOrders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    return executedOrders.map((order, index) => (
       <tr key={index}>
-        <td>{order.timestamp}</td>
+        <td>{new Date(order.timestamp).toLocaleString()}</td>
         <td>{order.price}</td>
         <td>{order.orderTokenAmount}</td>
         <td>{order.baseTokenAmount}</td>

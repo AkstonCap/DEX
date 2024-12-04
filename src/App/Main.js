@@ -45,84 +45,38 @@ const ButtonContainer = styled.div`
   gap: 10px; /* Adjust the gap as needed */
 `;
 
-const DEFAULT_MARKET_PAIR = 'DIST/NXS';
-const DEFAULT_ORDER_TOKEN = 'DIST';
-const DEFAULT_BASE_TOKEN = 'NXS';
+export const DEFAULT_MARKET_PAIR = 'DIST/NXS';
+export const DEFAULT_ORDER_TOKEN = 'DIST';
+export const DEFAULT_BASE_TOKEN = 'NXS';
 
 export default function Main() {
   const dispatch = useDispatch();
-  // const marketPair = useSelector((state) => state.ui.market.marketPair) || DEFAULT_MARKET_PAIR;
+  const marketPair = useSelector((state) => state.ui.market.marketPair) || DEFAULT_MARKET_PAIR;
   const orderToken = useSelector((state) => state.ui.market.orderToken);
   const baseToken = useSelector((state) => state.ui.market.baseToken);
   const activeTab = useSelector((state) => state.ui.activeTab);
 
   const [orderTokenField, setOrderTokenField] = useState(orderToken || DEFAULT_ORDER_TOKEN);
   const [baseTokenField, setBaseTokenField] = useState(baseToken || DEFAULT_BASE_TOKEN);
-  /*
-  const [lastPrice, setLastPrice] = useState('N/A');
-  const [highestBid, setHighestBid] = useState('N/A');
-  const [lowestAsk, setLowestAsk] = useState('N/A');
-  const [orderTokenVolume, setOrderTokenVolume] = useState('N/A');
-  const [baseTokenVolume, setBaseTokenVolume] = useState('N/A');
-  const [checkingMarket, setCheckingMarket] = useState(false);
-  const [orderBook, setOrderBook] = useState([]);
-  const [orderBookBids, setOrderBookBids] = useState([]);
-  const [orderBookAsks, setOrderBookAsks] = useState([]);
-  const [executedBids, setExecutedBids] = useState([]);
-  const [executedAsks, setExecutedAsks] = useState([]);
-  const [executedOrders, setExecutedOrders] = useState([]);
-  */
 
-  /*
-  const handleRefresh = () => {
-    const newOrderToken = orderTokenField || DEFAULT_ORDER_TOKEN;
-    const newBaseToken = baseTokenField || DEFAULT_BASE_TOKEN;
+  useEffect(() => {
+    const fetchData = () => {
+      dispatch(fetchMarketData());
+    };
   
-    dispatch(setOrderToken(newOrderToken));
-    dispatch(setBaseToken(newBaseToken));
-    
-    const newMarketPair = `${newOrderToken}/${newBaseToken}`;
-    dispatch(setMarketPair(newMarketPair));
-  };
-*/
+    // Fetch data immediately
+    fetchData();
+  
+    // Set interval to fetch data every 60 seconds
+    const intervalId = setInterval(fetchData, 60000);
+  
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId);
+  }, [dispatch]);
 
   const handleSwitchTab = (tab) => {
     dispatch(switchTab(tab));
   };
-
-  /*
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        await fetchLastPrice(marketPair, checkingMarket, 
-          setCheckingMarket, setLastPrice, showErrorDialog, orderToken, baseToken);
-        await fetchHighestBid(marketPair, setHighestBid, showErrorDialog, orderToken, baseToken);
-        await fetchLowestAsk(marketPair, setLowestAsk, showErrorDialog, orderToken, baseToken);
-        await fetchVolume(marketPair, checkingMarket, setCheckingMarket, 
-          setOrderTokenVolume, setBaseTokenVolume, showErrorDialog, '1y');
-        await fetchOrderBook(marketPair, checkingMarket, setCheckingMarket, 
-          setOrderBook, setOrderBookBids, setOrderBookAsks, showErrorDialog);
-        await fetchExecuted(marketPair, checkingMarket, setCheckingMarket, 
-          setExecutedOrders, setExecutedBids, setExecutedAsks, showErrorDialog, '1y');
-      } catch (error) {
-        showErrorDialog({
-          message: 'Cannot fetch data',
-          note: error?.message || 'Unknown error',
-        });
-      }
-    };
-
-    fetchData();
-  }, [marketPair]);
-
-  useEffect(() => {
-    setOrderTokenField(orderToken);
-  }, [orderToken]);
-
-  useEffect(() => {
-    setBaseTokenField(baseToken);
-  }, [baseToken]);
-*/
 
   return (
     <Panel 

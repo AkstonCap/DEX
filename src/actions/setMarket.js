@@ -1,4 +1,3 @@
-import * as TYPE from './types';
 import { setBaseToken, setMarketPair, setOrderToken } from './actionCreators';
 
 export const setMarket = () => {
