@@ -47,9 +47,8 @@ export default function Main() {
   const orderToken = useSelector((state) => state.ui.market.orderToken);
   const baseToken = useSelector((state) => state.ui.market.baseToken);
   const activeTab = useSelector((state) => state.ui.activeTab);
-
-  const [orderTokenField, setOrderTokenField] = useState(orderToken || DEFAULT_ORDER_TOKEN);
-  const [baseTokenField, setBaseTokenField] = useState(baseToken || DEFAULT_BASE_TOKEN);
+  const orderTokenField = useSelector((state) => state.ui.orderTokenField);
+  const baseTokenField = useSelector((state) => state.ui.baseTokenField);
 
   useEffect(() => {
     const fetchData = () => {
@@ -81,12 +80,14 @@ export default function Main() {
             label="Order Token"
             value={orderTokenField}
             onChange={(e) => setOrderTokenField(e.target.value)}
+            placeholder={orderToken}
           />
           /
           <DemoTextField
             label="Base Token"
             value={baseTokenField}
             onChange={(e) => setBaseTokenField(e.target.value)}
+            placeholder={baseToken}
           />
           controls={<RefreshButton />}
         </ButtonContainer>
