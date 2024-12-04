@@ -1,9 +1,11 @@
 import * as TYPE from './types';
 
+/*
 export const updateInput = (inputValue) => ({
   type: TYPE.UPDATE_INPUT,
   payload: inputValue,
 });
+*/
 
 export const setLastPrice = (lastPrice) => ({
   type: TYPE.SET_LAST_PRICE,
@@ -73,4 +75,19 @@ export const setBaseToken = (baseToken) => ({
 export const switchTab = (tab) => ({
   type: TYPE.SWITCH_TAB,
   payload: tab,
+});
+
+export const setExecutedOrders = (executedOrders) => ({
+  type: TYPE.SET_EXECUTED_ORDERS,
+  payload: executedOrders,
+});
+
+export const setExecutedBids = (executedBids) => ({
+  type: TYPE.SET_EXECUTED_BIDS,
+  payload: executedBids,
+});
+
+export const setExecutedAsks = (executedAsks) => ({
+  type: TYPE.SET_EXECUTED_ASKS,
+  payload: executedAsks,
 });

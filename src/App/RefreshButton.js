@@ -2,7 +2,8 @@ import { keyframes } from '@emotion/react';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Icon, Tooltip, Button } from 'nexus-module';
-//import { setMarketPair } from 'actions/actionCreators';
+import { setMarket } from 'actions/setMarket';
+import { fetchMarketData } from 'actions/fetchMarketData';
 
 const spin = keyframes`
   from {
@@ -13,11 +14,30 @@ const spin = keyframes`
   }
 `;
 
+function useRefreshMarket() {
+  const [refreshing, setRefreshing] = useState(false);
+  const dispatch = useDispatch();
+  const refreshMarket = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      await Promise.allSettled([
+        dispatch(setMarket()),
+        dispatch(fetchMarketData())
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  return [refreshing, refreshMarket];
+}
+
 export default function RefreshButton() {
-  //const [refreshing, setRefreshing] = useRefreshMarket();
+  const [refreshing, refreshMarket] = useRefreshMarket();
   return (
     <Tooltip.Trigger tooltip="Refresh">
-      <Button square skin="plain" onClick={handleClick}>
+      <Button square skin="plain" onClick={refreshMarket}>
         <Icon
           icon={{ url: 'syncing.svg', id: 'icon' }}
           style={

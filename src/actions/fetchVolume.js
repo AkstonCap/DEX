@@ -1,19 +1,17 @@
 import { listMarket, DEFAULT_MARKET_PAIR } from './listMarket';
+import { 
+  setBaseTokenVolume,
+  setOrderTokenVolume,
+} from './actionCreators';
+import { showErrorDialog } from 'nexus-module';
 
 export const fetchVolume = async (
   inputMarket = DEFAULT_MARKET_PAIR, 
-  checkingMarket, 
-  setCheckingMarket, 
-  setOrderTokenVolume,
-  setBaseTokenVolume, 
-  showErrorDialog,
   timeFilter = '1d',
   orderToken,
   baseToken
 ) => {
-    if (checkingMarket) return;
     try {
-      setCheckingMarket(true);
       const pair = inputMarket;
       const dataBids = await listMarket(
         pair, 
@@ -72,7 +70,5 @@ export const fetchVolume = async (
         message: 'Cannot get volume',
         note: error?.message || 'Unknown error',
       });
-    } finally {
-      setCheckingMarket(false);
     }
 };

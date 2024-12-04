@@ -51,13 +51,14 @@ const DEFAULT_BASE_TOKEN = 'NXS';
 
 export default function Main() {
   const dispatch = useDispatch();
-  const marketPair = useSelector((state) => state.ui.market.marketPair) || DEFAULT_MARKET_PAIR;
+  // const marketPair = useSelector((state) => state.ui.market.marketPair) || DEFAULT_MARKET_PAIR;
   const orderToken = useSelector((state) => state.ui.market.orderToken);
   const baseToken = useSelector((state) => state.ui.market.baseToken);
   const activeTab = useSelector((state) => state.ui.activeTab);
 
   const [orderTokenField, setOrderTokenField] = useState(orderToken || DEFAULT_ORDER_TOKEN);
   const [baseTokenField, setBaseTokenField] = useState(baseToken || DEFAULT_BASE_TOKEN);
+  /*
   const [lastPrice, setLastPrice] = useState('N/A');
   const [highestBid, setHighestBid] = useState('N/A');
   const [lowestAsk, setLowestAsk] = useState('N/A');
@@ -70,7 +71,9 @@ export default function Main() {
   const [executedBids, setExecutedBids] = useState([]);
   const [executedAsks, setExecutedAsks] = useState([]);
   const [executedOrders, setExecutedOrders] = useState([]);
+  */
 
+  /*
   const handleRefresh = () => {
     const newOrderToken = orderTokenField || DEFAULT_ORDER_TOKEN;
     const newBaseToken = baseTokenField || DEFAULT_BASE_TOKEN;
@@ -81,11 +84,13 @@ export default function Main() {
     const newMarketPair = `${newOrderToken}/${newBaseToken}`;
     dispatch(setMarketPair(newMarketPair));
   };
+*/
 
   const handleSwitchTab = (tab) => {
     dispatch(switchTab(tab));
   };
 
+  /*
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -117,9 +122,13 @@ export default function Main() {
   useEffect(() => {
     setBaseTokenField(baseToken);
   }, [baseToken]);
+*/
 
   return (
-    <Panel title={"DEX Module"} icon={{ url: 'react.svg', id: 'icon' }}>
+    <Panel 
+      controls={<RefreshButton />}
+      title={"DEX Module"} 
+      icon={{ url: 'react.svg', id: 'icon' }}>
       <div className="text-center">
         <ButtonContainer>
           <DemoTextField
@@ -133,9 +142,7 @@ export default function Main() {
             value={baseTokenField}
             onChange={(e) => setBaseTokenField(e.target.value)}
           />
-          <RefreshButton onClick={
-            handleRefresh
-            } />
+          controls={<RefreshButton />}
         </ButtonContainer>
       </div>
       <HorizontalTab.TabBar>

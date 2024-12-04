@@ -1,19 +1,15 @@
 import { listMarket, DEFAULT_MARKET_PAIR } from './listMarket';
+import { setLastPrice } from './actionCreators';
+import { showErrorDialog } from 'nexus-module';
 
 let MULTIPLIER = 1;
 
 export const fetchLastPrice = async (
     inputMarket = DEFAULT_MARKET_PAIR, 
-    checkingMarket, 
-    setCheckingMarket, 
-    setLastPrice, 
-    showErrorDialog,
     orderToken,
     baseToken
 ) => {
-    if (checkingMarket) return;
     try {
-      setCheckingMarket(true);
       const pair = inputMarket;
       const resultBid = await listMarket(
         pair, 
@@ -31,6 +27,7 @@ export const fetchLastPrice = async (
         pair, 
         'executed',
         '/timestamp,type,order.amount,contract.amount',
+        '',
         'time', 
         'desc', 
         'all', 
@@ -60,7 +57,5 @@ export const fetchLastPrice = async (
         message: 'Cannot get last price',
         note: error?.message || 'Unknown error',
       });
-    } finally {
-      setCheckingMarket(false);
     }
 };

@@ -1,17 +1,15 @@
 import { listMarket, DEFAULT_MARKET_PAIR } from 'actions/listMarket';
+import { 
+    setOrderBook,
+    setOrderBookAsks,
+    setOrderBookBids,
+} from './actionCreators';
+import { showErrorDialog } from 'nexus-module';
 
 export const fetchOrderBook = async (
-    inputMarket = DEFAULT_MARKET_PAIR, 
-    checkingMarket, 
-    setCheckingMarket, 
-    setOrderBook,
-    setOrderBookBids,
-    setOrderBookAsks, 
-    showErrorDialog
+    inputMarket = DEFAULT_MARKET_PAIR
     ) => {
-        if (checkingMarket) return;
         try {
-        setCheckingMarket(true);
         const pair = inputMarket;
 
         const orders = await listMarket(
@@ -55,7 +53,5 @@ export const fetchOrderBook = async (
             message: 'Cannot get order book',
             note: error?.message || 'Unknown error',
         });
-        } finally {
-        setCheckingMarket(false);
         }
     }
