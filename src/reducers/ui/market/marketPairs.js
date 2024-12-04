@@ -9,14 +9,23 @@ const initialState = {
 export default (state = initialState, action) => {
   switch (action.type) {
     case TYPE.SET_MARKET_PAIR:
-      return action.payload;
-      
+      return {
+        ...state,
+        marketPair: action.payload,
+      };
+
     case TYPE.SET_ORDER_TOKEN:
-      return action.payload;
+      return {
+        ...state,
+        orderToken: action.payload,
+      };
 
     case TYPE.SET_BASE_TOKEN:
-      return action.payload;
-    
+      return {
+        ...state,
+        baseToken: action.payload,
+      };
+
     default:
       return state;
   }

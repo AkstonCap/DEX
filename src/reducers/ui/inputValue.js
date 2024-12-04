@@ -8,11 +8,17 @@ const initialState = {
 export default (state = initialState, action) => {
   switch (action.type) {
     case TYPE.SET_BASE_TOKEN_FIELD:
-      return action.payload;
-      
+      return {
+        ...state,
+        baseTokenField: action.payload,
+      };
+
     case TYPE.SET_ORDER_TOKEN_FIELD:
-      return action.payload;
-      
+      return {
+        ...state,
+        orderTokenField: action.payload,
+      };
+
     default:
       return state;
   }

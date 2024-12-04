@@ -12,22 +12,40 @@ const initialState = {
 export default (state = initialState, action) => {
     switch (action.type) {
         case TYPE.SET_EXECUTED_BIDS:
-            return action.payload;
+            return {
+                ...state,
+                executedBids: action.payload,
+            };
 
         case TYPE.SET_EXECUTED_ASKS:
-            return action.payload;
+            return {
+                ...state,
+                executedAsks: action.payload,
+            };
 
         case TYPE.SET_EXECUTED_ORDERS:
-            return action.payload;
+            return {
+                ...state,
+                executedOrders: action.payload,
+            };
 
         case TYPE.SET_LAST_PRICE:
-            return action.payload;
+            return {
+                ...state,
+                lastPrice: action.payload,
+            };
 
         case TYPE.SET_BASE_TOKEN_VOLUME:
-            return action.payload;
+            return {
+                ...state,
+                baseTokenVolume: action.payload,
+            };
 
         case TYPE.SET_ORDER_TOKEN_VOLUME:
-            return action.payload;
+            return {
+                ...state,
+                orderTokenVolume: action.payload,
+            };
     
         default:
             return state;
