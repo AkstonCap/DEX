@@ -9,7 +9,7 @@ import { showErrorDialog } from 'nexus-module';
 export const fetchOrderBook = async (
     inputMarket = DEFAULT_MARKET_PAIR
     ) => {
-        try {
+    try {
         const pair = inputMarket;
 
         const orders = await listMarket(
@@ -53,5 +53,5 @@ export const fetchOrderBook = async (
             message: 'Cannot get order book',
             note: error?.message || 'Unknown error',
         });
-        }
     }
+}
