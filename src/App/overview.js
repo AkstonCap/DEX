@@ -20,6 +20,8 @@ export default function Overview() {
   const executedAsks = useSelector((state) => state.ui.market.executedAsks);
   const executedOrders = useSelector((state) => state.ui.market.executedOrders);
 
+  console.log('executedOrders:', executedOrders);
+
   const gridStyle = {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
@@ -48,8 +50,19 @@ export default function Overview() {
   };
 
   const renderExecutedOrders = () => {
-    executedOrders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    return executedOrders.map((order, index) => (
+    if (!Array.isArray(executedOrders) || executedOrders.length === 0 ) {
+      return (
+        <tr>
+          <td colSpan="4">No executed orders</td>
+        </tr>
+      ); 
+    }
+
+    const sortedExecutedOrders= [...executedOrders].sort(
+      (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+    );
+    
+    return sortedExecutedOrders.map((order, index) => (
       <tr key={index}>
         <td>{new Date(order.timestamp).toLocaleString()}</td>
         <td>{order.price}</td>

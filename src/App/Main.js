@@ -21,19 +21,11 @@ import Chart from './chart';
 import MarketDepth from './marketDepth';
 
 import { 
-  setMarketPair, 
-  setBaseToken, 
-  setOrderToken,
   switchTab,
  } from 'actions/actionCreators';
 
 import RefreshButton from './RefreshButton';
-
-import { fetchLastPrice } from 'actions/fetchLastPrice';
-import { fetchHighestBid, fetchLowestAsk } from 'actions/fetchFirstOrders';
-import { fetchVolume } from 'actions/fetchVolume';
-import { fetchOrderBook } from 'actions/fetchOrderBook';
-import { fetchExecuted } from 'actions/fetchExecuted';
+import { fetchMarketData } from 'actions/fetchMarketData';
 
 const DemoTextField = styled(TextField)({
   maxWidth: 200,
