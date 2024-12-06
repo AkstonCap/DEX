@@ -14,7 +14,7 @@ export const fetchLastPrice = async (
       const resultBid = await listMarket(
         pair, 
         'executed',
-        '/timestamp,type,order.amount,contract.amount',
+        '/timestamp,type,order.amount,contract.amount,price',
         '',
         'time', 
         'desc', 
@@ -26,7 +26,7 @@ export const fetchLastPrice = async (
       const resultAsk = await listMarket(
         pair, 
         'executed',
-        '/timestamp,type,order.amount,contract.amount',
+        '/timestamp,type,order.amount,contract.amount,price',
         '',
         'time', 
         'desc', 
@@ -43,19 +43,23 @@ export const fetchLastPrice = async (
         MULTIPLIER = 1;
       }
 
-      let result;
+      let result; 
       if (resultBid[0].timestamp > resultAsk[0].timestamp) {
         result = (resultBid[0].contract.amount * MULTIPLIER) / resultBid[0].order.amount;
+        //result = resultBid[0].price;
       } else {
         result = (resultAsk[0].order.amount * MULTIPLIER) / resultAsk[0].contract.amount;
+        //result = resultAsk[0].price;
       }
 
-      setLastPrice(result);
+      //setLastPrice(result);
+      return result;
     
     } catch (error) {
       showErrorDialog({
         message: 'Cannot get last price',
         note: error?.message || 'Unknown error',
       });
+      return null;
     }
 };

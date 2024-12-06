@@ -15,10 +15,10 @@ export const fetchMarketData = () => async (dispatch, getState) => {
   const baseToken = state.ui.market.baseToken;
 
   try {
-    await dispatch(fetchLastPrice(marketPair, orderToken, baseToken));
+    //await dispatch(fetchLastPrice(marketPair, orderToken, baseToken));
     await dispatch(fetchHighestBid(marketPair, orderToken, baseToken));
     await dispatch(fetchLowestAsk(marketPair, orderToken, baseToken));
-    await dispatch(fetchVolume(marketPair, '1y'));
+    //await dispatch(fetchVolume(marketPair, '1y'));
     await dispatch(fetchOrderBook(marketPair));
     await dispatch(fetchExecuted(marketPair, '1y'));
   } catch (error) {

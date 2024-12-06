@@ -1,4 +1,4 @@
-import { listMarket, DEFAULT_MARKET_PAIR } from './listMarket';
+import { listMarket } from './listMarket';
 import { 
   setBaseTokenVolume,
   setOrderTokenVolume,
@@ -62,13 +62,20 @@ export const fetchVolume = async (
       const orderTokenVolume = orderTokenVolumeBids + orderTokenVolumeAsks;
       const baseTokenVolume = baseTokenVolumeBids + baseTokenVolumeAsks;
 
-      setOrderTokenVolume(orderTokenVolume);
-      setBaseTokenVolume(baseTokenVolume);
-
+      //setOrderTokenVolume(orderTokenVolume);
+      //setBaseTokenVolume(baseTokenVolume);
+      return {
+        orderTokenVolume,
+        baseTokenVolume,
+      };
     } catch (error) {
       showErrorDialog({
         message: 'Cannot get volume',
         note: error?.message || 'Unknown error',
       });
+      return {
+        orderTokenVolume: 0,
+        baseTokenVolume: 0,
+      };
     }
 };
