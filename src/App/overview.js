@@ -9,9 +9,23 @@ export default function Overview() {
   const baseToken = useSelector((state) => state.ui.market.baseToken);
   const orderToken = useSelector((state) => state.ui.market.orderToken);
 
+  const orderBookAsks = useSelector((state) => state.ui.market.orderBookAsks);
+  const orderBookBids = useSelector((state) => state.ui.market.orderBookBids);
+  const orderBook = useSelector((state) => state.ui.market.orderBook);
+  const executedBids = useSelector((state) => state.ui.market.executedBids);
+  const executedAsks = useSelector((state) => state.ui.market.executedAsks);
+  const executedOrders = useSelector((state) => state.ui.market.executedOrders);  
+
   useEffect(() => {
-    const { baseTokenVolume, orderTokenVolume } = fetchVolume(marketPair, '1y');
-    const { price } = fetchLastPrice(marketPair, orderToken, baseToken);
+    const { baseTokenVolume, orderTokenVolume } = await fetchVolume(
+      marketPair, 
+      '1y',
+      orderToken,
+      baseToken
+    );
+    const lastPrice = executedOrders[0]?.price || 'N/A';
+    const highestBid = orderBookBids[0]?.price || 'N/A';
+    const lowestAsk = orderBookAsks[0]?.price || 'N/A';
   
     // Set interval to fetch data every 60 seconds
     const intervalId = setInterval(fetchData, 60000);
@@ -19,16 +33,6 @@ export default function Overview() {
     // Cleanup interval on unmount
     return () => clearInterval(intervalId);
   }, [dispatch]);
-
-  const highestBid = useSelector((state) => state.ui.market.highestBid);
-  const lowestAsk = useSelector((state) => state.ui.market.lowestAsk);
-  
-  const orderBookAsks = useSelector((state) => state.ui.market.orderBookAsks);
-  const orderBookBids = useSelector((state) => state.ui.market.orderBookBids);
-  const orderBook = useSelector((state) => state.ui.market.orderBook);
-  const executedBids = useSelector((state) => state.ui.market.executedBids);
-  const executedAsks = useSelector((state) => state.ui.market.executedAsks);
-  const executedOrders = useSelector((state) => state.ui.market.executedOrders);  
 
   const gridStyle = {
     display: 'grid',

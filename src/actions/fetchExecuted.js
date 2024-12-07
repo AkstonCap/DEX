@@ -1,4 +1,4 @@
-import { listMarket, DEFAULT_MARKET_PAIR } from './listMarket';
+import { listMarket } from './listMarket';
 import { 
   setExecutedOrders,
   setExecutedBids,
@@ -15,6 +15,7 @@ export const fetchExecuted = async (
       const data = await listMarket(
         pair, 
         'executed',
+        '',
         '', 
         'time', 
         'desc', 

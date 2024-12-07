@@ -4,10 +4,6 @@ const initialState = {
     executedBids: [],
     executedAsks: [],
     executedOrders: [],
-    /*lastPrice: 'N/A',
-    baseTokenVolume: 'N/A',
-    orderTokenVolume: 'N/A',
-    */
 };
 
 export default (state = initialState, action) => {
@@ -29,26 +25,6 @@ export default (state = initialState, action) => {
                 ...state,
                 executedOrders: action.payload,
             };
-
-            /*
-        case TYPE.SET_LAST_PRICE:
-            return {
-                ...state,
-                lastPrice: action.payload,
-            };
-
-        case TYPE.SET_BASE_TOKEN_VOLUME:
-            return {
-                ...state,
-                baseTokenVolume: action.payload,
-            };
-
-        case TYPE.SET_ORDER_TOKEN_VOLUME:
-            return {
-                ...state,
-                orderTokenVolume: action.payload,
-            };
-*/
             
         default:
             return state;

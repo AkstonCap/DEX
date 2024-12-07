@@ -1,8 +1,8 @@
 import * as TYPE from 'actions/types';
 
 const initialState = {
-  baseTokenField: '',
-  orderTokenField: '',
+  baseTokenField: 'NXS',
+  orderTokenField: 'DIST',
 };
 
 export default (state = initialState, action) => {

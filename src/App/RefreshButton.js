@@ -14,15 +14,16 @@ const spin = keyframes`
   }
 `;
 
-function useRefreshMarket() {
+function useRefreshMarket(orderTokenField, baseTokenField) {
   const [refreshing, setRefreshing] = useState(false);
   const dispatch = useDispatch();
+  
   const refreshMarket = async () => {
     if (refreshing) return;
     setRefreshing(true);
     try {
       await Promise.allSettled([
-        dispatch(setMarket()),
+        dispatch(setMarket(orderTokenField, baseTokenField)),
         dispatch(fetchMarketData())
       ]);
     } finally {
@@ -33,8 +34,9 @@ function useRefreshMarket() {
   return [refreshing, refreshMarket];
 }
 
-export default function RefreshButton() {
-  const [refreshing, refreshMarket] = useRefreshMarket();
+export default function RefreshButton({ orderTokenField, baseTokenField }) {
+  const [refreshing, refreshMarket] = useRefreshMarket(orderTokenField, baseTokenField);
+  
   return (
     <Tooltip.Trigger tooltip="Refresh">
       <Button square skin="plain" onClick={refreshMarket}>

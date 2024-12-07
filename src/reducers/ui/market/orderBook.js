@@ -4,8 +4,6 @@ const initialState = {
   orderBookAsks: [],
   orderBookBids: [],
   orderBook: [],
-  highestBid: 'N/A',
-  lowestAsk: 'N/A',
 };
 
 export default (state = initialState, action) => {
@@ -24,16 +22,6 @@ export default (state = initialState, action) => {
       return {
         ...state,
         orderBook: action.payload,
-      };
-    case TYPE.SET_HIGHEST_BID:
-      return {
-        ...state,
-        highestBid: action.payload,
-      };
-    case TYPE.SET_LOWEST_ASK:
-      return {
-        ...state,
-        lowestAsk: action.payload,
       };
     default:
       return state;

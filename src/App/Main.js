@@ -47,8 +47,10 @@ export default function Main() {
   const orderToken = useSelector((state) => state.ui.market.orderToken);
   const baseToken = useSelector((state) => state.ui.market.baseToken);
   const activeTab = useSelector((state) => state.ui.activeTab);
-  const orderTokenField = useSelector((state) => state.ui.orderTokenField);
-  const baseTokenField = useSelector((state) => state.ui.baseTokenField);
+  //const orderTokenField = useSelector((state) => state.ui.orderTokenField);
+  //const baseTokenField = useSelector((state) => state.ui.baseTokenField);
+  const [orderTokenField, setOrderTokenField] = useState(orderToken);
+  const [baseTokenField, setBaseTokenField] = useState(baseToken);
 
   useEffect(() => {
     const fetchData = () => {
@@ -71,7 +73,7 @@ export default function Main() {
 
   return (
     <Panel 
-      controls={<RefreshButton />}
+      controls={<RefreshButton orderTokenField={orderTokenField} baseTokenField={baseTokenField} />}
       title={"DEX Module"} 
       icon={{ url: 'react.svg', id: 'icon' }}>
       <div className="text-center">
@@ -89,7 +91,6 @@ export default function Main() {
             onChange={(e) => setBaseTokenField(e.target.value)}
             placeholder={baseToken}
           />
-          controls={<RefreshButton />}
         </ButtonContainer>
       </div>
       <HorizontalTab.TabBar>

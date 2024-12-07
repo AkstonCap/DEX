@@ -1,8 +1,6 @@
 import { setBaseToken, setMarketPair, setOrderToken } from './actionCreators';
 
-export const setMarket = () => {
-    const newOrderToken = useSelector((state) => state.ui.inputValue.orderTokenField);
-    const newBaseToken = useSelector((state) => state.ui.inputValue.baseTokenField);
+export const setMarket = (newOrderToken, newBaseToken) => {
     setBaseToken(newBaseToken);
     setOrderToken(newOrderToken);
     const concatenatedMarket = `${newOrderToken}/${newBaseToken}`;

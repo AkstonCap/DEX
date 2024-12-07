@@ -1,4 +1,4 @@
-import { listMarket, DEFAULT_MARKET_PAIR } from 'actions/listMarket';
+import { listMarket } from 'actions/listMarket';
 import { 
     setOrderBook,
     setOrderBookAsks,
@@ -15,8 +15,9 @@ export const fetchOrderBook = async (
         const orders = await listMarket(
             pair, 
             'order', 
+            '',
             '', 
-            'time', 
+            'price', 
             'desc', 
             'all', 
             0,
@@ -27,6 +28,7 @@ export const fetchOrderBook = async (
         const bids = await listMarket(
             pair, 
             'bids', 
+            '',
             '', 
             'price', 
             'desc', 
@@ -40,6 +42,7 @@ export const fetchOrderBook = async (
             pair, 
             'asks', 
             '', 
+            '',
             'price', 
             'asc', 
             'all', 

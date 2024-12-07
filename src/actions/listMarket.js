@@ -71,11 +71,13 @@ export const listMarket = async (
     const sortFunctions = {
       'time': (a, b) => new Date(b.timestamp) - new Date(a.timestamp),
       'price': (a, b) => (b.contract.amount / b.order.amount) - (a.contract.amount / a.order.amount),
+      // 'price': (a, b) => b.price - a.price,
       'volumeBase': (a, b) => b.contract.amount - a.contract.amount,
       'volumeOrder': (a, b) => b.order.amount - a.order.amount
     };
     if (asc_desc === 'asc') {
       sortFunctions.price = (a, b) => (a.contract.amount / a.order.amount) - (b.contract.amount / b.order.amount);
+      // sortFunctions.price = (a, b) => a.price - b.price;
       sortFunctions.time = (a, b) => new Date(a.timestamp) - new Date(b.timestamp);
       sortFunctions.volumeBase = (a, b) => a.contract.amount - b.contract.amount;
       sortFunctions.volumeOrder = (a, b) => a.order.amount - b.order.amount;
