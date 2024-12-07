@@ -43,14 +43,21 @@ export const DEFAULT_BASE_TOKEN = 'NXS';
 
 export default function Main() {
   const dispatch = useDispatch();
-  const marketPair = useSelector((state) => state.ui.market.marketPair) || DEFAULT_MARKET_PAIR;
-  const orderToken = useSelector((state) => state.ui.market.orderToken);
-  const baseToken = useSelector((state) => state.ui.market.baseToken);
+  const marketPair = useSelector((state) => state.marketPair) || DEFAULT_MARKET_PAIR;
+  const orderToken = useSelector((state) => state.orderToken);
+  const baseToken = useSelector((state) => state.baseToken);
   const activeTab = useSelector((state) => state.ui.activeTab);
-  //const orderTokenField = useSelector((state) => state.ui.orderTokenField);
-  //const baseTokenField = useSelector((state) => state.ui.baseTokenField);
-  const [orderTokenField, setOrderTokenField] = useState(orderToken);
-  const [baseTokenField, setBaseTokenField] = useState(baseToken);
+  const [inputPair, setInputPair] = useState({
+    orderTokenInput: orderToken,
+    baseTokenInput: baseToken,
+  });
+
+  function handleTokenInputChange(e) {
+    setInputPair({
+      ...inputPair,
+      [e.target.name]: e.target.value,
+    });
+  }
 
   useEffect(() => {
     const fetchData = () => {
@@ -80,15 +87,17 @@ export default function Main() {
         <ButtonContainer>
           <DemoTextField
             label="Order Token"
-            value={orderTokenField}
-            onChange={(e) => setOrderTokenField(e.target.value)}
+            name="orderTokenInput"
+            value={inputPair.orderTokenInput}
+            onChange={handleTokenInputChange}
             placeholder={orderToken}
           />
           /
           <DemoTextField
             label="Base Token"
-            value={baseTokenField}
-            onChange={(e) => setBaseTokenField(e.target.value)}
+            name="baseTokenInput"
+            value={inputPair.baseTokenInput}
+            onChange={handleTokenInputChange}
             placeholder={baseToken}
           />
         </ButtonContainer>

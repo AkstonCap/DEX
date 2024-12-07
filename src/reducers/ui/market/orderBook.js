@@ -1,9 +1,9 @@
 import * as TYPE from 'actions/types';
 
 const initialState = {
-  orderBookAsks: [],
-  orderBookBids: [],
-  orderBook: [],
+  orderBookAsks: [0],
+  orderBookBids: [0],
+  orderBook: [0],
 };
 
 export default (state = initialState, action) => {

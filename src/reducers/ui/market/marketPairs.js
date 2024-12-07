@@ -11,19 +11,9 @@ export default (state = initialState, action) => {
     case TYPE.SET_MARKET_PAIR:
       return {
         ...state,
-        marketPair: action.payload,
-      };
-
-    case TYPE.SET_ORDER_TOKEN:
-      return {
-        ...state,
-        orderToken: action.payload,
-      };
-
-    case TYPE.SET_BASE_TOKEN:
-      return {
-        ...state,
-        baseToken: action.payload,
+        marketPair: action.payload.marketPair,
+        orderToken: action.payload.orderToken,
+        baseToken: action.payload.baseToken,
       };
 
     default:
