@@ -65,7 +65,7 @@ export default function Main() {
   
     // Cleanup interval on unmount
     return () => clearInterval(intervalId);
-  }, [dispatch]);
+  }, [dispatch, marketPair]);
 
   const handleSwitchTab = (tab) => {
     dispatch(switchTab(tab));

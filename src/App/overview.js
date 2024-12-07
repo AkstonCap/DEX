@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { FieldSet, Button } from 'nexus-module';
+import { FieldSet } from 'nexus-module';
+import { fetchVolumeData } from 'actions/fetchVolumeData';
 
 export default function Overview() {
   const dispatch = useDispatch();
@@ -11,28 +12,41 @@ export default function Overview() {
 
   const orderBookAsks = useSelector((state) => state.ui.market.orderBookAsks);
   const orderBookBids = useSelector((state) => state.ui.market.orderBookBids);
-  const orderBook = useSelector((state) => state.ui.market.orderBook);
-  const executedBids = useSelector((state) => state.ui.market.executedBids);
-  const executedAsks = useSelector((state) => state.ui.market.executedAsks);
-  const executedOrders = useSelector((state) => state.ui.market.executedOrders);  
+  const executedOrders = useSelector((state) => state.ui.market.executedOrders);
+
+  // Declare state variables
+  const [baseTokenVolume, setBaseTokenVolume] = useState(null);
+  const [orderTokenVolume, setOrderTokenVolume] = useState(null);
+  const [lastPrice, setLastPrice] = useState(null);
+  const [highestBid, setHighestBid] = useState(null);
+  const [lowestAsk, setLowestAsk] = useState(null);
 
   useEffect(() => {
-    const { baseTokenVolume, orderTokenVolume } = await fetchVolume(
-      marketPair, 
-      '1y',
-      orderToken,
-      baseToken
-    );
-    const lastPrice = executedOrders[0]?.price || 'N/A';
-    const highestBid = orderBookBids[0]?.price || 'N/A';
-    const lowestAsk = orderBookAsks[0]?.price || 'N/A';
-  
-    // Set interval to fetch data every 60 seconds
-    const intervalId = setInterval(fetchData, 60000);
-  
+    const updateData = () => {
+      if (executedOrders && executedOrders.length > 0) {
+        const volumeData = fetchVolumeData(orderToken, baseToken, executedOrders);
+        setBaseTokenVolume(volumeData.baseTokenVolume);
+        setOrderTokenVolume(volumeData.orderTokenVolume);
+        setLastPrice(executedOrders[0]?.price || null);
+      }
+
+      setHighestBid(orderBookBids[0]?.price || null);
+      setLowestAsk(orderBookAsks[0]?.price || null);
+    };
+
+    updateData();
+
+    // Set interval to update data every 60 seconds
+    const intervalId = setInterval(updateData, 60000);
+
     // Cleanup interval on unmount
     return () => clearInterval(intervalId);
-  }, [dispatch]);
+  }, []);
+
+  useEffect(() => {
+    // Update data when market pair changes and when new executed orders and order book are fetched
+    updateData();
+  }, [marketPair, executedOrders, orderBook]);
 
   const gridStyle = {
     display: 'grid',
@@ -50,36 +64,36 @@ export default function Overview() {
 
   const renderTableRows = (data) => {
     if (!Array.isArray(data)) {
-      return null; 
+      return null;
     }
     return data.slice(0, 5).map((item, index) => (
       <tr key={index}>
         <td>{item.price}</td>
-        <td>{item.orderTokenAmount}</td>
-        <td>{item.baseTokenAmount}</td>
+        <td>{item.order.amount}</td>
+        <td>{item.contract.amount}</td>
       </tr>
     ));
   };
 
   const renderExecutedOrders = () => {
-    if (!Array.isArray(executedOrders) || executedOrders.length === 0 ) {
+    if (!Array.isArray(executedOrders) || executedOrders.length === 0) {
       return (
         <tr>
           <td colSpan="4">No executed orders</td>
         </tr>
-      ); 
+      );
     }
 
-    const sortedExecutedOrders= [...executedOrders].sort(
+    const sortedExecutedOrders = [...executedOrders].sort(
       (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
     );
-    
+
     return sortedExecutedOrders.map((order, index) => (
       <tr key={index}>
         <td>{new Date(order.timestamp).toLocaleString()}</td>
         <td>{order.price}</td>
-        <td>{order.orderTokenAmount}</td>
-        <td>{order.baseTokenAmount}</td>
+        <td>{order.order.amount}</td>
+        <td>{order.contract.amount}</td>
       </tr>
     ));
   };
@@ -89,7 +103,7 @@ export default function Overview() {
       <FieldSet legend={`${marketPair}`}>
         <div style={gridStyle}>
           <p>
-            Last Price: {lastPrice} {baseToken}
+            Last Price: {lastPrice !== null ? `${lastPrice} ${baseToken}` : 'N/A'}
           </p>
           <p>
             Bid: {highestBid} {baseToken}

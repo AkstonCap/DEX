@@ -1,8 +1,5 @@
 import { listMarket } from './listMarket';
-import { 
-  setBaseTokenVolume,
-  setOrderTokenVolume,
-} from './actionCreators';
+//import { setBaseTokenVolume,setOrderTokenVolume } from './actionCreators';
 import { showErrorDialog } from 'nexus-module';
 
 export const fetchVolume = async (

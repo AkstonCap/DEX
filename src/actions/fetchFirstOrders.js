@@ -1,5 +1,5 @@
-import { listMarket, DEFAULT_MARKET_PAIR } from './listMarket';
-import { setHighestBid, setLowestAsk } from './actionCreators';
+import { listMarket } from './listMarket';
+//import { setHighestBid, setLowestAsk } from './actionCreators';
 import { showErrorDialog } from 'nexus-module';
 
 let MULTIPLIER = 1;
@@ -31,7 +31,8 @@ export const fetchHighestBid = async (
       }
 
       const topBid = (result[0]?.contract.amount * MULTIPLIER) / result[0]?.order.amount;
-      setHighestBid(topBid || 'N/A');
+      return topBid;
+      //setHighestBid(topBid || 'N/A');
     
     } catch (error) {
       showErrorDialog({
@@ -69,7 +70,8 @@ export const fetchLowestAsk = async (
       }
 
       const bottomAsk = (result[0]?.order.amount * MULTIPLIER) / result[0]?.contract.amount;
-      setLowestAsk( bottomAsk || 'N/A');
+      //setLowestAsk( bottomAsk || 'N/A');
+      return bottomAsk;
 
     } catch (error) {
       showErrorDialog({
