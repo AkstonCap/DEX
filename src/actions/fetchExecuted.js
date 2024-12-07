@@ -1,8 +1,6 @@
 import { listMarket } from './listMarket';
 import { 
   setExecutedOrders,
-  setExecutedBids,
-  setExecutedAsks,
 } from './actionCreators';
 import { showErrorDialog } from 'nexus-module';
 
@@ -26,9 +24,7 @@ export const fetchExecuted = async (
 
       //const data = [...dataInit.bids, ...dataInit.asks]; // Adjust this if data structure is different
 
-      setExecutedOrders([...data.bids, ...data.asks]);
-      setExecutedBids([...data.bids]);
-      setExecutedAsks([...data.asks]);
+      setExecutedOrders(data);
 
     } catch (error) {
       showErrorDialog({

@@ -10,8 +10,7 @@ export default function Overview() {
   const baseToken = useSelector((state) => state.ui.market.baseToken);
   const orderToken = useSelector((state) => state.ui.market.orderToken);
 
-  const orderBookAsks = useSelector((state) => state.ui.market.orderBookAsks);
-  const orderBookBids = useSelector((state) => state.ui.market.orderBookBids);
+  const orderBook = useSelector((state) => state.ui.market.orderBook);
   const executedOrders = useSelector((state) => state.ui.market.executedOrders);
 
   // Declare state variables
@@ -23,15 +22,18 @@ export default function Overview() {
 
   useEffect(() => {
     const updateData = () => {
-      if (executedOrders && executedOrders.length > 0) {
+      if (executedOrders && ( executedOrders.bids.length > 0 || executedOrders.asks.length > 0 ) ) {
         const volumeData = fetchVolumeData(orderToken, baseToken, executedOrders);
         setBaseTokenVolume(volumeData.baseTokenVolume);
         setOrderTokenVolume(volumeData.orderTokenVolume);
-        setLastPrice(executedOrders[0]?.price || null);
+        const sortedExecutedOrders = [...executedOrders.bids, ...executedOrders.asks].sort(
+          (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+        );
+        setLastPrice(sortedExecutedOrders[0]?.price || null);
       }
 
-      setHighestBid(orderBookBids[0]?.price || null);
-      setLowestAsk(orderBookAsks[0]?.price || null);
+      setHighestBid(orderBook.bids[0]?.price || null);
+      setLowestAsk(orderBook.asks[0]?.price || null);
     };
 
     updateData();
@@ -76,7 +78,7 @@ export default function Overview() {
   };
 
   const renderExecutedOrders = () => {
-    if (!Array.isArray(executedOrders) || executedOrders.length === 0) {
+    if (!Array.isArray(executedOrders) || (executedOrders.bids.length === 0 && executedOrders.asks.length === 0)) {
       return (
         <tr>
           <td colSpan="4">No executed orders</td>
@@ -84,7 +86,7 @@ export default function Overview() {
       );
     }
 
-    const sortedExecutedOrders = [...executedOrders].sort(
+    const sortedExecutedOrders = [...executedOrders.bids, ...executedOrders.asks].sort(
       (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
     );
 
@@ -130,7 +132,7 @@ export default function Overview() {
                   <th>Base Token Amount</th>
                 </tr>
               </thead>
-              <tbody>{renderTableRows(orderBookAsks)}</tbody>
+              <tbody>{renderTableRows(orderBook.asks)}</tbody>
             </table>
 
             <p>Bids</p>
@@ -142,7 +144,7 @@ export default function Overview() {
                   <th>Base Token Amount</th>
                 </tr>
               </thead>
-              <tbody>{renderTableRows(orderBookBids)}</tbody>
+              <tbody>{renderTableRows(orderBook.bids)}</tbody>
             </table>
           </div>
 

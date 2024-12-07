@@ -1,18 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   Panel,
   HorizontalTab,
-  Switch,
-  Tooltip,
   TextField,
-  Button,
-  FieldSet,
-  confirm,
-  apiCall,
-  showErrorDialog,
-  showSuccessDialog,
 } from 'nexus-module';
 
 import Overview from './overview';
@@ -20,10 +12,7 @@ import Trade from './trade';
 import Chart from './chart';
 import MarketDepth from './marketDepth';
 
-import { 
-  switchTab,
- } from 'actions/actionCreators';
-
+import { switchTab } from 'actions/actionCreators';
 import RefreshButton from './RefreshButton';
 import { fetchMarketData } from 'actions/fetchMarketData';
 
@@ -43,10 +32,11 @@ export const DEFAULT_BASE_TOKEN = 'NXS';
 
 export default function Main() {
   const dispatch = useDispatch();
-  const marketPair = useSelector((state) => state.marketPair) || DEFAULT_MARKET_PAIR;
-  const orderToken = useSelector((state) => state.orderToken);
-  const baseToken = useSelector((state) => state.baseToken);
+  const marketPair = useSelector((state) => state.ui.market.marketPair) || DEFAULT_MARKET_PAIR;
+  const orderToken = useSelector((state) => state.ui.market.orderToken);
+  const baseToken = useSelector((state) => state.ui.market.baseToken);
   const activeTab = useSelector((state) => state.ui.activeTab);
+
   const [inputPair, setInputPair] = useState({
     orderTokenInput: orderToken,
     baseTokenInput: baseToken,
@@ -80,7 +70,7 @@ export default function Main() {
 
   return (
     <Panel 
-      controls={<RefreshButton orderTokenField={orderTokenField} baseTokenField={baseTokenField} />}
+      controls={<RefreshButton orderTokenField={inputPair.orderTokenInput} baseTokenField={inputPair.baseTokenInput} />}
       title={"DEX Module"} 
       icon={{ url: 'react.svg', id: 'icon' }}>
       <div className="text-center">

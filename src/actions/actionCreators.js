@@ -14,16 +14,6 @@ export const setOrderBook = (orderBook) => ({
   payload: orderBook,
 });
 
-export const setOrderBookBids = (orderBookBids) => ({
-  type: TYPE.SET_ORDER_BOOK_BIDS,
-  payload: orderBookBids,
-});
-
-export const setOrderBookAsks = (orderBookAsks) => ({
-  type: TYPE.SET_ORDER_BOOK_ASKS,
-  payload: orderBookAsks,
-});
-
 export const switchTab = (tab) => ({
   type: TYPE.SWITCH_TAB,
   payload: tab,
@@ -32,14 +22,4 @@ export const switchTab = (tab) => ({
 export const setExecutedOrders = (executedOrders) => ({
   type: TYPE.SET_EXECUTED_ORDERS,
   payload: executedOrders,
-});
-
-export const setExecutedBids = (executedBids) => ({
-  type: TYPE.SET_EXECUTED_BIDS,
-  payload: executedBids,
-});
-
-export const setExecutedAsks = (executedAsks) => ({
-  type: TYPE.SET_EXECUTED_ASKS,
-  payload: executedAsks,
 });

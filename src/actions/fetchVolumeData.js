@@ -1,18 +1,11 @@
-//import { listMarket } from './listMarket';
-//import { setBaseTokenVolume,setOrderTokenVolume } from './actionCreators';
-//import { showErrorDialog } from 'nexus-module';
-
-export const fetchVolumeData = (
-  //inputMarket = DEFAULT_MARKET_PAIR, 
+export const fetchVolumeData = ( 
   orderToken,
   baseToken,
   executedOrders
 ) => {
-    
-  //const pair = inputMarket;
 
-  dataBids = executedOrders.filter((order) => order.type === 'Bid');
-  dataAsks = executedOrders.filter((order) => order.type === 'Ask');
+  dataBids = executedOrders.bids;
+  dataAsks = executedOrders.asks;
       
       //const data = [...dataInit.bids, ...dataInit.asks]; // Adjust this if data structure is different
   let oMULTIPLIER, bMULTIPLIER;
