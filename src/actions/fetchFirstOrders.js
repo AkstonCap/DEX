@@ -1,5 +1,4 @@
 import { listMarket } from './listMarket';
-//import { setHighestBid, setLowestAsk } from './actionCreators';
 import { showErrorDialog } from 'nexus-module';
 
 let MULTIPLIER = 1;

@@ -1,5 +1,4 @@
 import { listMarket, DEFAULT_MARKET_PAIR } from './listMarket';
-import { setLastPrice } from './actionCreators';
 import { showErrorDialog } from 'nexus-module';
 
 let MULTIPLIER = 1;

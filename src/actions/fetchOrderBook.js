@@ -1,8 +1,6 @@
 import { listMarket } from 'actions/listMarket';
 import { 
-    setOrderBook,
-    setOrderBookAsks,
-    setOrderBookBids,
+    setOrderBook
 } from './actionCreators';
 import { showErrorDialog } from 'nexus-module';
 

@@ -1,6 +1,6 @@
 import { apiCall } from 'nexus-module';
 
-export const DEFAULT_MARKET_PAIR = 'DIST/NXS';
+const DEFAULT_MARKET_PAIR = 'DIST/NXS';
 
 export const listMarket = async (
   marketPair = DEFAULT_MARKET_PAIR, 
