@@ -89,7 +89,10 @@ export default function Overview() {
   };
 
   const renderExecutedOrders = () => {
-    if (!Array.isArray(executedOrders) || (executedOrders.bids.length === 0 && executedOrders.asks.length === 0)) {
+    const bids = executedOrders && Array.isArray(executedOrders.bids) ? executedOrders.bids : [];
+    const asks = executedOrders && Array.isArray(executedOrders.asks) ? executedOrders.asks : [];
+
+    if (bids.length === 0 && asks.length === 0) {
       return (
         <tr>
           <td colSpan="4">No executed orders</td>
@@ -97,7 +100,7 @@ export default function Overview() {
       );
     }
 
-    const sortedExecutedOrders = [...executedOrders.bids, ...executedOrders.asks].sort(
+    const sortedExecutedOrders = [...bids, ...asks].sort(
       (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
     );
 

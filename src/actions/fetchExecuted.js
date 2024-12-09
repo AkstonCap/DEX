@@ -23,7 +23,12 @@ export const fetchExecuted = async (
       );
 
       //const data = [...dataInit.bids, ...dataInit.asks]; // Adjust this if data structure is different
-
+      if (!data.bids) {
+        data.bids = [];
+      }
+      if (!data.asks) {
+        data.asks = [];
+      }
       setExecutedOrders(data);
 
     } catch (error) {
