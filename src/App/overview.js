@@ -9,7 +9,9 @@ export default function Overview() {
   const orderToken = useSelector((state) => state.ui.market.orderToken);
 
   const orderBook = useSelector((state) => state.ui.market.orderBook);
-  const executedOrders = useSelector((state) => state.ui.market.executedOrders);
+  const executedOrders = useSelector(
+    (state) => state.ui.market.executedData.executedOrders
+  );
 
   // Declare state variables
   const [baseTokenVolume, setBaseTokenVolume] = useState(0);
