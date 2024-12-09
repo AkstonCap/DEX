@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { FieldSet } from 'nexus-module';
 import { fetchVolumeData } from 'actions/fetchVolumeData';
 
 export default function Overview() {
-  const dispatch = useDispatch();
-
   const marketPair = useSelector((state) => state.ui.market.marketPair);
   const baseToken = useSelector((state) => state.ui.market.baseToken);
   const orderToken = useSelector((state) => state.ui.market.orderToken);
@@ -14,28 +12,39 @@ export default function Overview() {
   const executedOrders = useSelector((state) => state.ui.market.executedOrders);
 
   // Declare state variables
-  const [baseTokenVolume, setBaseTokenVolume] = useState(null);
-  const [orderTokenVolume, setOrderTokenVolume] = useState(null);
-  const [lastPrice, setLastPrice] = useState(null);
-  const [highestBid, setHighestBid] = useState(null);
-  const [lowestAsk, setLowestAsk] = useState(null);
+  const [baseTokenVolume, setBaseTokenVolume] = useState(0);
+  const [orderTokenVolume, setOrderTokenVolume] = useState(0);
+  const [lastPrice, setLastPrice] = useState('N/A');
+  const [highestBid, setHighestBid] = useState('N/A');
+  const [lowestAsk, setLowestAsk] = useState('N/A');
+
+  // Define updateData function at the component level
+  const updateData = () => {
+    if (
+      executedOrders &&
+      (executedOrders.bids?.length > 0 || executedOrders.asks?.length > 0)
+    ) {
+      const volumeData = fetchVolumeData(orderToken, baseToken, executedOrders);
+      setBaseTokenVolume(volumeData.baseTokenVolume);
+      setOrderTokenVolume(volumeData.orderTokenVolume);
+
+      const sortedExecutedOrders = [
+        ...executedOrders.bids,
+        ...executedOrders.asks,
+      ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+      setLastPrice(sortedExecutedOrders[0]?.price || 'N/A');
+    } else {
+      setBaseTokenVolume(0);
+      setOrderTokenVolume(0);
+      setLastPrice('N/A');
+    }
+
+    setHighestBid(orderBook?.bids?.[0]?.price || 'N/A');
+    setLowestAsk(orderBook?.asks?.[0]?.price || 'N/A');
+  };
 
   useEffect(() => {
-    const updateData = () => {
-      if (executedOrders && ( executedOrders.bids.length > 0 || executedOrders.asks.length > 0 ) ) {
-        const volumeData = fetchVolumeData(orderToken, baseToken, executedOrders);
-        setBaseTokenVolume(volumeData.baseTokenVolume);
-        setOrderTokenVolume(volumeData.orderTokenVolume);
-        const sortedExecutedOrders = [...executedOrders.bids, ...executedOrders.asks].sort(
-          (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
-        );
-        setLastPrice(sortedExecutedOrders[0]?.price || null);
-      }
-
-      setHighestBid(orderBook.bids[0]?.price || null);
-      setLowestAsk(orderBook.asks[0]?.price || null);
-    };
-
     updateData();
 
     // Set interval to update data every 60 seconds
@@ -46,7 +55,7 @@ export default function Overview() {
   }, []);
 
   useEffect(() => {
-    // Update data when market pair changes and when new executed orders and order book are fetched
+    // Update data when dependencies change
     updateData();
   }, [marketPair, executedOrders, orderBook]);
 
@@ -71,8 +80,8 @@ export default function Overview() {
     return data.slice(0, 5).map((item, index) => (
       <tr key={index}>
         <td>{item.price}</td>
-        <td>{item.order.amount}</td>
-        <td>{item.contract.amount}</td>
+        <td>{`${item.order.amount} ${orderToken}`}</td>
+        <td>{`${item.contract.amount} ${baseToken}`}</td>
       </tr>
     ));
   };
@@ -94,8 +103,8 @@ export default function Overview() {
       <tr key={index}>
         <td>{new Date(order.timestamp).toLocaleString()}</td>
         <td>{order.price}</td>
-        <td>{order.order.amount}</td>
-        <td>{order.contract.amount}</td>
+        <td>{`${order.order.amount} ${orderToken}`}</td>
+        <td>{`${order.contract.amount} ${baseToken}`}</td>
       </tr>
     ));
   };

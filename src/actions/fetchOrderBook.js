@@ -22,38 +22,12 @@ export const fetchOrderBook = async (
             null
             );
         setOrderBook(orders);
-/*
-        const bids = await listMarket(
-            pair, 
-            'bids', 
-            '',
-            '', 
-            'price', 
-            'desc', 
-            'all', 
-            0,
-            null
-            );
-        setOrderBookBids(bids);
-
-        const asks = await listMarket(
-            pair, 
-            'asks', 
-            '', 
-            '',
-            'price', 
-            'asc', 
-            'all', 
-            0,
-            null
-            );
-        setOrderBookAsks(asks);
-*/
         
         } catch (error) {
         showErrorDialog({
             message: 'Cannot get order book',
             note: error?.message || 'Unknown error',
         });
+        setOrderBook([]);
     }
 }

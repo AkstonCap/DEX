@@ -8,8 +8,10 @@ export const fetchMarketData = () => async (dispatch, getState) => {
   const marketPair = state.ui.market.marketPair;
 
   try {
+    
     await dispatch(fetchOrderBook(marketPair));
     await dispatch(fetchExecuted(marketPair, '1y'));
+  
   } catch (error) {
     dispatch(
       showErrorDialog({

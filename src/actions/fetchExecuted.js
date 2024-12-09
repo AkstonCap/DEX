@@ -31,5 +31,6 @@ export const fetchExecuted = async (
         message: 'Cannot get transactions',
         note: error?.message || 'Unknown error',
       });
+      setExecutedOrders([]);
     }
 };
