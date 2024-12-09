@@ -4,8 +4,8 @@ export const fetchVolumeData = (
   executedOrders
 ) => {
 
-  dataBids = executedOrders.bids;
-  dataAsks = executedOrders.asks;
+  dataBids = executedOrders.bids || [];
+  dataAsks = executedOrders.asks || [];
       
       //const data = [...dataInit.bids, ...dataInit.asks]; // Adjust this if data structure is different
   let oMULTIPLIER, bMULTIPLIER;

@@ -22,7 +22,7 @@ export const fetchOrderBook = async (
             null
             );
         setOrderBook(orders);
-
+/*
         const bids = await listMarket(
             pair, 
             'bids', 
@@ -48,6 +48,7 @@ export const fetchOrderBook = async (
             null
             );
         setOrderBookAsks(asks);
+*/
         
         } catch (error) {
         showErrorDialog({
