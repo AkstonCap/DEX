@@ -17,10 +17,11 @@ export const listMarket = async (
   typeFilter = null
 ) => {
   try {
+    /*
     const params = {
       market: marketPair
     };
-
+    */
     const now = Date.now();
     const timeFilters = {
       '1d': now - 24 * 60 * 60 * 1000,
@@ -31,9 +32,13 @@ export const listMarket = async (
     };
 
     if (!timeFilters.hasOwnProperty(timeFilter)) {
-      throw new Error('Invalid filter value');
+      showErrorDialog('Invalid time filter value');
+      return {
+        bids: [],
+        asks: []
+      }
     }
-
+    /*
     const filtering = {
       where: {
         timestamp: {
@@ -44,38 +49,51 @@ export const listMarket = async (
         } }),
       },
     }
-
+    */
     // Calling Nexus API to get the list from market
     const resultInit = await apiCall(
       'market/list/' + path + dataFilter + dataOperator,
       { market: marketPair } //params 
     ).catch((error) => {
-      showErrorDialog('Error listing market:', error);
+      showErrorDialog('Error fetching API market/list/:', error);
+      return {
+        bids: [],
+        asks: []
+      }
     });
 
     
     // Check if result is a JSON string and parse it
-    if (typeof result === 'string') {
-      result = JSON.parse(result);
+    /*
+    let resultJson = [];
+    if (typeof resultInit === 'string') {
+      resultJson = JSON.parse(result);
     }
+    */
 
-    let result = [];
-    if (path === 'executed' || path === 'order') {
-      result = [...resultInit.bids, ...resultInit.asks]; // Add this line to combine bids and asks
-    } else if (path === 'bid') {
-      result = [...resultInit.bids ];
-    } else if (path === 'ask') {
-      result = [...resultInit.asks ];
+    let resultArray = [];
+    if ((path === 'executed' || path === 'order') && (resultInit.bids && resultInit.asks)) {
+      resultArray = [...resultInit.bids, ...resultInit.asks]; // Add this line to combine bids and asks
+    } else if ((path === 'bid' || !resultInit.asks) && resultInit.bids) {
+      resultArray = [...resultInit.bids ];
+    } else if ((path === 'ask' || !resultInit.bids) && resultInit.asks) {
+      resultArray = [...resultInit.asks ];
+    } else {
+      resultArray = [];
+      return {
+        bids: [],
+        asks: []
+      }
     }
 
     // Filtering results based on timefilter
-    const filteredResultTime = Array.isArray(result) ? result.filter((item) => { 
+    const filteredResultTime = Array.isArray(resultArray) ? resultArray.filter((item) => { 
       const itemTime = new Date(item.timestamp).getTime();
       return itemTime > (timeFilters[timeFilter] || 0);
     }) : [];
 
     // Filtering results based on typefilter
-    const filteredResult = Array.isArray(result) ? filteredResultTime.filter((item) => {
+    const filteredResult = Array.isArray(filteredResultTime) ? filteredResultTime.filter((item) => {
       if (typeFilter) {
         return item.type === typeFilter;
       }
@@ -98,18 +116,40 @@ export const listMarket = async (
       sortFunctions.volumeOrder = (a, b) => a.order.amount - b.order.amount;
     }
 
-    let sortedResult;
+    // Filtering results based on typefilter
+    const bids = Array.isArray(filteredResult) ? filteredResult.filter((item) => item.type === 'bid') : [];
+    const asks = Array.isArray(filteredResult) ? filteredResult.filter((item) => item.type === 'ask') : [];
+
+    let sortedBids;
+    let sortedAsks;
     if (numOfRes > 0) {
-      sortedResult = filteredResult.sort(sortFunctions[sort]).slice(0, numOfRes);
+      //sortedResult = filteredResult.sort(sortFunctions[sort]).slice(0, numOfRes);
+      sortedBids = bids.sort(sortFunctions[sort]).slice(0, numOfRes);
+      sortedAsks = asks.sort(sortFunctions[sort]).slice(0, numOfRes);
     } else if (numOfRes === 0) {
-      sortedResult = filteredResult.sort(sortFunctions[sort]);
+      //sortedResult = filteredResult.sort(sortFunctions[sort]);
+      sortedBids = bids.sort(sortFunctions[sort]);
+      sortedAsks = asks.sort(sortFunctions[sort]);
     } else {
-      showErrorDialog('Invalid number of results');
+      showErrorDialog('Invalid input for number of results');
+      return {
+        bids: [],
+        asks: []
+      }
     }
+
+    const sortedResult = {
+      bids: sortedBids,
+      asks: sortedAsks
+    };
 
     // return sorted result;
     return sortedResult;
   } catch (error) {
     showErrorDialog('Error listing market:', error);
+    return {
+      bids: [],
+      asks: []
+    }
   }
 };
