@@ -55,3 +55,5 @@ export default function RefreshButton({ orderTokenField, baseTokenField }) {
     </Tooltip.Trigger>
   );
 }
+
+// VM5:3 Error: Actions must be plain objects. Use custom middleware for async actions.
