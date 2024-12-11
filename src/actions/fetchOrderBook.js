@@ -1,6 +1,7 @@
 import { listMarket } from 'actions/listMarket';
 import { setOrderBook } from './actionCreators';
 import { showErrorDialog } from 'nexus-module';
+import { DEFAULT_MARKET_PAIR } from 'App/Main';
 
 export const fetchOrderBook = (
     inputMarket = DEFAULT_MARKET_PAIR
