@@ -45,6 +45,7 @@ export const listMarket = async (
       },
     }
 
+    // Calling Nexus API to get the list from market
     const resultInit = await apiCall(
       'market/list/' + path + dataFilter + dataOperator,
       { market: marketPair } //params 
