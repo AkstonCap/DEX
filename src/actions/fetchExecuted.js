@@ -3,6 +3,7 @@ import {
   setExecutedOrders,
 } from './actionCreators';
 import { showErrorDialog } from 'nexus-module';
+import { DEFAULT_MARKET_PAIR } from 'App/Main';
 
 export const fetchExecuted = (
   inputMarket = DEFAULT_MARKET_PAIR, 

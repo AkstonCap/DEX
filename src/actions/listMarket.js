@@ -2,8 +2,8 @@ import {
   apiCall, 
   showErrorDialog 
 } from 'nexus-module';
-
-const DEFAULT_MARKET_PAIR = 'DIST/NXS';
+import { DEFAULT_MARKET_PAIR } from 'App/Main';
+//const DEFAULT_MARKET_PAIR = 'DIST/NXS';
 
 export const listMarket = async (
   marketPair = DEFAULT_MARKET_PAIR, 
