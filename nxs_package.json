@@ -2,7 +2,7 @@
   "name": "dex_module",
   "displayName": "DEX module",
   "version": "0.1.0",
-  "targetWalletVersion": "3.1.0",
+  "targetWalletVersion": "3.1.5",
   "description": "DEX module",
   "type": "app",
   "entry": "dist/index.html",
@@ -14,7 +14,6 @@
     "dist/syncing.svg"
 ],
   "author": {
-    "name": "AkstonCap",
-    "email": "arne_skeide@hotmail.com"
+    "name": "AkstonCap"
   }
 }

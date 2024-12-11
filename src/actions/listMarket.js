@@ -1,4 +1,7 @@
-import { apiCall } from 'nexus-module';
+import { 
+  apiCall, 
+  showErrorDialog 
+} from 'nexus-module';
 
 const DEFAULT_MARKET_PAIR = 'DIST/NXS';
 
@@ -43,10 +46,12 @@ export const listMarket = async (
     }
 
     const resultInit = await apiCall(
-      'market/list/' + path + dataFilter + dataOperator, 
-      params, 
-      filtering
-    );
+      'market/list/' + path + dataFilter + dataOperator,
+      { market: marketPair } //params 
+      //filtering
+    ).catch((error) => {
+      showErrorDialog('Error listing market:', error);
+    });
     // const result = await resultInit.json();
     
     let result = [];
@@ -63,11 +68,21 @@ export const listMarket = async (
       result = JSON.parse(result);
     }
 
-    const filteredResult = Array.isArray(result) ? result.filter((item) => { 
+    // Filtering results based on timefilter
+    const filteredResultTime = Array.isArray(result) ? result.filter((item) => { 
       const itemTime = new Date(item.timestamp).getTime();
       return itemTime > (timeFilters[timeFilter] || 0);
     }) : [];
 
+    // Filtering results based on typefilter
+    const filteredResult = Array.isArray(result) ? filteredResultTime.filter((item) => {
+      if (typeFilter) {
+        return item.type === typeFilter;
+      }
+      return true;
+    }) : [];
+
+    // Sorting results based on what to sort, and asc or desc
     const sortFunctions = {
       'time': (a, b) => new Date(b.timestamp) - new Date(a.timestamp),
       'price': (a, b) => (b.contract.amount / b.order.amount) - (a.contract.amount / a.order.amount),
@@ -92,6 +107,7 @@ export const listMarket = async (
       throw new Error('Invalid number of results');
     }
 
+    // return sorted result;
     return sortedResult;
   } catch (error) {
     console.error('Error listing market:', error);
