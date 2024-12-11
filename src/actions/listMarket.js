@@ -32,7 +32,7 @@ export const listMarket = async (
     };
 
     if (!timeFilters.hasOwnProperty(timeFilter)) {
-      showErrorDialog('Invalid time filter value');
+      showErrorDialog('Invalid time filter value (listMarket)');
       return {
         bids: [],
         asks: []
@@ -55,7 +55,7 @@ export const listMarket = async (
       'market/list/' + path + dataFilter + dataOperator,
       { market: marketPair } //params 
     ).catch((error) => {
-      showErrorDialog('Error fetching API market/list/:', error);
+      showErrorDialog('Error fetching API market/list/ (listMarket):', error);
       return {
         bids: [],
         asks: []
@@ -80,6 +80,7 @@ export const listMarket = async (
       resultArray = [...resultInit.asks ];
     } else {
       resultArray = [];
+      showErrorDialog('Empty data from API (listMarket)');
       return {
         bids: [],
         asks: []
@@ -131,7 +132,7 @@ export const listMarket = async (
       sortedBids = bids.sort(sortFunctions[sort]);
       sortedAsks = asks.sort(sortFunctions[sort]);
     } else {
-      showErrorDialog('Invalid input for number of results');
+      showErrorDialog('Invalid input for number of results (listMarket)');
       return {
         bids: [],
         asks: []
@@ -146,7 +147,7 @@ export const listMarket = async (
     // return sorted result;
     return sortedResult;
   } catch (error) {
-    showErrorDialog('Error listing market:', error);
+    showErrorDialog('Error listing market (listMarket):', error);
     return {
       bids: [],
       asks: []

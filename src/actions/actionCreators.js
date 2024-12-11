@@ -23,3 +23,12 @@ export const setExecutedOrders = (executedOrders) => ({
   type: TYPE.SET_EXECUTED_ORDERS,
   payload: executedOrders,
 });
+/*
+export const updateInput = (orderToken, baseToken) => ({
+  type: TYPE.UPDATE_INPUT,
+  payload: {
+    orderToken,
+    baseToken
+  },
+});
+*/

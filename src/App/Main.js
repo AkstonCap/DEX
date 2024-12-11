@@ -12,7 +12,7 @@ import Trade from './trade';
 import Chart from './chart';
 import MarketDepth from './marketDepth';
 
-import { switchTab } from 'actions/actionCreators';
+import { switchTab, updateInput } from 'actions/actionCreators';
 import RefreshButton from './RefreshButton';
 import { fetchMarketData } from 'actions/fetchMarketData';
 
@@ -43,9 +43,10 @@ export default function Main() {
   });
 
   function handleTokenInputChange(e) {
+    const { name, value } = e.target;
     setInputPair({
       ...inputPair,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
   }
 

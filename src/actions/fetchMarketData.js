@@ -15,7 +15,7 @@ export const fetchMarketData = () => async (dispatch, getState) => {
   } catch (error) {
     dispatch(
       showErrorDialog({
-        message: 'Cannot fetch data',
+        message: 'Cannot fetch market data (fetchMarketData)',
         note: error?.message || 'Unknown error',
       })
     );

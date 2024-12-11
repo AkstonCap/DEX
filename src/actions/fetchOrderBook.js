@@ -25,7 +25,7 @@ export const fetchOrderBook = (
         
         } catch (error) {
         dispatch(showErrorDialog({
-            message: 'Cannot get order book',
+            message: 'Cannot get order book (fetchOrderBook)',
             note: error?.message || 'Unknown error',
         }));
         dispatch(setOrderBook([]));

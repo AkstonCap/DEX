@@ -35,7 +35,7 @@ export const fetchExecuted = (
 
     } catch (error) {
       dispatch(showErrorDialog({
-        message: 'Cannot get transactions',
+        message: 'Cannot get executed transactions (fetchExecuted)',
         note: error?.message || 'Unknown error',
       }));
       dispatch(setExecutedOrders([]));
