@@ -49,12 +49,16 @@ export const listMarket = async (
     const resultInit = await apiCall(
       'market/list/' + path + dataFilter + dataOperator,
       { market: marketPair } //params 
-      //filtering
     ).catch((error) => {
       showErrorDialog('Error listing market:', error);
     });
-    // const result = await resultInit.json();
+
     
+    // Check if result is a JSON string and parse it
+    if (typeof result === 'string') {
+      result = JSON.parse(result);
+    }
+
     let result = [];
     if (path === 'executed' || path === 'order') {
       result = [...resultInit.bids, ...resultInit.asks]; // Add this line to combine bids and asks
@@ -62,11 +66,6 @@ export const listMarket = async (
       result = [...resultInit.bids ];
     } else if (path === 'ask') {
       result = [...resultInit.asks ];
-    }
-
-    // Check if result is a JSON string and parse it
-    if (typeof result === 'string') {
-      result = JSON.parse(result);
     }
 
     // Filtering results based on timefilter
@@ -105,13 +104,12 @@ export const listMarket = async (
     } else if (numOfRes === 0) {
       sortedResult = filteredResult.sort(sortFunctions[sort]);
     } else {
-      throw new Error('Invalid number of results');
+      showErrorDialog('Invalid number of results');
     }
 
     // return sorted result;
     return sortedResult;
   } catch (error) {
-    console.error('Error listing market:', error);
-    throw error;
+    showErrorDialog('Error listing market:', error);
   }
 };
