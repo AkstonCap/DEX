@@ -4,9 +4,11 @@ import {
 } from './actionCreators';
 import { showErrorDialog } from 'nexus-module';
 
-export const fetchExecuted = async (
+export const fetchExecuted = (
   inputMarket = DEFAULT_MARKET_PAIR, 
   timeFilter = '1d'
+) => async (
+  dispatch
 ) => {
     try {
       const pair = inputMarket;
@@ -29,13 +31,13 @@ export const fetchExecuted = async (
       if (!data.asks) {
         data.asks = [];
       }
-      setExecutedOrders(data);
+      dispatch(setExecutedOrders(data));
 
     } catch (error) {
-      showErrorDialog({
+      dispatch(showErrorDialog({
         message: 'Cannot get transactions',
         note: error?.message || 'Unknown error',
-      });
-      setExecutedOrders([]);
+      }));
+      dispatch(setExecutedOrders([]));
     }
 };

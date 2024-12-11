@@ -1,12 +1,12 @@
 import { listMarket } from 'actions/listMarket';
-import { 
-    setOrderBook
-} from './actionCreators';
+import { setOrderBook } from './actionCreators';
 import { showErrorDialog } from 'nexus-module';
 
-export const fetchOrderBook = async (
+export const fetchOrderBook = (
     inputMarket = DEFAULT_MARKET_PAIR
-    ) => {
+) => async (
+    dispatch
+) => {
     try {
         const pair = inputMarket;
 
@@ -21,13 +21,13 @@ export const fetchOrderBook = async (
             0,
             null
             );
-        setOrderBook(orders);
+        dispatch(setOrderBook(orders));
         
         } catch (error) {
-        showErrorDialog({
+        dispatch(showErrorDialog({
             message: 'Cannot get order book',
             note: error?.message || 'Unknown error',
-        });
-        setOrderBook([]);
+        }));
+        dispatch(setOrderBook([]));
     }
 }

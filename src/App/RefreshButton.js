@@ -2,7 +2,6 @@ import { keyframes } from '@emotion/react';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Icon, Tooltip, Button } from 'nexus-module';
-//import { setMarket } from 'actions/setMarket';
 import { setMarketPair } from 'actions/actionCreators';
 import { fetchMarketData } from 'actions/fetchMarketData';
 
