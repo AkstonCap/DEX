@@ -4,9 +4,9 @@ import { FieldSet } from 'nexus-module';
 import { fetchVolumeData } from 'actions/fetchVolumeData';
 
 export default function Overview() {
-  const marketPair = useSelector((state) => state.ui.market.marketPair);
-  const baseToken = useSelector((state) => state.ui.market.baseToken);
-  const orderToken = useSelector((state) => state.ui.market.orderToken);
+  const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
+  const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
+  const orderToken = useSelector((state) => state.ui.market.marketPairs.orderToken);
 
   const orderBook = useSelector((state) => state.ui.market.orderBook);
   const executedOrders = useSelector(

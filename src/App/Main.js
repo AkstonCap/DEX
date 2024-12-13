@@ -32,9 +32,9 @@ export const DEFAULT_BASE_TOKEN = 'NXS';
 
 export default function Main() {
   const dispatch = useDispatch();
-  const marketPair = useSelector((state) => state.ui.market.marketPair) || DEFAULT_MARKET_PAIR;
-  const orderToken = useSelector((state) => state.ui.market.orderToken);
-  const baseToken = useSelector((state) => state.ui.market.baseToken);
+  const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair) || DEFAULT_MARKET_PAIR;
+  const orderToken = useSelector((state) => state.ui.market.marketPairs.orderToken);
+  const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const activeTab = useSelector((state) => state.ui.activeTab);
 
   const [inputPair, setInputPair] = useState({

@@ -5,7 +5,7 @@ import { fetchExecuted } from 'actions/fetchExecuted';
 
 export const fetchMarketData = () => async (dispatch, getState) => {
   const state = getState();
-  const marketPair = state.ui.market.marketPair;
+  const marketPair = state.ui.market.marketPairs.marketPair;
 
   try {
     
