@@ -12,7 +12,7 @@ import Trade from './trade';
 import Chart from './chart';
 import MarketDepth from './marketDepth';
 
-import { switchTab, updateInput } from 'actions/actionCreators';
+import { switchTab } from 'actions/actionCreators';
 import RefreshButton from './RefreshButton';
 import { fetchMarketData } from 'actions/fetchMarketData';
 

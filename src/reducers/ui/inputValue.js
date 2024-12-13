@@ -1,6 +1,9 @@
 import * as TYPE from 'actions/types';
 
-const initialState = 'Overview'; // Set your default tab here
+const initialState = {
+  orderToken: '',
+  baseToken: '',
+}; // Set your default tab here
 
 export default (state = initialState, action) => {
   switch (action.type) {

@@ -22,10 +22,8 @@ function useRefreshMarket(orderTokenField, baseTokenField) {
     if (refreshing) return;
     setRefreshing(true);
     try {
-      await Promise.allSettled([
-        dispatch(setMarketPair(orderTokenField, baseTokenField)),
-        dispatch(fetchMarketData())
-      ]);
+      dispatch(setMarketPair(orderTokenField, baseTokenField)),
+      await dispatch(fetchMarketData())
     } finally {
       setRefreshing(false);
     }
