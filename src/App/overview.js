@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { FieldSet } from 'nexus-module';
 import { fetchVolumeData } from 'actions/fetchVolumeData';
+import './styles/Overview.css';
 
 export default function Overview() {
   const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
@@ -115,7 +116,7 @@ export default function Overview() {
   };
 
   return (
-    <div className="DEX">
+    <div className="overview">
       <FieldSet legend={`${marketPair}`}>
         <div style={gridStyle}>
           <p>
