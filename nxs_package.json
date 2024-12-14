@@ -6,12 +6,14 @@
   "description": "DEX module",
   "type": "app",
   "entry": "dist/index.html",
-  "icon": "dist/react.svg",
+  "icon": "dist/distordia-small.svg",
   "files": [
     "dist/index.html", 
     "dist/react.svg", 
     "dist/js/app.js", 
-    "dist/syncing.svg"
+    "dist/syncing.svg",
+    "dist/distordia-large.svg",
+    "dist/distordia-small.svg"
 ],
   "author": {
     "name": "AkstonCap"

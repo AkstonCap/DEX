@@ -39,6 +39,6 @@ export const fetchExecuted = (
         message: 'Cannot get executed transactions (fetchExecuted)',
         note: error?.message || 'Unknown error',
       }));
-      dispatch(setExecutedOrders([]));
+      dispatch(setExecutedOrders({bids: [], asks: []}));
     }
 };

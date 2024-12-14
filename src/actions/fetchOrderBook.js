@@ -22,6 +22,8 @@ export const fetchOrderBook = (
             0,
             null
             );
+        
+        // need to fix multiplier for NXS amounts before dispatching...
         dispatch(setOrderBook(orders));
         
         } catch (error) {
@@ -29,6 +31,6 @@ export const fetchOrderBook = (
             message: 'Cannot get order book (fetchOrderBook)',
             note: error?.message || 'Unknown error',
         }));
-        dispatch(setOrderBook([]));
+        dispatch(setOrderBook({bids: [], asks: []}));
     }
 }

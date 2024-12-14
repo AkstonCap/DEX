@@ -74,9 +74,9 @@ export const listMarket = async (
     let resultArray = [];
     if ((path === 'executed' || path === 'order') && (resultInit.bids && resultInit.asks)) {
       resultArray = [...resultInit.bids, ...resultInit.asks]; // Add this line to combine bids and asks
-    } else if ((path === 'bid' || !resultInit.asks) && resultInit.bids) {
+    } else if ((path === 'bid' || !resultInit.asks) && resultInit.bids?.length > 0) {
       resultArray = [...resultInit.bids ];
-    } else if ((path === 'ask' || !resultInit.bids) && resultInit.asks) {
+    } else if ((path === 'ask' || !resultInit.bids) && resultInit.asks?.length > 0) {
       resultArray = [...resultInit.asks ];
     } else {
       resultArray = [];

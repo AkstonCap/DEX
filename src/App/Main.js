@@ -72,7 +72,7 @@ export default function Main() {
   return (
     <Panel 
       controls={<RefreshButton orderTokenField={inputPair.orderTokenInput} baseTokenField={inputPair.baseTokenInput} />}
-      title={"DEX Module"} 
+      title={"Distordia DEX Module"} 
       icon={{ url: 'react.svg', id: 'icon' }}>
       <div className="text-center">
         <ButtonContainer>
@@ -93,33 +93,35 @@ export default function Main() {
           />
         </ButtonContainer>
       </div>
-      <HorizontalTab.TabBar>
-        <HorizontalTab
-          active={activeTab === 'Overview'}
-          onClick={() => handleSwitchTab('Overview')}
-        >
-          Overview
-        </HorizontalTab>
-        <HorizontalTab
-          active={activeTab === 'Trade'}
-          onClick={() => handleSwitchTab('Trade')}
-        >
-          Trade (tba)
-        </HorizontalTab>
-        <HorizontalTab
-          active={activeTab === 'Chart'}
-          onClick={() => handleSwitchTab('Chart')}
-        >
-          Chart (tba)
-        </HorizontalTab>
-        <HorizontalTab
-          active={activeTab === 'MarketDepth'}
-          onClick={() => handleSwitchTab('MarketDepth')}
-        >
-          Market Depth (tba)
-        </HorizontalTab>
-      </HorizontalTab.TabBar>
-      
+      <div className="text-center">
+        <HorizontalTab.TabBar>
+          <HorizontalTab
+            active={activeTab === 'Overview'}
+            onClick={() => handleSwitchTab('Overview')}
+          >
+            Overview
+          </HorizontalTab>
+          <HorizontalTab
+            active={activeTab === 'Trade'}
+            onClick={() => handleSwitchTab('Trade')}
+          >
+            Trade (tba)
+          </HorizontalTab>
+          <HorizontalTab
+            active={activeTab === 'Chart'}
+            onClick={() => handleSwitchTab('Chart')}
+          >
+            Chart (tba)
+          </HorizontalTab>
+          <HorizontalTab
+            active={activeTab === 'MarketDepth'}
+            onClick={() => handleSwitchTab('MarketDepth')}
+          >
+            Market Depth (tba)
+          </HorizontalTab>
+        </HorizontalTab.TabBar>
+      </div>
+
       <div>{activeTab === 'Overview' && <Overview />}</div>
       <div>{activeTab === 'Trade' && <Trade />}</div>
       <div>{activeTab === 'Chart' && <Chart />}</div>

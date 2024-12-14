@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { FieldSet } from 'nexus-module';
 import { fetchVolumeData } from 'actions/fetchVolumeData';
-import './styles/Overview.css';
+import styled from '@emotion/styled';
 
 export default function Overview() {
   const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
@@ -48,7 +48,7 @@ export default function Overview() {
   };
 
   useEffect(() => {
-    updateData();
+    fetchMarketData();
 
     // Set interval to update data every 60 seconds
     const intervalId = setInterval(updateData, 60000);
@@ -116,9 +116,9 @@ export default function Overview() {
   };
 
   return (
-    <div className="overview">
-      <FieldSet legend={`${marketPair}`}>
-        <div style={gridStyle}>
+    <div className="text-center">
+      <div className="mt2">
+        <FieldSet legend={`${marketPair} overview`}>
           <p>
             Last Price: {lastPrice !== null ? `${lastPrice} ${baseToken}` : 'N/A'}
           </p>
@@ -134,38 +134,45 @@ export default function Overview() {
           <p>
             1yr Volume: {orderTokenVolume} {orderToken}
           </p>
-        </div>
-        <div style={gridStyleOrderbook}>
-          {/* Left Column */}
-          <div>
-            <p>Asks</p>
-            <table>
-              <thead>
-                <tr>
-                  <th>Price</th>
-                  <th>Order Token Amount</th>
-                  <th>Base Token Amount</th>
-                </tr>
-              </thead>
-              <tbody>{renderTableRows(orderBook.asks)}</tbody>
-            </table>
+        </FieldSet>
 
-            <p>Bids</p>
-            <table>
-              <thead>
-                <tr>
-                  <th>Price</th>
-                  <th>Order Token Amount</th>
-                  <th>Base Token Amount</th>
-                </tr>
-              </thead>
-              <tbody>{renderTableRows(orderBook.bids)}</tbody>
-            </table>
+        <FieldSet legend="Order Book">
+          <div style={gridStyleOrderbook}>
+            {/* Left Column */}
+            <div>
+              <p>Asks</p>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Price</th>
+                    <th>Order Token Amount</th>
+                    <th>Base Token Amount</th>
+                  </tr>
+                </thead>
+                <tbody>{renderTableRows(orderBook.asks)}</tbody>
+              </table>
+            </div>
+            <div>
+              <p>Bids</p>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Price</th>
+                    <th>Order Token Amount</th>
+                    <th>Base Token Amount</th>
+                  </tr>
+                </thead>
+                <tbody>{renderTableRows(orderBook.bids)}</tbody>
+              </table>
+            </div>
           </div>
+        </FieldSet>
+      </div>
 
+      <div className="mt2 flex center">
+        <FieldSet legend="Executed Orders">
           {/* Right Column */}
           <div>
-            <p>Executed Orders</p>
             <table>
               <thead>
                 <tr>
@@ -178,8 +185,8 @@ export default function Overview() {
               <tbody>{renderExecutedOrders()}</tbody>
             </table>
           </div>
-        </div>
-      </FieldSet>
+        </FieldSet>
+      </div>
     </div>
   );
 }
