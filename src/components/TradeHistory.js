@@ -15,7 +15,9 @@ export default function TradeHistory() {
         </tr>
       );
     }
-
+    asks.forEach((element) => {
+      element.order.amount = element.contract.amount;
+    });
     const sortedExecutedOrders = [...bids, ...asks].sort(
       (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
     );
@@ -30,9 +32,21 @@ export default function TradeHistory() {
   };
 
   return (
-    <div className="trade-history">
-      <h3>Trade History</h3>
-      {/* Render trade history data */}
+    <div className="mt2">
+      <FieldSet legend="Executed Orders">
+          <div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Price</th>
+                  <th>Amount</th>
+                  <th>Time</th>
+                </tr>
+              </thead>
+              <tbody>{renderExecutedOrders()}</tbody>
+            </table>
+          </div>
+        </FieldSet>
     </div>
   );
 }
