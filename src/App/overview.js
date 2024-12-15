@@ -100,6 +100,9 @@ export default function Overview() {
         </tr>
       );
     }
+    asks.forEach((element) => {
+      element.order.amount = element.contract.amount;
+    });
 
     const sortedExecutedOrders = [...bids, ...asks].sort(
       (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
