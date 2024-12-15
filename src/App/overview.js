@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { FieldSet } from 'nexus-module';
 import { fetchVolumeData } from 'actions/fetchVolumeData';
+import { fetchMarketData } from 'actions/fetchMarketData';
 import styled from '@emotion/styled';
 
 export default function Overview() {
