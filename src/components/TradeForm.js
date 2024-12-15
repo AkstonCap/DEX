@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useState } from 'react';
+//import { useDispatch } from 'react-redux';
 //import { placeOrder } from '../actions/placeOrder';
 
 export default function TradeForm() {
   const [orderType, setOrderType] = useState('buy');
   const [price, setPrice] = useState('');
   const [amount, setAmount] = useState('');
-  const dispatch = useDispatch();
+  //const dispatch = useDispatch();
 
   const handleSubmit = (e) => {
     e.preventDefault();
