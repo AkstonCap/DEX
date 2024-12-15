@@ -71,10 +71,8 @@ export default function Main() {
 
   return (
     <Panel 
-      controls={<RefreshButton orderTokenField={inputPair.orderTokenInput} baseTokenField={inputPair.baseTokenInput} />}
-      title={"Distordia DEX Module"} 
-      icon={{ url: 'react.svg', id: 'icon' }}>
-      <div className="text-center">
+      controls={
+        <div className="controls-container">
         <ButtonContainer>
           <DemoTextField
             label="Order Token"
@@ -92,7 +90,14 @@ export default function Main() {
             placeholder={baseToken}
           />
         </ButtonContainer>
+        <RefreshButton
+          orderTokenField={inputPair.orderTokenInput}
+          baseTokenField={inputPair.baseTokenInput}
+        />
       </div>
+      }
+      title={"Distordia DEX Module"} 
+      icon={{ url: 'distordia-small.svg', id: 'icon' }}>
       <div className="text-center">
         <HorizontalTab.TabBar>
           <HorizontalTab
