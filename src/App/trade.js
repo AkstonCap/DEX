@@ -1,4 +1,3 @@
-import React from 'react';
 import { useSelector } from 'react-redux';
 import OrderBookComp from 'components/OrderBookComp';
 import TradeForm from 'components/TradeForm';
@@ -8,17 +7,17 @@ export default function Trade() {
   const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
 
   return (
-    <div className="trading-dashboard">
+    <div className="mt2">
       <h1>Trading Dashboard</h1>
       <h2>{marketPair}</h2>
-      <div className="trading-container">
-        <div className="order-book-section">
+      <div className="mt2">
+        <div className="mt2">
           <OrderBookComp />
         </div>
-        <div className="trade-form-section">
+        <div className="mt2">
           <TradeForm />
         </div>
-        <div className="trade-history-section">
+        <div className="mt2">
           <TradeHistory />
         </div>
       </div>
