@@ -148,8 +148,8 @@ export default function Overview() {
                 <thead>
                   <tr>
                     <th>Price</th>
-                    <th>Order Token Amount</th>
-                    <th>Base Token Amount</th>
+                    <th>Amount</th>
+                    <th>Amount</th>
                   </tr>
                 </thead>
                 <tbody>{renderTableRows(orderBook.asks)}</tbody>
