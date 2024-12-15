@@ -14,7 +14,7 @@ export default function TradeForm() {
   };
 
   return (
-    <div className="trade-form">
+    <div className="mt2">
       <h3>Place Order</h3>
       <form onSubmit={handleSubmit}>
         <label>
