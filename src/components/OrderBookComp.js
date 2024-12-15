@@ -1,4 +1,5 @@
 import { useSelector } from 'react-redux';
+import { FieldSet } from 'nexus-module';
 
 export default function OrderBookComp() {
   const orderBook = useSelector((state) => state.ui.market.orderBook);
