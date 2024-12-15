@@ -2,6 +2,8 @@ import { useSelector } from 'react-redux';
 
 export default function OrderBookComp() {
   const orderBook = useSelector((state) => state.ui.market.orderBook);
+  const orderToken = useSelector((state) => state.ui.market.marketPairs.orderToken);
+  const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
 
   const renderTableRows = (data) => {
     if (!Array.isArray(data)) {
