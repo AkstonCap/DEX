@@ -22,8 +22,7 @@ export const fetchOrderBook = (
             0,
             null
             );
-        
-        // need to fix multiplier for NXS amounts before dispatching...
+
         dispatch(setOrderBook(orders));
         
         } catch (error) {

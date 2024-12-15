@@ -27,7 +27,7 @@ export default function Overview() {
       executedOrders &&
       (executedOrders.bids?.length > 0 || executedOrders.asks?.length > 0)
     ) {
-      const volumeData = fetchVolumeData(orderToken, baseToken, executedOrders);
+      const volumeData = fetchVolumeData(executedOrders);
       setBaseTokenVolume(volumeData.baseTokenVolume);
       setOrderTokenVolume(volumeData.orderTokenVolume);
 

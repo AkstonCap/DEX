@@ -62,15 +62,41 @@ export const listMarket = async (
       }
     });
 
-    
-    // Check if result is a JSON string and parse it
-    /*
-    let resultJson = [];
-    if (typeof resultInit === 'string') {
-      resultJson = JSON.parse(result);
+    // Adjusting NXS amounts
+    const [baseToken, orderToken] = marketPair.split('/');
+    if (baseToken === 'NXS') {
+      resultInit.bids.forEach(element => {
+        element.contract.amount = element.contract.amount / 1e6;
+        element.price = element.price / 1e6;
+      });
+      resultInit.asks.forEach(element => {
+        element.order.amount = element.order.amount / 1e6;
+      });
+    } else if (orderToken === 'NXS') {
+      resultInit.bids.forEach(element => {
+        element.order.amount = element.order.amount * 1e6;
+      });
+      resultInit.asks.forEach(element => {
+        element.contract.amount = element.contract.amount * 1e6;
+        element.price = element.price / 1e6;
+      });
     }
-    */
 
+    // Preliminary fix of price bug
+    resultInit.bids.forEach(element => {
+      const calculatedPrice = element.contract.amount / element.order.amount;
+      if (element.price !== calculatedPrice) {
+        element.price = calculatedPrice;
+      }
+    });
+    resultInit.asks.forEach(element => {
+      const calculatedPrice = element.order.amount / element.contract.amount;
+      if (element.price !== calculatedPrice) {
+        element.price = calculatedPrice;
+      }
+    });
+
+    // Combining bids and asks
     let resultArray = [];
     if ((path === 'executed' || path === 'order') && (resultInit.bids && resultInit.asks)) {
       resultArray = [...resultInit.bids, ...resultInit.asks]; // Add this line to combine bids and asks
