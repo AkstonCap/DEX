@@ -96,7 +96,7 @@ export default function Overview() {
     if (bids.length === 0 && asks.length === 0) {
       return (
         <tr>
-          <td colSpan="4">No executed orders</td>
+          <td colSpan="3">No executed orders</td>
         </tr>
       );
     }
@@ -107,10 +107,9 @@ export default function Overview() {
 
     return sortedExecutedOrders.map((order, index) => (
       <tr key={index}>
-        <td>{new Date(order.timestamp).toLocaleString()}</td>
-        <td>{order.price}</td>
+        <td>{`${order.price} ${baseToken}`}</td>
         <td>{`${order.order.amount} ${orderToken}`}</td>
-        <td>{`${order.contract.amount} ${baseToken}`}</td>
+        <td>{new Date(order.timestamp).toLocaleString()}</td>
       </tr>
     ));
   };
@@ -176,10 +175,9 @@ export default function Overview() {
             <table>
               <thead>
                 <tr>
-                  <th>Timestamp</th>
                   <th>Price</th>
-                  <th>Order Token Amount</th>
-                  <th>Base Token Amount</th>
+                  <th>Amount</th>
+                  <th>Time</th>
                 </tr>
               </thead>
               <tbody>{renderExecutedOrders()}</tbody>

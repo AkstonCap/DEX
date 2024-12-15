@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 
-export default function OrderBook() {
+export default function OrderBookComp() {
   const orderBook = useSelector((state) => state.ui.market.orderBook);
 
   return (

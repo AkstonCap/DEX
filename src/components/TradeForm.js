@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { placeOrder } from '../actions/placeOrder';
+//import { placeOrder } from '../actions/placeOrder';
 
 export default function TradeForm() {
   const [orderType, setOrderType] = useState('buy');
@@ -10,7 +10,7 @@ export default function TradeForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(placeOrder(orderType, price, amount));
+    //dispatch(placeOrder(orderType, price, amount));
   };
 
   return (
