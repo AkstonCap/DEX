@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { FieldSet } from 'nexus-module';
 
 export default function TradeHistory() {
   const executedOrders = useSelector((state) => state.ui.market.executedData.executedOrders);
