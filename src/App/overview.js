@@ -4,6 +4,7 @@ import { FieldSet } from 'nexus-module';
 import { fetchVolumeData } from 'actions/fetchVolumeData';
 import { fetchMarketData } from 'actions/fetchMarketData';
 import styled from '@emotion/styled';
+import { overviewGridContainer } from 'components/styles';
 
 export default function Overview() {
   const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
@@ -120,75 +121,77 @@ export default function Overview() {
 
   return (
     <div className="text-center">
-      <div className="mt2">
-        <FieldSet legend={`${marketPair} overview`}>
-          <p>
-            Last Price: {lastPrice !== null ? `${lastPrice} ${baseToken}` : 'N/A'}
-          </p>
-          <p>
-            Bid: {highestBid} {baseToken}
-          </p>
-          <p>
-            Ask: {lowestAsk} {baseToken}
-          </p>
-          <p>
-            1yr Volume: {baseTokenVolume} {baseToken}
-          </p>
-          <p>
-            1yr Volume: {orderTokenVolume} {orderToken}
-          </p>
-        </FieldSet>
+      <overviewGridContainer>
+        <div>
+          <FieldSet legend={`${marketPair} overview`}>
+            <p>
+              Last Price: {lastPrice !== null ? `${lastPrice} ${baseToken}` : 'N/A'}
+            </p>
+            <p>
+              Bid: {highestBid} {baseToken}
+            </p>
+            <p>
+              Ask: {lowestAsk} {baseToken}
+            </p>
+            <p>
+              1yr Volume: {baseTokenVolume} {baseToken}
+            </p>
+            <p>
+              1yr Volume: {orderTokenVolume} {orderToken}
+            </p>
+          </FieldSet>
 
-        <FieldSet legend="Order Book">
-          <div style={gridStyleOrderbook}>
-            {/* Left Column */}
+          <FieldSet legend="Order Book">
+            <div style={gridStyleOrderbook}>
+              {/* Left Column */}
+              <div>
+                <p>Asks</p>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Price</th>
+                      <th>Amount</th>
+                      <th>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>{renderTableRows(orderBook.asks)}</tbody>
+                </table>
+              </div>
+              <div>
+                <p>Bids</p>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Price</th>
+                      <th>Order Token Amount</th>
+                      <th>Base Token Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>{renderTableRows(orderBook.bids)}</tbody>
+                </table>
+              </div>
+            </div>
+          </FieldSet>
+        </div>
+
+        <div>
+          <FieldSet legend="Executed Orders">
+            {/* Right Column */}
             <div>
-              <p>Asks</p>
               <table>
                 <thead>
                   <tr>
                     <th>Price</th>
                     <th>Amount</th>
-                    <th>Amount</th>
+                    <th>Time</th>
                   </tr>
                 </thead>
-                <tbody>{renderTableRows(orderBook.asks)}</tbody>
+                <tbody>{renderExecutedOrders()}</tbody>
               </table>
             </div>
-            <div>
-              <p>Bids</p>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Price</th>
-                    <th>Order Token Amount</th>
-                    <th>Base Token Amount</th>
-                  </tr>
-                </thead>
-                <tbody>{renderTableRows(orderBook.bids)}</tbody>
-              </table>
-            </div>
-          </div>
-        </FieldSet>
-      </div>
-
-      <div className="mt2 flex center">
-        <FieldSet legend="Executed Orders">
-          {/* Right Column */}
-          <div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Price</th>
-                  <th>Amount</th>
-                  <th>Time</th>
-                </tr>
-              </thead>
-              <tbody>{renderExecutedOrders()}</tbody>
-            </table>
-          </div>
-        </FieldSet>
-      </div>
+          </FieldSet>
+        </div>
+      </overviewGridContainer>
     </div>
   );
 }
