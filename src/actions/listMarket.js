@@ -74,10 +74,10 @@ export const listMarket = async (
       });
     } else if (orderToken === 'NXS') {
       resultInit.bids.forEach(element => {
-        element.order.amount = element.order.amount * 1e6;
+        element.order.amount = element.order.amount / 1e6;
       });
       resultInit.asks.forEach(element => {
-        element.contract.amount = element.contract.amount * 1e6;
+        element.contract.amount = element.contract.amount / 1e6;
         element.price = element.price / 1e6;
       });
     }
