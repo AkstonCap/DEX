@@ -6,7 +6,7 @@ export default function OrderBookComp() {
   const orderToken = useSelector((state) => state.ui.market.marketPairs.orderToken);
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
 
-  const renderTableRows = (data) => {
+  const renderTableBids = (data) => {
     if (!Array.isArray(data)) {
       return null;
     }
@@ -15,6 +15,19 @@ export default function OrderBookComp() {
         <td>{item.price}</td>
         <td>{`${item.order.amount} ${orderToken}`}</td>
         <td>{`${item.contract.amount} ${baseToken}`}</td>
+      </tr>
+    ));
+  };
+
+  const renderTableAsks = (data) => {
+    if (!Array.isArray(data)) {
+      return null;
+    }
+    return data.slice(0, 5).map((item, index) => (
+      <tr key={index}>
+        <td>{item.price}</td>
+        <td>{`${item.contract.amount} ${orderToken}`}</td>
+        <td>{`${item.order.amount} ${baseToken}`}</td>
       </tr>
     ));
   };
@@ -30,11 +43,11 @@ export default function OrderBookComp() {
                 <thead>
                   <tr>
                     <th>Price</th>
-                    <th>Order Token Amount</th>
-                    <th>Base Token Amount</th>
+                    <th>Amount {orderToken}</th>
+                    <th>Amount {baseToken}</th>
                   </tr>
                 </thead>
-                <tbody>{renderTableRows(orderBook.asks)}</tbody>
+                <tbody>{renderTableAsks(orderBook.asks)}</tbody>
               </table>
             </div>
             <div>
@@ -43,11 +56,11 @@ export default function OrderBookComp() {
                 <thead>
                   <tr>
                     <th>Price</th>
-                    <th>Order Token Amount</th>
-                    <th>Base Token Amount</th>
+                    <th>Amount {orderToken}</th>
+                    <th>Amount {baseToken}</th>
                   </tr>
                 </thead>
-                <tbody>{renderTableRows(orderBook.bids)}</tbody>
+                <tbody>{renderTableBids(orderBook.bids)}</tbody>
               </table>
             </div>
           </div>
