@@ -22,6 +22,9 @@ export default function Trade() {
           <div className="mt2">
             <TradeHistory />
           </div>
+          <div className="mt2">
+            <TradeHistory /> {/* Change to my history*/}
+          </div>
         </tradeGridContainer>
       </div>
     </div>
