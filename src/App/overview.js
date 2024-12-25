@@ -5,11 +5,13 @@ import { fetchVolumeData } from 'actions/fetchVolumeData';
 import { fetchMarketData } from 'actions/fetchMarketData';
 import styled from '@emotion/styled';
 import { overviewGridContainer } from 'components/styles';
+import OrderBookComp from 'components/OrderBookComp';
+import TradeHistory from 'components/TradeHistory';
 
 export default function Overview() {
   const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
-  const orderToken = useSelector((state) => state.ui.market.marketPairs.orderToken);
+  const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
 
   const orderBook = useSelector((state) => state.ui.market.orderBook);
   const executedOrders = useSelector(
@@ -18,7 +20,7 @@ export default function Overview() {
 
   // Declare state variables
   const [baseTokenVolume, setBaseTokenVolume] = useState(0);
-  const [orderTokenVolume, setOrderTokenVolume] = useState(0);
+  const [quoteTokenVolume, setQuoteTokenVolume] = useState(0);
   const [lastPrice, setLastPrice] = useState('N/A');
   const [highestBid, setHighestBid] = useState('N/A');
   const [lowestAsk, setLowestAsk] = useState('N/A');
@@ -31,7 +33,7 @@ export default function Overview() {
     ) {
       const volumeData = fetchVolumeData(executedOrders);
       setBaseTokenVolume(volumeData.baseTokenVolume);
-      setOrderTokenVolume(volumeData.orderTokenVolume);
+      setQuoteTokenVolume(volumeData.quoteTokenVolume);
 
       const sortedExecutedOrders = [
         ...executedOrders.bids,
@@ -41,7 +43,7 @@ export default function Overview() {
       setLastPrice(sortedExecutedOrders[0]?.price || 'N/A');
     } else {
       setBaseTokenVolume(0);
-      setOrderTokenVolume(0);
+      setQuoteTokenVolume(0);
       setLastPrice('N/A');
     }
 
@@ -64,61 +66,6 @@ export default function Overview() {
     updateData();
   }, [marketPair, executedOrders, orderBook]);
 
-  const gridStyle = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    gridTemplateRows: 'repeat(2, auto)',
-    gap: '10px',
-  };
-
-  const gridStyleOrderbook = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gridTemplateRows: 'repeat(2, auto)',
-    gap: '10px',
-  };
-
-  const renderTableRows = (data) => {
-    if (!Array.isArray(data)) {
-      return null;
-    }
-    return data.slice(0, 5).map((item, index) => (
-      <tr key={index}>
-        <td>{item.price}</td>
-        <td>{`${item.order.amount} ${orderToken}`}</td>
-        <td>{`${item.contract.amount} ${baseToken}`}</td>
-      </tr>
-    ));
-  };
-
-  const renderExecutedOrders = () => {
-    const bids = executedOrders && Array.isArray(executedOrders.bids) ? executedOrders.bids : [];
-    const asks = executedOrders && Array.isArray(executedOrders.asks) ? executedOrders.asks : [];
-
-    if (bids.length === 0 && asks.length === 0) {
-      return (
-        <tr>
-          <td colSpan="3">No executed orders</td>
-        </tr>
-      );
-    }
-    asks.forEach((element) => {
-      element.order.amount = element.contract.amount;
-    });
-
-    const sortedExecutedOrders = [...bids, ...asks].sort(
-      (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
-    );
-
-    return sortedExecutedOrders.map((order, index) => (
-      <tr key={index}>
-        <td>{`${order.price} ${baseToken}`}</td>
-        <td>{`${order.order.amount} ${orderToken}`}</td>
-        <td>{new Date(order.timestamp).toLocaleString()}</td>
-      </tr>
-    ));
-  };
-
   return (
     <div className="text-center">
       <overviewGridContainer>
@@ -128,68 +75,24 @@ export default function Overview() {
               Last Price: {lastPrice !== null ? `${lastPrice} ${baseToken}` : 'N/A'}
             </p>
             <p>
-              Bid: {highestBid} {baseToken}
+              Bid: {highestBid} {quoteToken}
             </p>
             <p>
-              Ask: {lowestAsk} {baseToken}
+              Ask: {lowestAsk} {quoteToken}
+            </p>
+            <p>
+              1yr Volume: {quoteTokenVolume} {quoteToken}
             </p>
             <p>
               1yr Volume: {baseTokenVolume} {baseToken}
             </p>
-            <p>
-              1yr Volume: {orderTokenVolume} {orderToken}
-            </p>
-          </FieldSet>
-
-          <FieldSet legend="Order Book">
-            <div style={gridStyleOrderbook}>
-              {/* Left Column */}
-              <div>
-                <p>Asks</p>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Price</th>
-                      <th>Amount</th>
-                      <th>Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody>{renderTableRows(orderBook.asks)}</tbody>
-                </table>
-              </div>
-              <div>
-                <p>Bids</p>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Price</th>
-                      <th>Order Token Amount</th>
-                      <th>Base Token Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody>{renderTableRows(orderBook.bids)}</tbody>
-                </table>
-              </div>
-            </div>
           </FieldSet>
         </div>
-
         <div>
-          <FieldSet legend="Executed Orders">
-            {/* Right Column */}
-            <div>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Price</th>
-                    <th>Amount</th>
-                    <th>Time</th>
-                  </tr>
-                </thead>
-                <tbody>{renderExecutedOrders()}</tbody>
-              </table>
-            </div>
-          </FieldSet>
+          <OrderBookComp />
+        </div>
+        <div>
+          <TradeHistory />
         </div>
       </overviewGridContainer>
     </div>
