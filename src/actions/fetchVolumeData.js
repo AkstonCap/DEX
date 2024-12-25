@@ -5,25 +5,25 @@ export const fetchVolumeData = (
   dataBids = executedOrders.bids || [];
   dataAsks = executedOrders.asks || [];
 
-  let orderTokenVolumeBids = 0;
+  let quoteTokenVolumeBids = 0;
   let baseTokenVolumeBids = 0;
-  let orderTokenVolumeAsks = 0;
+  let quoteTokenVolumeAsks = 0;
   let baseTokenVolumeAsks = 0;
 
   dataBids.forEach((item) => {
-    orderTokenVolumeBids += item.order.amount;
-    baseTokenVolumeBids += item.contract.amount; // Adjust this if base token volume calculation is different
+    baseTokenVolumeBids += item.order.amount;
+    quoteTokenVolumeBids += item.contract.amount; // Adjust this if base token volume calculation is different
   });
   dataAsks.forEach((item) => {
-    orderTokenVolumeAsks += item.contract.amount;
-    baseTokenVolumeAsks += item.order.amount; // Adjust this if base token volume calculation is different
+    baseTokenVolumeAsks += item.contract.amount;
+    quoteTokenVolumeAsks += item.order.amount; // Adjust this if base token volume calculation is different
   });
-  const orderTokenVolume = orderTokenVolumeBids + orderTokenVolumeAsks;
   const baseTokenVolume = baseTokenVolumeBids + baseTokenVolumeAsks;
+  const quoteTokenVolume = quoteTokenVolumeBids + quoteTokenVolumeAsks;
 
   return {
-    orderTokenVolume,
     baseTokenVolume,
+    quoteTokenVolume,
   };
 
 };
