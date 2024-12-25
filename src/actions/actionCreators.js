@@ -1,11 +1,11 @@
 import * as TYPE from './types';
 
-export const setMarketPair = (orderToken, baseToken) => ({
+export const setMarketPair = (baseToken, quoteToken) => ({
   type: TYPE.SET_MARKET_PAIR,
   payload: {
-    marketPair: `${orderToken}/${baseToken}`,
-    orderToken,
+    marketPair: `${baseToken}/${quoteToken}`,
     baseToken,
+    quoteToken,
   },
 });
 
@@ -23,6 +23,16 @@ export const setExecutedOrders = (executedOrders) => ({
   type: TYPE.SET_EXECUTED_ORDERS,
   payload: executedOrders,
 });
+
+export const setOrder = (address, price, amount) => ({
+  type: TYPE.SET_ORDER,
+  payload: {
+    address,
+    price,
+    amount,
+  },
+});
+
 /*
 export const updateInput = (orderToken, baseToken) => ({
   type: TYPE.UPDATE_INPUT,
