@@ -12,7 +12,7 @@ export default function Trade() {
       <h1>Trading Dashboard</h1>
       <h2>{marketPair}</h2>
       <div className="mt2">
-      <tradeGridContainer>
+        <tradeGridContainer>
           <div className="mt2">
             <OrderBookComp />
           </div>
