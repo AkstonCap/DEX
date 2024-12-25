@@ -1,8 +1,8 @@
 import * as TYPE from 'actions/types';
 
 const initialState = {
-  orderToken: '',
   baseToken: '',
+  quoteToken: '',
 }; // Set your default tab here
 
 export default (state = initialState, action) => {
@@ -10,8 +10,8 @@ export default (state = initialState, action) => {
     case TYPE.UPDATE_INPUT:
       return {
         ...state,
-        orderToken: action.payload.orderTokenField,
         baseToken: action.payload.baseTokenField,
+        quoteToken: action.payload.quoteTokenField,
       };
     default:
       return state;
