@@ -1,8 +1,8 @@
 import * as TYPE from 'actions/types';
 
 const initialState = {
-  orderToken: 'DIST',
-  baseToken: 'NXS',
+  baseToken: 'DIST',
+  quoteToken: 'NXS',
   marketPair: 'DIST/NXS',
 };
 
@@ -12,8 +12,8 @@ export default (state = initialState, action) => {
       return {
         ...state,
         marketPair: action.payload.marketPair,
-        orderToken: action.payload.orderToken,
         baseToken: action.payload.baseToken,
+        quoteToken: action.payload.quoteToken,
       };
 
     default:
