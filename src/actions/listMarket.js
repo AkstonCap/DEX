@@ -20,6 +20,11 @@ export const listMarket = async (
     /*
     const params = {
       market: marketPair
+      limit: numOfRes,
+      sort: sort,
+      order: asc_desc,
+      where: {
+        }
     };
     */
     const now = Date.now();
@@ -63,8 +68,8 @@ export const listMarket = async (
     });
 
     // Adjusting NXS amounts
-    const [baseToken, orderToken] = marketPair.split('/');
-    if (baseToken === 'NXS') {
+    const [baseToken, quoteToken] = marketPair.split('/');
+    if (quoteToken === 'NXS') {
       resultInit.bids.forEach(element => {
         element.contract.amount = element.contract.amount / 1e6;
         element.price = element.price / 1e6;
@@ -72,7 +77,7 @@ export const listMarket = async (
       resultInit.asks.forEach(element => {
         element.order.amount = element.order.amount / 1e6;
       });
-    } else if (orderToken === 'NXS') {
+    } else if (baseToken === 'NXS') {
       resultInit.bids.forEach(element => {
         element.order.amount = element.order.amount / 1e6;
       });
@@ -132,15 +137,15 @@ export const listMarket = async (
       'time': (a, b) => new Date(b.timestamp) - new Date(a.timestamp),
       'price': (a, b) => (b.contract.amount / b.order.amount) - (a.contract.amount / a.order.amount),
       // 'price': (a, b) => b.price - a.price,
-      'volumeBase': (a, b) => b.contract.amount - a.contract.amount,
-      'volumeOrder': (a, b) => b.order.amount - a.order.amount
+      'volumeQuote': (a, b) => b.contract.amount - a.contract.amount,
+      'volumeBase': (a, b) => b.order.amount - a.order.amount
     };
     if (asc_desc === 'asc') {
       sortFunctions.price = (a, b) => (a.contract.amount / a.order.amount) - (b.contract.amount / b.order.amount);
       // sortFunctions.price = (a, b) => a.price - b.price;
       sortFunctions.time = (a, b) => new Date(a.timestamp) - new Date(b.timestamp);
-      sortFunctions.volumeBase = (a, b) => a.contract.amount - b.contract.amount;
-      sortFunctions.volumeOrder = (a, b) => a.order.amount - b.order.amount;
+      sortFunctions.volumeQuote = (a, b) => a.contract.amount - b.contract.amount;
+      sortFunctions.volumeBase = (a, b) => a.order.amount - b.order.amount;
     }
 
     // Filtering results based on typefilter
