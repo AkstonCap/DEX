@@ -7,3 +7,5 @@ export const SET_ORDER_BOOK = 'SET_ORDER_BOOK';
 export const SET_EXECUTED_ORDERS = 'SET_EXECUTED_ORDERS';
 
 export const SWITCH_TAB = 'SWITCH_TAB';
+
+export const SET_ORDER = 'SET_ORDER';
