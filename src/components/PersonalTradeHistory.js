@@ -7,13 +7,13 @@ export default function PersonalTradeHistory() {
 
     return (
         <div className="mt2">
-            <FieldSet legend="My Transactions">
+            <FieldSet legend="My Trades">
                 <div>
                     <table>
                         <thead>
                             <tr>
-                                <th>Price [{baseToken}/{orderToken}]</th>
-                                <th>Amount {orderToken}</th>
+                                <th>Price [{quoteToken}/{baseToken}]</th>
+                                <th>Amount {baseToken}</th>
                                 <th>Time</th>
                             </tr>
                         </thead>
