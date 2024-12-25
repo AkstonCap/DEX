@@ -27,19 +27,19 @@ const ButtonContainer = styled.div`
 `;
 
 export const DEFAULT_MARKET_PAIR = 'DIST/NXS';
-export const DEFAULT_ORDER_TOKEN = 'DIST';
-export const DEFAULT_BASE_TOKEN = 'NXS';
+export const DEFAULT_BASE_TOKEN = 'DIST';
+export const DEFAULT_QUOTE_TOKEN = 'NXS';
 
 export default function Main() {
   const dispatch = useDispatch();
   const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair) || DEFAULT_MARKET_PAIR;
-  const orderToken = useSelector((state) => state.ui.market.marketPairs.orderToken);
+  const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const activeTab = useSelector((state) => state.ui.activeTab);
 
   const [inputPair, setInputPair] = useState({
-    orderTokenInput: orderToken,
     baseTokenInput: baseToken,
+    quoteTokenInput: quoteToken,
   });
 
   function handleTokenInputChange(e) {
@@ -75,24 +75,24 @@ export default function Main() {
         <div className="controls-container">
         <ButtonContainer>
           <DemoTextField
-            label="Order Token"
-            name="orderTokenInput"
-            value={inputPair.orderTokenInput}
-            onChange={handleTokenInputChange}
-            placeholder={orderToken}
-          />
-          /
-          <DemoTextField
             label="Base Token"
             name="baseTokenInput"
             value={inputPair.baseTokenInput}
             onChange={handleTokenInputChange}
             placeholder={baseToken}
           />
+          /
+          <DemoTextField
+            label="Quote Token"
+            name="quoteTokenInput"
+            value={inputPair.quoteTokenInput}
+            onChange={handleTokenInputChange}
+            placeholder={quoteToken}
+          />
         </ButtonContainer>
         <RefreshButton
-          orderTokenField={inputPair.orderTokenInput}
           baseTokenField={inputPair.baseTokenInput}
+          quoteTokenField={inputPair.quoteTokenInput}
         />
       </div>
       }
