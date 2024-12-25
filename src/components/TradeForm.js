@@ -1,14 +1,19 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { FieldSet } from 'nexus-module';
-//import { useDispatch } from 'react-redux';
-//import { placeOrder } from '../actions/placeOrder';
+import { 
+  FieldSet,
+  Button,
+  Dropdown,
+  TextField,
+  Select,
+ } from 'nexus-module';
+import { createOrder, executeOrder, cancelOrder } from '../actions/placeOrder';
 
 export default function TradeForm() {
   const [orderType, setOrderType] = useState('buy');
   const [price, setPrice] = useState('');
   const [amount, setAmount] = useState('');
-  //const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -21,10 +26,10 @@ export default function TradeForm() {
       <form onSubmit={handleSubmit}>
         <label>
           Order Type:
-          <select value={orderType} onChange={(e) => setOrderType(e.target.value)}>
-            <option value="buy">Buy</option>
-            <option value="sell">Sell</option>
-          </select>
+          <Select value={orderType} onChange={(e) => setOrderType(e.target.value)}>
+            <option value="bid">Buy</option>
+            <option value="ask">Sell</option>
+          </Select>
         </label>
         <label>
           Price:
@@ -44,7 +49,9 @@ export default function TradeForm() {
             onChange={(e) => setAmount(e.target.value)}
           />
         </label>
-        <button type="submit">Submit Order</button>
+        <Button onclick={handleSubmit}>
+          Create Order
+        </Button>
       </form>
     </div>
   );
