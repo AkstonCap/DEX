@@ -14,7 +14,7 @@ const spin = keyframes`
   }
 `;
 
-function useRefreshMarket(orderTokenField, baseTokenField) {
+function useRefreshMarket(baseTokenField, quoteTokenField) {
   const [refreshing, setRefreshing] = useState(false);
   const dispatch = useDispatch();
   
@@ -22,7 +22,7 @@ function useRefreshMarket(orderTokenField, baseTokenField) {
     if (refreshing) return;
     setRefreshing(true);
     try {
-      dispatch(setMarketPair(orderTokenField, baseTokenField)),
+      dispatch(setMarketPair(baseTokenField, quoteTokenField)),
       await dispatch(fetchMarketData())
     } finally {
       setRefreshing(false);
@@ -32,8 +32,8 @@ function useRefreshMarket(orderTokenField, baseTokenField) {
   return [refreshing, refreshMarket];
 }
 
-export default function RefreshButton({ orderTokenField, baseTokenField }) {
-  const [refreshing, refreshMarket] = useRefreshMarket(orderTokenField, baseTokenField);
+export default function RefreshButton({ baseTokenField, quoteTokenField }) {
+  const [refreshing, refreshMarket] = useRefreshMarket(baseTokenField, quoteTokenField);
   
   return (
     <Tooltip.Trigger tooltip="Refresh">
