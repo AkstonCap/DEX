@@ -3,6 +3,7 @@ import { apiCall,
     showSuccessDialog,
     secureApiCall
 } from 'nexus-module';
+import { fetchMarketData } from './fetchMarketData';
 
 export const createOrder = async (
     orderType, price, amount, fromAccount, toAccount, dispatch, getState) => {
@@ -147,6 +148,7 @@ export const cancelOrder = async (orderAddress, dispatch) => {
                 result.txid, 
                 'Order address: ', 
                 result.address));
+            dispatch(fetchMarketData());
             return result;
         } else {
             dispatch(showErrorDialog('Error cancelling order (success = false):', result));
