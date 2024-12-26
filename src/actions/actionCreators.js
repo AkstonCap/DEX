@@ -24,13 +24,24 @@ export const setExecutedOrders = (executedOrders) => ({
   payload: executedOrders,
 });
 
-export const setOrder = (address, price, amount) => ({
+export const setOrder = (address, price, amount, type) => ({
   type: TYPE.SET_ORDER,
   payload: {
     address,
     price,
     amount,
+    type,
   },
+});
+
+export const setMyOrders = (myOrders) => ({
+  type: TYPE.SET_MY_ORDERS,
+  payload: myOrders,
+});
+
+export const setMyTrades = (myTrades) => ({
+  type: TYPE.SET_MY_TRADES,
+  payload: myTrades,
 });
 
 /*
