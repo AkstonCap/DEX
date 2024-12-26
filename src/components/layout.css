@@ -1,0 +1,22 @@
+.overview-page {
+  display: grid;
+  /* Total height for the layout (adjust as needed) */
+  height: 100vh; 
+  /* 2 rows: top row is 2/3 of height, bottom row is 1/3 of height */
+  grid-template-rows: 66% 34%;
+  gap: 10px; /* space between rows */
+}
+
+.top-row {
+  display: grid;
+  /* 2 columns: left is 2/3 of width, right is 1/3 */
+  grid-template-columns: 66% 34%;
+  gap: 10px; /* space between columns */
+}
+
+.bottom-row {
+  display: grid;
+  /* 2 columns, each half the width */
+  grid-template-columns: 33% 33% 34%;
+  gap: 10px;
+}
