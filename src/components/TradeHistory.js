@@ -3,6 +3,8 @@ import { FieldSet } from 'nexus-module';
 
 export const renderExecutedOrders = () => {
   const executedOrders = useSelector((state) => state.ui.market.executedData.executedOrders);
+  const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
+  const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
   const bids = executedOrders && Array.isArray(executedOrders.bids) ? executedOrders.bids : [];
   const asks = executedOrders && Array.isArray(executedOrders.asks) ? executedOrders.asks : [];
 
@@ -22,8 +24,8 @@ export const renderExecutedOrders = () => {
 
   return sortedExecutedOrders.map((order, index) => (
     <tr key={index}>
-      <td>{`${order.price} ${baseToken}`}</td>
-      <td>{`${order.order.amount} ${orderToken}`}</td>
+      <td>{`${order.price} ${quoteToken}`}</td>
+      <td>{`${order.order.amount} ${baseToken}`}</td>
       <td>{new Date(order.timestamp).toLocaleString()}</td>
     </tr>
   ));
@@ -38,8 +40,8 @@ export default function TradeHistory() {
             <table>
               <thead>
                 <tr>
-                  <th>Price [{baseToken}/{orderToken}]</th>
-                  <th>Amount {orderToken}</th>
+                  <th>Price [{quoteToken}/{baseToken}]</th>
+                  <th>Amount {baseToken}</th>
                   <th>Time</th>
                 </tr>
               </thead>
