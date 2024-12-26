@@ -4,6 +4,7 @@ const initialState = {
   address: '',
   price: 0,
   amount: 0,
+  type: '',
 };
 
 export default (state = initialState, action) => {
@@ -14,6 +15,7 @@ export default (state = initialState, action) => {
         address: action.payload.address,
         price: action.payload.price,
         amount: action.payload.amount,
+        type: action.payload.type,
       };
 
     default:
