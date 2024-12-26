@@ -7,6 +7,9 @@ import styled from '@emotion/styled';
 import { overviewGridContainer } from 'components/styles';
 import OrderBookComp from 'components/OrderBookComp';
 import TradeHistory from 'components/TradeHistory';
+import PersonalTradeHistory from 'components/PersonalTradeHistory';
+import 'components/layout.css';
+import PersonalOpenOrders from 'components/PersonalOpenOrders';
 
 export default function Overview() {
   const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
@@ -67,34 +70,36 @@ export default function Overview() {
   }, [marketPair, executedOrders, orderBook]);
 
   return (
-    <div className="text-center">
-      <overviewGridContainer>
-        <div>
+    <div className="overview-page">
+      <div className='top-row'>
+        <div className='overview-container'>
           <FieldSet legend={`${marketPair} overview`}>
             <p>
               Last Price: {lastPrice !== null ? `${lastPrice} ${baseToken}` : 'N/A'}
             </p>
             <p>
-              Bid: {highestBid} {quoteToken}
+              Bid/Ask: {highestBid} {quoteToken} / {lowestAsk} {quoteToken}
             </p>
             <p>
-              Ask: {lowestAsk} {quoteToken}
-            </p>
-            <p>
-              1yr Volume: {quoteTokenVolume} {quoteToken}
-            </p>
-            <p>
-              1yr Volume: {baseTokenVolume} {baseToken}
+              1yr Volume: {baseTokenVolume} {baseToken} / {quoteTokenVolume} {quoteToken}
             </p>
           </FieldSet>
         </div>
-        <div>
+        <div className='orderbook-container'>
           <OrderBookComp />
         </div>
-        <div>
+      </div>
+      <div className='bottom-row'>
+        <div trade-history-container>
           <TradeHistory />
         </div>
-      </overviewGridContainer>
+        <div className="personal-trade-history-container">
+          <PersonalTradeHistory />
+        </div>
+        <div className="personal-open-orders-container">
+          <PersonalOpenOrders />
+        </div>
+      </div>
     </div>
   );
 }
