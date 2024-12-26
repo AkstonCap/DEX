@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { 
   FieldSet,
   Button,
@@ -7,17 +7,47 @@ import {
   TextField,
   Select,
  } from 'nexus-module';
-import { createOrder, executeOrder, cancelOrder } from '../actions/placeOrder';
+import { createOrder } from 'actions/actionCreators';
+import { showErrorDialog } from 'actions/errorActions';
+import apiCall from 'utils/apiCall';
 
 export default function TradeForm() {
-  const [orderType, setOrderType] = useState('buy');
-  const [price, setPrice] = useState('');
-  const [amount, setAmount] = useState('');
   const dispatch = useDispatch();
+  const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
+  const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
+  const orderInQuestion = useSelector((state) => state.ui.market.orderInQuestion);
+  
+  const [orderType, setOrderType] = useState('bid');
+  const [amount, setAmount] = useState('');
+  const [price, setPrice] = useState('');
+  const [fromAccount, setFromAccount] = useState('');
+  const [toAccount, setToAccount] = useState('');
+  const [accounts, setAccounts] = useState({ quoteAccounts: [], baseAccounts: [] });
+
+  useEffect(() => {
+    async function fetchAccounts() {
+      try {
+        const result = await apiCall('finance/list/account');
+        let quoteAccounts = [];
+        let baseAccounts = [];
+        if (orderType === 'bid' || (orderType === 'execute' && orderInQuestion.type === 'bid')) {
+          quoteAccounts = result.filter((acct) => acct.ticker === quoteToken && acct.balance > amount);
+          baseAccounts = result.filter((acct) => acct.ticker === baseToken);
+        } else if (orderType === 'ask' || (orderType === 'execute' && orderInQuestion.type === 'ask')) {
+          quoteAccounts = result.filter((acct) => acct.ticker === quoteToken);
+          baseAccounts = result.filter((acct) => acct.ticker === baseToken && acct.balance > amount);
+        }
+        setAccounts({ quoteAccounts, baseAccounts });
+      } catch (error) {
+        dispatch(showErrorDialog('Error fetching account information:', error));
+      }
+    }
+    fetchAccounts();
+  }, [dispatch, orderType, orderInQuestion, quoteToken, baseToken, amount]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    //dispatch(placeOrder(orderType, price, amount));
+    dispatch(createOrder(orderType, price, amount, fromAccount, toAccount));
   };
 
   return (
@@ -29,6 +59,7 @@ export default function TradeForm() {
           <Select value={orderType} onChange={(e) => setOrderType(e.target.value)}>
             <option value="bid">Buy</option>
             <option value="ask">Sell</option>
+            <option value="execute">Execute</option>
           </Select>
         </label>
         <label>
@@ -49,8 +80,33 @@ export default function TradeForm() {
             onChange={(e) => setAmount(e.target.value)}
           />
         </label>
+        <Dropdown
+          label="From Account"
+          value={fromAccount}
+          onChange={(e) => setFromAccount(e.target.value)}
+        >
+          {/* Map quoteAccounts for the 'From Account' dropdown */}
+          {accounts.quoteAccounts.map((acct) => (
+            <option key={acct.address} value={acct.address}>
+              {acct.address} - {acct.balance} {quoteToken}
+            </option>
+          ))}
+        </Dropdown>
+
+        <Dropdown
+          label="To Account"
+          value={toAccount}
+          onChange={(e) => setToAccount(e.target.value)}
+        >
+          {/* Map baseAccounts for the 'To Account' dropdown */}
+          {accounts.baseAccounts.map((acct) => (
+            <option key={acct.address} value={acct.address}>
+              {acct.address} - {acct.balance} {baseToken}
+            </option>
+          ))}
+        </Dropdown>
         <Button onclick={handleSubmit}>
-          Create Order
+          Create {orderType}
         </Button>
       </form>
     </div>
