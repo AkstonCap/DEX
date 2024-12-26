@@ -1,6 +1,37 @@
 import { FieldSet } from 'nexus-module';
+import { useSelector } from 'react-redux';
 //import { useSelector } from 'react-redux';
-import { renderExecutedOrders } from './TradeHistory';
+
+export const renderMyTrades = async() => {
+
+  const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
+  const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
+  
+  const myTrades = useSelector((state) => state.ui.market.myTrades);
+
+  if (myTrades.bids?.length === 0 && myTrades.asks?.length === 0) {
+    return (
+      <tr>
+        <td colSpan="3">No trades</td>
+      </tr>
+    );
+  }
+
+  myTrades.asks.forEach((element) => {
+    element.order.amount = element.contract.amount;
+  });
+  const sortedTrades = [...myTrades.bids, ...myTrades.asks].sort(
+    (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+  );
+
+  return sortedTrades.map((order, index) => (
+    <tr key={index}>
+      <td>{`${order.price} ${quoteToken}`}</td>
+      <td>{`${order.order.amount} ${baseToken}`}</td>
+      <td>{new Date(order.timestamp).toLocaleString()}</td>
+    </tr>
+  ));
+};
 
 export default function PersonalTradeHistory() {
     //const executedOrders = useSelector((state) => state.ui.market.executedData.executedOrders);
@@ -18,7 +49,7 @@ export default function PersonalTradeHistory() {
                             </tr>
                         </thead>
                         <tbody>
-                            {renderExecutedOrders()}
+                            {renderMyTrades()}
                         </tbody>
                     </table>
                 </div>
