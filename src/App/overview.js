@@ -3,12 +3,15 @@ import { useSelector } from 'react-redux';
 import { FieldSet } from 'nexus-module';
 import { fetchVolumeData } from 'actions/fetchVolumeData';
 import { fetchMarketData } from 'actions/fetchMarketData';
-import styled from '@emotion/styled';
-import { overviewGridContainer } from 'components/styles';
+import { 
+  BottomRow,
+  TopRow,
+  PageLayout,
+ } from 'components/styles';
 import OrderBookComp from 'components/OrderBookComp';
 import TradeHistory from 'components/TradeHistory';
 import PersonalTradeHistory from 'components/PersonalTradeHistory';
-import 'components/layout.css';
+//import 'components/layout.css';
 import PersonalOpenOrders from 'components/PersonalOpenOrders';
 
 export default function Overview() {
@@ -70,9 +73,9 @@ export default function Overview() {
   }, [marketPair, executedOrders, orderBook]);
 
   return (
-    <div className="overview-page">
-      <div className='top-row'>
-        <div className='overview-container'>
+    <PageLayout>
+      <TopRow>
+        <div className='mt2'>
           <FieldSet legend={`${marketPair} overview`}>
             <p>
               Last Price: {lastPrice !== null ? `${lastPrice} ${baseToken}` : 'N/A'}
@@ -85,21 +88,21 @@ export default function Overview() {
             </p>
           </FieldSet>
         </div>
-        <div className='orderbook-container'>
+        <div className='mt2'>
           <OrderBookComp />
         </div>
-      </div>
-      <div className='bottom-row'>
-        <div trade-history-container>
+      </TopRow>
+      <BottomRow>
+        <FieldSet legend='Trade History'>
           <TradeHistory />
-        </div>
-        <div className="personal-trade-history-container">
+        </FieldSet>
+        <FieldSet legend='Personal Trade History'>
           <PersonalTradeHistory />
-        </div>
-        <div className="personal-open-orders-container">
+        </FieldSet>
+        <Fieldset legend='Personal Open Orders'>
           <PersonalOpenOrders />
-        </div>
-      </div>
-    </div>
+        </Fieldset>
+      </BottomRow>
+    </PageLayout>
   );
 }
