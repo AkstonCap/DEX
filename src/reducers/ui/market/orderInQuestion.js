@@ -5,6 +5,7 @@ const initialState = {
   price: 0,
   amount: 0,
   type: '',
+  marketPair: '',
 };
 
 export default (state = initialState, action) => {
@@ -16,6 +17,7 @@ export default (state = initialState, action) => {
         price: action.payload.price,
         amount: action.payload.amount,
         type: action.payload.type,
+        marketPair: action.payload.marketPair,
       };
 
     default:
