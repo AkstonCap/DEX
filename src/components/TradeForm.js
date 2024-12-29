@@ -7,8 +7,8 @@ import {
   TextField,
   Select,
   apiCall,
+  showErrorDialog,
 } from 'nexus-module';
-import { showErrorDialog } from 'actions/errorActions';
 import { 
   createOrder, 
   cancelOrder, 

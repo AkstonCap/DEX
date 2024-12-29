@@ -99,9 +99,9 @@ export default function Overview() {
         <FieldSet legend='Personal Trade History'>
           <PersonalTradeHistory />
         </FieldSet>
-        <Fieldset legend='Personal Open Orders'>
+        <FieldSet legend='Personal Open Orders'>
           <PersonalOpenOrders />
-        </Fieldset>
+        </FieldSet>
       </BottomRow>
     </PageLayout>
   );
