@@ -32,6 +32,9 @@ export const renderExecutedOrders = () => {
 };
 
 export default function TradeHistory() {
+  
+  const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
+  const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
 
   return (
     <div className="mt2">

@@ -35,6 +35,9 @@ export const renderMyOpenOrders = async() => {
 export default function PersonalOpenOrders() {
     //const executedOrders = useSelector((state) => state.ui.market.executedData.executedOrders);
 
+  const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
+  const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
+
     return (
         <div className="mt2">
             <FieldSet legend="My Orders">
