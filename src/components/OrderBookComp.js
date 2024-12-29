@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { FieldSet } from 'nexus-module';
 import { setOrder } from 'actions/actionCreators';
-import { gridStyleOrderbook } from './styles';
+//import { gridStyleOrderbook } from './styles';
 
 export default function OrderBookComp() {
   const dispatch = useDispatch();
@@ -11,9 +11,9 @@ export default function OrderBookComp() {
 
   const handleOrderClick = (order) => {
     if (order.type === 'ask') {
-      dispatch(setOrder(order.address, order.price, order.order.amount, order.type));
+      dispatch(setOrder(order.address, order.price, order.order.amount, order.type, order.market));
     } else if (order.type === 'bid') {
-      dispatch(setOrder(order.address, order.price, order.contract.amount, order.type));
+      dispatch(setOrder(order.address, order.price, order.contract.amount, order.type, order.market));
     }
   };
 
@@ -46,7 +46,7 @@ export default function OrderBookComp() {
   return (
     <div className="mt2">
       <FieldSet legend="Order Book">
-          <div style={gridStyleOrderbook}>
+          <div>
             {/* Left Column */}
             <div>
               <p>Asks</p>
