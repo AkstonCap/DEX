@@ -6,10 +6,14 @@ import {
   Dropdown,
   TextField,
   Select,
- } from 'nexus-module';
-import { createOrder } from 'actions/actionCreators';
+  apiCall,
+} from 'nexus-module';
 import { showErrorDialog } from 'actions/errorActions';
-import apiCall from 'utils/apiCall';
+import { 
+  createOrder, 
+  cancelOrder, 
+  executeOrder,
+} from 'actions/placeOrder';
 
 export default function TradeForm() {
   const dispatch = useDispatch();
