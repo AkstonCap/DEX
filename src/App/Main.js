@@ -16,7 +16,7 @@ import { switchTab } from 'actions/actionCreators';
 import RefreshButton from './RefreshButton';
 import { fetchMarketData } from 'actions/fetchMarketData';
 
-const DemoTextField = styled(TextField)({
+const TokenTextField = styled(TextField)({
   maxWidth: 200,
 });
 
@@ -73,28 +73,28 @@ export default function Main() {
     <Panel 
       controls={
         <div className="controls-container">
-        <ButtonContainer>
-          <DemoTextField
-            label="Base Token"
-            name="baseTokenInput"
-            value={inputPair.baseTokenInput}
-            onChange={handleTokenInputChange}
-            placeholder={baseToken}
-          />
-          /
-          <DemoTextField
-            label="Quote Token"
-            name="quoteTokenInput"
-            value={inputPair.quoteTokenInput}
-            onChange={handleTokenInputChange}
-            placeholder={quoteToken}
-          />
-        </ButtonContainer>
-        <RefreshButton
-          baseTokenField={inputPair.baseTokenInput}
-          quoteTokenField={inputPair.quoteTokenInput}
-        />
-      </div>
+          <ButtonContainer>
+            <TokenTextField
+              label="Base Token"
+              name="baseTokenInput"
+              value={inputPair.baseTokenInput}
+              onChange={handleTokenInputChange}
+              placeholder={baseToken}
+            />
+            /
+            <TokenTextField
+              label="Quote Token"
+              name="quoteTokenInput"
+              value={inputPair.quoteTokenInput}
+              onChange={handleTokenInputChange}
+              placeholder={quoteToken}
+            />
+            <RefreshButton
+              baseTokenField={inputPair.baseTokenInput}
+              quoteTokenField={inputPair.quoteTokenInput}
+            />
+          </ButtonContainer>
+        </div>
       }
       title={"Distordia DEX Module"} 
       icon={{ url: 'distordia-small.svg', id: 'icon' }}>
