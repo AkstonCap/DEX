@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { FieldSet } from 'nexus-module';
+import { 
+  FieldSet,
+  Arrow,
+ } from 'nexus-module';
 import { fetchVolumeData } from 'actions/fetchVolumeData';
 import { fetchMarketData } from 'actions/fetchMarketData';
 import { 
   BottomRow,
   TopRow,
   PageLayout,
+  ChangeText,
  } from 'components/styles';
 import OrderBookComp from 'components/OrderBookComp';
 import TradeHistory from 'components/TradeHistory';
@@ -78,7 +82,9 @@ export default function Overview() {
         <div className='mt2'>
           <FieldSet legend={`${marketPair} overview`}>
             <p>
-              Last Price: {lastPrice !== null ? `${lastPrice} ${quoteToken}` : 'N/A'}
+              Last Price: {
+              lastPrice !== null ? `${lastPrice} ${quoteToken}` : 'N/A'
+              } <ChangeText Arrow={Arrow} />
             </p>
             <p>
               Bid/Ask: {highestBid} {quoteToken} / {lowestAsk} {quoteToken}
