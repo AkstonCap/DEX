@@ -19,6 +19,7 @@ export default function TradeForm() {
   const dispatch = useDispatch();
   const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
+  const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
   const orderInQuestion = useSelector((state) => state.ui.market.orderInQuestion);
   
   const [orderType, setOrderType] = useState('bid');
@@ -56,7 +57,7 @@ export default function TradeForm() {
 
   return (
     <div className="mt2">
-      <h3>Place Order</h3>
+      <h3>Place Order for {marketPair}</h3>
       <form onSubmit={handleSubmit}>
         <label>
           Order Type:
