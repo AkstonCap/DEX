@@ -109,7 +109,7 @@ export default function TradeForm() {
             </option>
           ))}
         </Dropdown>
-        <Button onclick={handleSubmit}>
+        <Button onClick={handleSubmit}>
           Create {orderType}
         </Button>
       </form>

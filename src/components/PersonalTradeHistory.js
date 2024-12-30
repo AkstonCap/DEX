@@ -1,60 +1,68 @@
-import { FieldSet } from 'nexus-module';
 import { useSelector } from 'react-redux';
-//import { useSelector } from 'react-redux';
+import { FieldSet } from 'nexus-module';
 
-export const renderMyTrades = async() => {
-
+export default function PersonalTradeHistory() {
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
-  
   const myTrades = useSelector((state) => state.ui.market.myTrades);
 
-  if (myTrades.bids?.length === 0 && myTrades.asks?.length === 0) {
+  // If no trades, display a single table row saying "No trades"
+  if (!myTrades || (myTrades.bids?.length === 0 && myTrades.asks?.length === 0)) {
     return (
-      <tr>
-        <td colSpan="3">No trades</td>
-      </tr>
+      <div className="mt2">
+        <FieldSet legend="My Trades">
+          <table>
+            <thead>
+              <tr>
+                <th>Price [{quoteToken}/{baseToken}]</th>
+                <th>Amount {baseToken}</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colSpan="3">No trades</td>
+              </tr>
+            </tbody>
+          </table>
+        </FieldSet>
+      </div>
     );
   }
 
+  // Adjust "asks" so that order.amount matches contract.amount
   myTrades.asks.forEach((element) => {
     element.order.amount = element.contract.amount;
   });
+
+  // Merge and sort
   const sortedTrades = [...myTrades.bids, ...myTrades.asks].sort(
     (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
   );
 
-  return sortedTrades.map((order, index) => (
+  // Map each trade to a table row
+  const rows = sortedTrades.map((trade, index) => (
     <tr key={index}>
-      <td>{`${order.price} ${quoteToken}`}</td>
-      <td>{`${order.order.amount} ${baseToken}`}</td>
-      <td>{new Date(order.timestamp).toLocaleString()}</td>
+      <td>{`${trade.price} ${quoteToken}`}</td>
+      <td>{`${trade.order.amount} ${baseToken}`}</td>
+      <td>{new Date(trade.timestamp).toLocaleString()}</td>
     </tr>
   ));
-};
 
-export default function PersonalTradeHistory() {
-    //const executedOrders = useSelector((state) => state.ui.market.executedData.executedOrders);
-  const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
-  const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
   return (
     <div className="mt2">
-        <FieldSet legend="My Trades">
-          <div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Price [{quoteToken}/{baseToken}]</th>
-                  <th>Amount {baseToken}</th>
-                  <th>Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {renderMyTrades()}
-              </tbody>
-            </table>
-          </div>
-        </FieldSet>
+      <FieldSet legend="My Trades">
+        <table>
+          <thead>
+            <tr>
+              <th>Price [{quoteToken}/{baseToken}]</th>
+              <th>Amount {baseToken}</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>{rows}</tbody>
+        </table>
+      </FieldSet>
     </div>
   );
 }
