@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { FieldSet } from 'nexus-module';
 import { setOrder } from 'actions/actionCreators';
-//import { gridStyleOrderbook } from './styles';
+import { OrderTable } from './styles';
 
 export default function OrderBookComp() {
   const dispatch = useDispatch();
@@ -50,7 +50,7 @@ export default function OrderBookComp() {
             {/* Left Column */}
             <div>
               <p>Asks</p>
-              <table>
+              <OrderTable>
                 <thead>
                   <tr>
                     <th>Price</th>
@@ -59,11 +59,11 @@ export default function OrderBookComp() {
                   </tr>
                 </thead>
                 <tbody>{renderTableAsks(orderBook.asks)}</tbody>
-              </table>
+              </OrderTable>
             </div>
             <div>
               <p>Bids</p>
-              <table>
+              <OrderTable>
                 <thead>
                   <tr>
                     <th>Price</th>
@@ -72,7 +72,7 @@ export default function OrderBookComp() {
                   </tr>
                 </thead>
                 <tbody>{renderTableBids(orderBook.bids)}</tbody>
-              </table>
+              </OrderTable>
             </div>
           </div>
         </FieldSet>
