@@ -1,5 +1,6 @@
 import { useSelector } from 'react-redux';
 import { FieldSet } from 'nexus-module';
+import { OrderTable } from './styles';
 
 export default function PersonalOpenOrders() {
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
