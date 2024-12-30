@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import { Arrow } from 'nexus-module';
 
 export const overviewGridContainer = styled.div`
   display: grid;
@@ -31,7 +32,34 @@ export const BottomRow = styled.div`
   gap: 10px;
 `;
 
-export const TradingContainer = styled.div`
-  background: #f5f5f5;
-  padding: 10px;
+export const OrderTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+
+  th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: right;
+  }
+`;
+
+export const OrderbookTableHeader = styled.thead`
+  background-color: #f1f1f1;
+`;
+
+export const OrderbookTableRow = styled.tr`
+  cursor: pointer;
+`;
+
+export const OrderbookTableData = styled.td`
+  text-align: right;
+`;
+
+export const ChangeText = styled.span`
+  color: ${(props) => (props.change > 0 ? 'green' : 'red')};
+`;
+
+export const ChangeArrow = styled(Arrow)`
+  color: ${(props) => (props.change > 0 ? 'green' : 'red')};
 `;
