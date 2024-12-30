@@ -8,7 +8,6 @@ import {
   PageLayout, 
   TopRow, 
   BottomRow, 
-  TradingContainer 
 } from 'components/styles';
 
 export default function Trade() {
@@ -20,23 +19,13 @@ export default function Trade() {
       <h2>{marketPair}</h2>
       <PageLayout>
         <TopRow>
-          <TradingContainer>
-            <TradeForm />
-          </TradingContainer>
-          <TradingContainer>
-            <OrderBookComp />
-          </TradingContainer>
+          <TradeForm />
+          <OrderBookComp />
         </TopRow>
         <BottomRow>
-          <TradingContainer>
-            <TradeHistory />
-          </TradingContainer>
-          <TradingContainer>
-            <PersonalTradeHistory />
-          </TradingContainer>
-          <TradingContainer>
-            <PersonalOpenOrders />
-          </TradingContainer>
+          <TradeHistory />
+          <PersonalTradeHistory />
+          <PersonalOpenOrders />
         </BottomRow>
       </PageLayout>
     </div>
