@@ -78,7 +78,7 @@ export default function Overview() {
         <div className='mt2'>
           <FieldSet legend={`${marketPair} overview`}>
             <p>
-              Last Price: {lastPrice !== null ? `${lastPrice} ${baseToken}` : 'N/A'}
+              Last Price: {lastPrice !== null ? `${lastPrice} ${quoteToken}` : 'N/A'}
             </p>
             <p>
               Bid/Ask: {highestBid} {quoteToken} / {lowestAsk} {quoteToken}
@@ -88,20 +88,12 @@ export default function Overview() {
             </p>
           </FieldSet>
         </div>
-        <div className='mt2'>
-          <OrderBookComp />
-        </div>
+        <OrderBookComp />
       </TopRow>
       <BottomRow>
-        <FieldSet legend='Trade History'>
-          <TradeHistory />
-        </FieldSet>
-        <FieldSet legend='Personal Trade History'>
-          <PersonalTradeHistory />
-        </FieldSet>
-        <FieldSet legend='Personal Open Orders'>
-          <PersonalOpenOrders />
-        </FieldSet>
+        <TradeHistory />
+        <PersonalTradeHistory />
+        <PersonalOpenOrders />
       </BottomRow>
     </PageLayout>
   );
