@@ -37,7 +37,13 @@ export const fetchExecuted = (
 
       const myTrades = await apiCall('market/user/executed', 
         {market: pair, sort: 'timestamp', order: 'desc', limit: 10}
-      );
+      ).catch((error1) => {
+        dispatch(showErrorDialog({
+          message: 'Cannot get my trade history (market/user/executed)',
+          note: error1?.message || 'Unknown error',
+        }));
+        return myTrades={bids: [], asks: []};
+      });
       dispatch(setMyTrades(myTrades));
 
     } catch (error) {
