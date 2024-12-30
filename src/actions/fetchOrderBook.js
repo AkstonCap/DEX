@@ -28,7 +28,13 @@ export const fetchOrderBook = (
         const myOrders = await apiCall(
             'market/user/order',
             {market: pair, sort: 'price', order: 'desc', limit: 10}
-        );
+        ).catch((error1) => {
+            dispatch(showErrorDialog({
+                message: 'Cannot get my orders (market/user/order)',
+                note: error1?.message || 'Unknown error',
+            }));
+            return myOrders = {bids: [], asks: []};
+        });
 
         dispatch(setMyOrders(myOrders));
         
