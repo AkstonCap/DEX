@@ -1,7 +1,7 @@
 import * as TYPE from 'actions/types';
 
 const initialState = {
-  address: '',
+  txid: '',
   price: 0,
   amount: 0,
   type: '',
@@ -13,7 +13,7 @@ export default (state = initialState, action) => {
     case TYPE.SET_ORDER:
       return {
         ...state,
-        address: action.payload.address,
+        txid: action.payload.txid,
         price: action.payload.price,
         amount: action.payload.amount,
         type: action.payload.type,
