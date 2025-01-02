@@ -13,7 +13,7 @@ const spin = keyframes`
   }
 `;
 
-function useCancelOrder( orderAddress ) {
+function useCancelOrder( txid ) {
   const [canceling, setCanceling] = useState(false);
   const dispatch = useDispatch();
   
@@ -21,7 +21,7 @@ function useCancelOrder( orderAddress ) {
     if (canceling) return;
     setCanceling(true);
     try {
-      cancelOrder(orderAddress, dispatch);
+      cancelOrder(txid);
     } finally {
       setCanceling(false);
     }
@@ -30,11 +30,11 @@ function useCancelOrder( orderAddress ) {
   return [canceling, cancelingOrder];
 }
 
-export default function DeleteButton({ orderAddress }) {
-  const [canceling, cancelingOrder] = useCancelOrder(orderAddress);
+export default function DeleteButton({ txid }) {
+  const [canceling, cancelingOrder] = useCancelOrder(txid);
   
   return (
-    <Tooltip.Trigger tooltip="Refresh">
+    <Tooltip.Trigger tooltip="Delete">
       <Button square skin="plain" onClick={cancelingOrder}>
         <Icon
           icon={{ url: 'syncing.svg', id: 'icon' }}
