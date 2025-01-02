@@ -17,8 +17,19 @@ module.exports = function (api) {
 
   return {
     presets: [
-      ['@babel/preset-env', { targets: browserslistQuery }],
-      ['@babel/preset-react', { development, runtime: 'automatic' }],
+      [
+        '@babel/preset-env', 
+        { 
+          targets: browserslistQuery,
+          //targets: { electron: '22.3.25' }, 
+        }
+      ],
+      ['@babel/preset-react', 
+        { 
+          development, 
+          runtime: 'automatic' 
+        }
+      ],
     ],
     plugins: [
       [
