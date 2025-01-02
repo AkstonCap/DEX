@@ -28,41 +28,43 @@ export default function PersonalTradeHistory() {
         </FieldSet>
       </div>
     );
-  }
+  } else {
 
   // Adjust "asks" so that order.amount matches contract.amount
-  myTrades.asks.forEach((element) => {
-    element.order.amount = element.contract.amount;
-  });
-
+    if (myTrades.asks.length > 0) {  
+      myTrades.asks.forEach((element) => {
+        element.order.amount = element.contract.amount;
+      });
+    };
   // Merge and sort
-  const sortedTrades = [...myTrades.bids, ...myTrades.asks].sort(
-    (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
-  );
+    const sortedTrades = [...myTrades.bids, ...myTrades.asks].sort(
+      (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+    );
 
   // Map each trade to a table row
-  const rows = sortedTrades.map((trade, index) => (
-    <tr key={index}>
-      <td>{`${trade.price} ${quoteToken}`}</td>
-      <td>{`${trade.order.amount} ${baseToken}`}</td>
-      <td>{new Date(trade.timestamp).toLocaleString()}</td>
-    </tr>
-  ));
+    const rows = sortedTrades.map((trade, index) => (
+      <tr key={index}>
+        <td>{`${trade.price} ${quoteToken}`}</td>
+        <td>{`${trade.order.amount} ${baseToken}`}</td>
+        <td>{new Date(trade.timestamp).toLocaleString()}</td>
+      </tr>
+    ));
 
-  return (
-    <div className="mt2">
-      <FieldSet legend="My Trades">
-        <table>
-          <thead>
-            <tr>
-              <th>Price [{quoteToken}/{baseToken}]</th>
-              <th>Amount {baseToken}</th>
-              <th>Time</th>
-            </tr>
-          </thead>
-          <tbody>{rows}</tbody>
-        </table>
-      </FieldSet>
-    </div>
-  );
+    return (
+      <div className="mt2">
+        <FieldSet legend="My Trades">
+          <table>
+            <thead>
+              <tr>
+                <th>Price [{quoteToken}/{baseToken}]</th>
+                <th>Amount {baseToken}</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>{rows}</tbody>
+          </table>
+        </FieldSet>
+      </div>
+    );
+  }
 }
