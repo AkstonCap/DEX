@@ -1,6 +1,6 @@
 {
-  "name": "dev_dex_module",
-  "displayName": "DEX module",
+  "name": "_dev_dex_module",
+  "displayName": "DEX",
   "description": "DEX module",
   "type": "app",
   "entry": "http://localhost:24011/dev.html",
