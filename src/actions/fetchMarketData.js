@@ -1,7 +1,7 @@
 import { showErrorDialog } from 'nexus-module';
-
 import { fetchOrderBook } from 'actions/fetchOrderBook';
 import { fetchExecuted } from 'actions/fetchExecuted';
+//import { useDispatch } from 'react-redux';
 
 export const fetchMarketData = () => async (dispatch, getState) => {
   const state = getState();
