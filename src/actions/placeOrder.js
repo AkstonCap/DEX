@@ -5,11 +5,14 @@ import { apiCall,
 } from 'nexus-module';
 import { fetchMarketData } from './fetchMarketData';
 
-export const createOrder = async (
-    orderType, price, amount, fromAccount, toAccount, dispatch, getState) => {
+export const createOrder = (
+    orderType, price, amount, fromAccount, toAccount
+) => async (
+    dispatch, getState
+) => {
+    const state = getState();
 
     // get market pair and tokens from state
-    const state = getState();
     const marketPair = state.ui.market.marketPairs.marketPair;
     const quoteToken = state.ui.market.marketPairs.quoteToken;
     const baseToken = state.ui.market.marketPairs.baseToken;
@@ -53,7 +56,7 @@ export const createOrder = async (
 
     // create order through secure api call
     try {
-        const result = await secureApiCall('market/create/' + {orderType}, params);
+        const result = await secureApiCall('market/create/' + orderType, params);
         if (result.success === true) {
             dispatch(showSuccessDialog(
                 'Order placed successfully, txid: ', 
@@ -72,8 +75,15 @@ export const createOrder = async (
 };
 
 
-export const executeOrder = async (orderAddress, fromAccount, toAccount, dispatch) => {
-    
+export const executeOrder = ( 
+    orderAddress, fromAccount, toAccount 
+) => async (
+    dispatch, getState
+) => {
+    const state = getState();
+    const quoteToken = state.ui.market.marketPairs.quoteToken;
+    const baseToken = state.ui.market.marketPairs.baseToken;
+
     // set params for api call
     const params = {
         address: orderAddress,
@@ -112,32 +122,33 @@ export const executeOrder = async (orderAddress, fromAccount, toAccount, dispatc
 
     // execute order through secure api call
     try {
-        await secureApiCall('market/execute/order', params)
-            .then((result) => {
-                if (result.success === true) {
-                    dispatch(showSuccessDialog(
-                        'Order executed successfully, txid: ', 
-                        result.txid, 
-                        'Order address: ', 
-                        result.address));
-                    return result;
-                } else {
-                    dispatch(showErrorDialog('Error executing order (success = false):', result));
-                    return;
-                }
-            });        
+        const result = await secureApiCall('market/execute/order', params)    
+        if (result.success === true) {
+            dispatch(showSuccessDialog(
+                'Order executed successfully, txid: ', 
+                result.txid, 
+                'Order address: ', 
+                result.address));
+            return result;
+        } else {
+            dispatch(showErrorDialog('Error executing order (success = false):', result));
+            return;
+        }        
     } catch (error) {
         dispatch(showErrorDialog('Error executing order:', error));
         return;
     }
- 
-}
+};
 
 
-export const cancelOrder = async (orderAddress, dispatch) => {
+export const cancelOrder = (
+    orderAddress
+) => async (
+    dispatch
+) => {
     // set params for api call
     const params = {
-        address: orderAddress,
+        txid: orderAddress,
     };
 
     try {
@@ -158,4 +169,4 @@ export const cancelOrder = async (orderAddress, dispatch) => {
         dispatch(showErrorDialog('Error cancelling order:', error));
         return;
     }
-}
+};
