@@ -24,10 +24,10 @@ export const setExecutedOrders = (executedOrders) => ({
   payload: executedOrders,
 });
 
-export const setOrder = (address, price, amount, type, marketPair) => ({
+export const setOrder = (txid, price, amount, type, marketPair) => ({
   type: TYPE.SET_ORDER,
   payload: {
-    address,
+    txid,
     price,
     amount,
     type,
