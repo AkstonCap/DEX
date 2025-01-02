@@ -24,12 +24,14 @@ export const TopRow = styled.div`
   display: grid;
   grid-template-columns: 60% 40%;
   gap: 10px;
+  overflow: auto;
 `;
 
 export const BottomRow = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 10px;
+  overflow: auto;
 `;
 
 export const OrderTable = styled.table`
@@ -37,11 +39,17 @@ export const OrderTable = styled.table`
   border-collapse: collapse;
   margin-top: 8px;
 
-  th, td {
+  th {
     border: 1px solid #ccc;
     padding: 8px;
     text-align: right;
   }
+
+  td {
+    padding: 1px;
+    text-align: right;
+  }
+
 `;
 
 export const OrderbookTableHeader = styled.thead`
