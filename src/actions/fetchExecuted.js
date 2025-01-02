@@ -3,7 +3,10 @@ import {
   setExecutedOrders,
   setMyTrades,
 } from './actionCreators';
-import { showErrorDialog } from 'nexus-module';
+import { 
+  showErrorDialog, 
+  apiCall 
+} from 'nexus-module';
 import { DEFAULT_MARKET_PAIR } from 'App/Main';
 
 export const fetchExecuted = (
@@ -26,17 +29,24 @@ export const fetchExecuted = (
         null
       );
 
-      //const data = [...dataInit.bids, ...dataInit.asks]; // Adjust this if data structure is different
       if (!data.bids) {
         data.bids = [];
       }
       if (!data.asks) {
         data.asks = [];
       }
-      dispatch(setExecutedOrders(data));
 
-      const myTrades = await apiCall('market/user/executed', 
-        {market: pair, sort: 'timestamp', order: 'desc', limit: 10}
+      dispatch(setExecutedOrders(data));
+      const baseToken = pair.split('/')[0];
+      const myTrades = await apiCall(
+        'market/user/executed', 
+        {
+          //market: pair,
+          token:  baseToken,
+          sort: 'timestamp', 
+          order: 'desc', 
+          limit: 10
+        }
       ).catch((error1) => {
         dispatch(showErrorDialog({
           message: 'Cannot get my trade history (market/user/executed)',
@@ -44,14 +54,18 @@ export const fetchExecuted = (
         }));
         return myTrades={bids: [], asks: []};
       });
+
       dispatch(setMyTrades(myTrades));
 
     } catch (error) {
+      
       dispatch(showErrorDialog({
         message: 'Cannot get executed transactions (fetchExecuted)',
         note: error?.message || 'Unknown error',
       }));
+
       dispatch(setExecutedOrders({bids: [], asks: []}));
       dispatch(setMyTrades({bids: [], asks: []}));
+
     }
 };
