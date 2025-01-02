@@ -1,6 +1,9 @@
 import { listMarket } from 'actions/listMarket';
 import { setOrderBook, setMyOrders } from './actionCreators';
-import { showErrorDialog, apiCall } from 'nexus-module';
+import { 
+    showErrorDialog, 
+    apiCall 
+} from 'nexus-module';
 import { DEFAULT_MARKET_PAIR } from 'App/Main';
 
 export const fetchOrderBook = (
@@ -27,7 +30,10 @@ export const fetchOrderBook = (
 
         const myOrders = await apiCall(
             'market/user/order',
-            {market: pair, sort: 'price', order: 'desc', limit: 10}
+            {
+                //market: pair,
+                token: pair.split('/')[0]
+            }
         ).catch((error1) => {
             dispatch(showErrorDialog({
                 message: 'Cannot get my orders (market/user/order)',
@@ -38,11 +44,13 @@ export const fetchOrderBook = (
 
         dispatch(setMyOrders(myOrders));
         
-        } catch (error) {
+    } catch (error) {
+
         dispatch(showErrorDialog({
             message: 'Cannot get order book (fetchOrderBook)',
             note: error?.message || 'Unknown error',
         }));
+
         dispatch(setOrderBook({bids: [], asks: []}));
         dispatch(setMyOrders({bids: [], asks: []}));
     }
