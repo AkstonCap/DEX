@@ -11,9 +11,9 @@ export default function OrderBookComp() {
 
   const handleOrderClick = (order) => {
     if (order.type === 'ask') {
-      dispatch(setOrder(order.address, order.price, order.order.amount, order.type, order.market));
+      dispatch(setOrder(order.txid, order.price, order.order.amount, order.type, order.market));
     } else if (order.type === 'bid') {
-      dispatch(setOrder(order.address, order.price, order.contract.amount, order.type, order.market));
+      dispatch(setOrder(order.txid, order.price, order.contract.amount, order.type, order.market));
     }
   };
 
@@ -22,7 +22,7 @@ export default function OrderBookComp() {
       return null;
     }
     return data.slice(0, 5).map((item, index) => (
-      <tr key={index}> onClick={() => handleOrderClick(item)}
+      <tr key={index} onClick={() => handleOrderClick(item)}>
         <td>{item.price}</td>
         <td>{`${item.order.amount} ${baseToken}`}</td>
         <td>{`${item.contract.amount} ${quoteToken}`}</td>
@@ -35,7 +35,7 @@ export default function OrderBookComp() {
       return null;
     }
     return data.slice(0, 5).map((item, index) => (
-      <tr key={index}> onClick={() => handleOrderClick(item)}
+      <tr key={index} onClick={() => handleOrderClick(item)}>
         <td>{item.price}</td>
         <td>{`${item.contract.amount} ${baseToken}`}</td>
         <td>{`${item.order.amount} ${quoteToken}`}</td>
