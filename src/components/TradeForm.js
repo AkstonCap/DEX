@@ -23,8 +23,8 @@ export default function TradeForm() {
   const orderInQuestion = useSelector((state) => state.ui.market.orderInQuestion);
   
   const [orderType, setOrderType] = useState('bid');
-  const [amount, setAmount] = useState('');
-  const [price, setPrice] = useState('');
+  const [amount, setAmount] = useState(0);
+  const [price, setPrice] = useState(0);
   const [fromAccount, setFromAccount] = useState('');
   const [toAccount, setToAccount] = useState('');
   const [accounts, setAccounts] = useState({ quoteAccounts: [], baseAccounts: [] });
@@ -56,7 +56,7 @@ export default function TradeForm() {
   };
 
   return (
-    <div className="mt2">
+    <div>
       <h3>Place Order for {marketPair}</h3>
       <form onSubmit={handleSubmit}>
         <label>
