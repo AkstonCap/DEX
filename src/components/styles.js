@@ -15,21 +15,21 @@ export const tradeGridContainer = styled.div`
 
 export const PageLayout = styled.div`
   display: grid;
-  grid-template-rows: 60% 40%;
-  height: 100vh;
+  grid-template-rows: 57% 38%;
+  height: 70vh;
   gap: 10px;
 `;
 
 export const TopRow = styled.div`
   display: grid;
-  grid-template-columns: 60% 40%;
+  grid-template-columns: 57% 38%;
   gap: 10px;
   overflow: auto;
 `;
 
 export const BottomRow = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 32% 31% 31%;
   gap: 10px;
   overflow: auto;
 `;
@@ -39,15 +39,29 @@ export const OrderTable = styled.table`
   border-collapse: collapse;
   margin-top: 8px;
 
+  th:nth-of-type(1) {
+    width: 20%;
+  }
+
+  th:nth-of-type(2) {
+    width: 40%;
+  }
+
+  th:nth-of-type(3) {
+    width: 40%;
+  }
+
   th {
-    border: 1px solid #ccc;
-    padding: 8px;
+    padding: 2px;
     text-align: right;
+    padding-right: 5px;
+    font-size: 18px;
   }
 
   td {
-    padding: 1px;
+    padding: 2px;
     text-align: right;
+    padding-right: 8px;
   }
 
 `;
@@ -58,10 +72,14 @@ export const OrderbookTableHeader = styled.thead`
 
 export const OrderbookTableRow = styled.tr`
   cursor: pointer;
+  color: ${(props) => (props.orderType === 'ask' ? 'red' : 'green')};
+  padding-right: 8px;
 `;
 
-export const OrderbookTableData = styled.td`
-  text-align: right;
+export const TradeTableRow = styled.tr`
+  cursor: pointer;
+  color: ${(props) => (props.orderType === 'ask' ? 'green' : 'red')};
+  padding-right: 8px;
 `;
 
 export const ChangeText = styled.span`
@@ -70,4 +88,40 @@ export const ChangeText = styled.span`
 
 export const ChangeArrow = styled(Arrow)`
   color: ${(props) => (props.change > 0 ? 'green' : 'red')};
+`;
+
+export const Line = styled.div({
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr 1fr',
+  columnGap: 20,
+  marginTop: '1em',
+});
+
+export const Label = styled.div(({ theme }) => ({
+  color: theme.primary,
+  fontWeight: 'bold',
+}));
+
+export const Value = styled.div({
+  fontSize: 24,
+});
+
+export function SummaryValue({ summary, prop, percentage }) {
+  if (!summary) {
+    return <Value>N/A</Value>;
+  }
+
+  const value = summary?.[prop];
+  if (value === null || value === undefined) {
+    return <Value>N/A</Value>;
+  }
+
+  return <Value>{value + (percentage ? '%' : '')}</Value>;
+}
+
+export const ChartPageLayout = styled.div`
+  display: grid;
+  grid-template-columns: 65% 30%;
+  gap: 10px;
+  overflow: auto;
 `;
