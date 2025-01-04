@@ -86,8 +86,26 @@ export default function Overview() {
         ...executedOrders.bids,
         ...executedOrders.asks,
       ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
+    
       setLastPrice(sortedExecutedOrders[0]?.price || 'N/A');
+
+      const highPrice = Math.max(
+        ...sortedExecutedOrders.map((order) => order.price)
+      );
+      setHigh(highPrice);
+
+      const lowPrice = Math.min(
+        ...sortedExecutedOrders.map((order) => order.price)
+      );
+      setLow(lowPrice);
+
+      const changePercentage = (
+        ((lastPrice - sortedExecutedOrders[sortedExecutedOrders.length - 1].price) /
+          sortedExecutedOrders[sortedExecutedOrders.length - 1].price) *
+        100
+      ).toFixed(2);
+      setChange(changePercentage);
+
     } else {
       setBaseTokenVolume(0);
       setQuoteTokenVolume(0);
