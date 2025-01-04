@@ -1,9 +1,10 @@
 import { useSelector } from 'react-redux';
 import { FieldSet } from 'nexus-module';
+import { OrderTable, TradeTableRow } from './styles';
 
-export default function TradeHistory() {
+export default function TradeHistory({num}) {
   const executedOrders = useSelector(
-    (state) => state.ui.market.executedData.executedOrders
+    (state) => state.ui.market.executedOrders
   );
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const quoteToken = useSelector(
@@ -18,21 +19,16 @@ export default function TradeHistory() {
     : [];
 
   // If no orders, display “No executed orders” row
-  if (bids.length === 0 && asks.length === 0) {
+  if (bids?.length === 0 && asks?.length === 0) {
     return (
-      <div className="mt2">
+      <div>
         <FieldSet legend="Trade History">
           <table>
-            <thead>
-              <tr>
-                <th>Price [{quoteToken}/{baseToken}]</th>
-                <th>Amount {baseToken}</th>
-                <th>Time</th>
-              </tr>
-            </thead>
             <tbody>
               <tr>
-                <td colSpan="3">No executed orders</td>
+                <td colSpan="3">No executed orders (
+                  {executedOrders?.bids.length}/{executedOrders?.asks.length}
+                  )</td>
               </tr>
             </tbody>
           </table>
@@ -52,28 +48,31 @@ export default function TradeHistory() {
   );
 
   // Map each order to a table row
-  const rows = sortedExecutedOrders.map((order, index) => (
-    <tr key={index}>
+  const rows = sortedExecutedOrders.slice(0, num).map((order, index) => (
+    <TradeTableRow key={index} orderType={order.type}>
       <td>{`${order.price} ${quoteToken}`}</td>
       <td>{`${order.order.amount} ${baseToken}`}</td>
-      <td>{new Date(order.timestamp).toLocaleString()}</td>
-    </tr>
+      <td>{new Date(order.timestamp*1000).toLocaleString()}</td>
+    </TradeTableRow>
   ));
 
   return (
-    <div className="mt2">
+    <div>
       <FieldSet legend="Trade History">
-        <table>
+        <OrderTable>
           <thead>
             <tr>
-              <th>Price [{quoteToken}/{baseToken}]</th>
+              <th>Price</th>
               <th>Amount {baseToken}</th>
               <th>Time</th>
             </tr>
           </thead>
-          <tbody>{rows}</tbody>
-        </table>
+          <tbody>
+            {rows}
+          </tbody>
+        </OrderTable>
       </FieldSet>
     </div>
   );
 }
+
