@@ -9,16 +9,9 @@ export default function PersonalTradeHistory() {
   // If no trades, display a single table row saying "No trades"
   if (!myTrades || (myTrades.bids?.length === 0 && myTrades.asks?.length === 0)) {
     return (
-      <div className="mt2">
+      <div>
         <FieldSet legend="My Trades">
           <table>
-            <thead>
-              <tr>
-                <th>Price [{quoteToken}/{baseToken}]</th>
-                <th>Amount {baseToken}</th>
-                <th>Time</th>
-              </tr>
-            </thead>
             <tbody>
               <tr>
                 <td colSpan="3">No trades</td>
@@ -51,7 +44,7 @@ export default function PersonalTradeHistory() {
     ));
 
     return (
-      <div className="mt2">
+      <div>
         <FieldSet legend="My Trades">
           <table>
             <thead>
