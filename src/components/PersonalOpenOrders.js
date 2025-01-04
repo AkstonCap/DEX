@@ -11,16 +11,9 @@ export default function PersonalOpenOrders() {
   // If no orders, display “No orders” row
   if (!myOrders || (myOrders.bids?.length === 0 && myOrders.asks?.length === 0)) {
     return (
-      <div className="mt2">
+      <div>
         <FieldSet legend="My Open Orders">
           <table>
-            <thead>
-              <tr>
-                <th>Price [{quoteToken}/{baseToken}]</th>
-                <th>Amount {baseToken}</th>
-                <th>Time</th>
-              </tr>
-            </thead>
             <tbody>
               <tr>
                 <td colSpan="3">No orders</td>
@@ -55,7 +48,7 @@ export default function PersonalOpenOrders() {
     ));
 
     return (
-      <div className="mt2">
+      <div>
         <FieldSet legend="My Open Orders">
           <OrderTable>
             <thead>
