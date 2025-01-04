@@ -2,7 +2,7 @@ import { combineReducers } from 'redux';
 
 import marketPairs from './marketPairs';
 import orderBook from './orderBook';
-import executedData from './executedData';
+import executedOrders from './executedOrders';
 import orderInQuestion from './orderInQuestion';
 import myTrades from './myTrades';
 import myOrders from './myOrders';
@@ -10,7 +10,7 @@ import myOrders from './myOrders';
 export default combineReducers({
   marketPairs,
   orderBook,
-  executedData,
+  executedOrders,
   orderInQuestion,
   myTrades,
   myOrders,
