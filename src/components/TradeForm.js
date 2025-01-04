@@ -8,6 +8,7 @@ import {
   Select,
   apiCall,
   showErrorDialog,
+  FormField,
 } from 'nexus-module';
 import { 
   createOrder, 
@@ -50,6 +51,20 @@ export default function TradeForm() {
     fetchAccounts();
   }, [dispatch, orderType, orderInQuestion, quoteToken, baseToken, amount]);
 
+  const quoteAccountOptions = accounts.quoteAccounts.map((acct) => ({
+    value: acct.address,
+    display: `${acct.address} - ${acct.balance} ${quoteToken}`,
+  }));
+  const baseAccountOptions = accounts.baseAccounts.map((acct) => ({
+    value: acct.address,
+    display: `${acct.address} - ${acct.balance} ${baseToken}`,
+  }));
+  const orderTypeOptions = [
+    { value: 'bid', display: ('Bid') },
+    { value: 'ask', display: ('Ask') },
+    { value: 'execute', display: ('Execute') },
+  ];
+
   const handleSubmit = (e) => {
     e.preventDefault();
     dispatch(createOrder(orderType, price, amount, fromAccount, toAccount));
@@ -57,63 +72,53 @@ export default function TradeForm() {
 
   return (
     <div>
-      <h3>Place Order for {marketPair}</h3>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Order Type:
-          <Select value={orderType} onChange={(e) => setOrderType(e.target.value)}>
-            <option value="bid">Buy</option>
-            <option value="ask">Sell</option>
-            <option value="execute">Execute</option>
-          </Select>
-        </label>
-        <label>
-          Price:
-          <input
-            type="number"
-            step="0.0001"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-          />
-        </label>
-        <label>
-          Amount:
-          <input
-            type="number"
-            step="0.0001"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
-        </label>
-        <Dropdown
-          label="From Account"
-          value={fromAccount}
-          onChange={(e) => setFromAccount(e.target.value)}
-        >
-          {/* Map quoteAccounts for the 'From Account' dropdown */}
-          {accounts.quoteAccounts.map((acct) => (
-            <option key={acct.address} value={acct.address}>
-              {acct.address} - {acct.balance} {quoteToken}
-            </option>
-          ))}
-        </Dropdown>
+      <FieldSet legend="Trade Form">
+        <form onSubmit={handleSubmit}>
+          <FormField label={('Order Type')}>
+            <Select
+              value={orderType} 
+              onChange={(val) => dispatch(setOrderType(val))}
+              options={orderTypeOptions}
+            />
+          </FormField>
+          {/*<label>
+            Price:
+            <input
+              type="number"
+              step="0.0001"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+            />
+          </label>
+          <label>
+            Amount:
+            <input
+              type="number"
+              step="0.0001"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </label>*/}
+          <FormField label={('Payment Account')}>
+            <Select
+              value={fromAccount}
+              onChange={(val) => dispatch(setFromAccount(val))}
+              options={quoteAccountOptions}
+            />
+          </FormField>
 
-        <Dropdown
-          label="To Account"
-          value={toAccount}
-          onChange={(e) => setToAccount(e.target.value)}
-        >
-          {/* Map baseAccounts for the 'To Account' dropdown */}
-          {accounts.baseAccounts.map((acct) => (
-            <option key={acct.address} value={acct.address}>
-              {acct.address} - {acct.balance} {baseToken}
-            </option>
-          ))}
-        </Dropdown>
-        <Button onClick={handleSubmit}>
-          Create {orderType}
-        </Button>
-      </form>
+          <FormField label={('Receiving Account')}>
+            <Select
+              value={toAccount}
+              onChange={(val) => dispatch(setToAccount(val))}
+              options={baseAccountOptions}
+            />
+          </FormField>
+          <Button type="submit">
+            Create {orderType}
+          </Button>
+        </form>
+      </FieldSet>
     </div>
   );
 }
