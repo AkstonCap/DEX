@@ -97,7 +97,7 @@ export default function Main() {
         </div>
       }
       title={"Distordia DEX Module"} 
-      icon={{ url: 'distordia-small.svg', id: 'icon' }}>
+      icon={{ url: 'distordia-large.svg', id: 'icon' }}>
       <div className="text-center">
         <HorizontalTab.TabBar>
           <HorizontalTab
