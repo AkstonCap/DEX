@@ -1,9 +1,9 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { FieldSet } from 'nexus-module';
 import { setOrder } from 'actions/actionCreators';
-import { OrderTable } from './styles';
+import { OrderTable, OrderbookTableRow } from './styles';
 
-export default function OrderBookComp() {
+export default function OrderBookComp({ num }) {
   const dispatch = useDispatch();
   const orderBook = useSelector((state) => state.ui.market.orderBook);
   const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
@@ -21,12 +21,16 @@ export default function OrderBookComp() {
     if (!Array.isArray(data)) {
       return null;
     }
-    return data.slice(0, 5).map((item, index) => (
-      <tr key={index} onClick={() => handleOrderClick(item)}>
-        <td>{item.price}</td>
-        <td>{`${item.order.amount} ${baseToken}`}</td>
-        <td>{`${item.contract.amount} ${quoteToken}`}</td>
-      </tr>
+    return data.slice(0, num).map((item, index) => (
+      <OrderbookTableRow
+      key={index}
+      onClick={() => handleOrderClick(item)}
+      orderType={item.type}
+      >
+      <td>{item.price}</td>
+      <td>{`${item.order.amount} ${baseToken}`}</td>
+      <td>{`${item.contract.amount} ${quoteToken}`}</td>
+      </OrderbookTableRow>
     ));
   };
 
@@ -34,46 +38,47 @@ export default function OrderBookComp() {
     if (!Array.isArray(data)) {
       return null;
     }
-    return data.slice(0, 5).map((item, index) => (
-      <tr key={index} onClick={() => handleOrderClick(item)}>
-        <td>{item.price}</td>
-        <td>{`${item.contract.amount} ${baseToken}`}</td>
-        <td>{`${item.order.amount} ${quoteToken}`}</td>
-      </tr>
+    const len = data.length;
+    return data.slice(len-num, len).map((item, index) => (
+      <OrderbookTableRow
+      key={index}
+      onClick={() => handleOrderClick(item)}
+      orderType={item.type}
+    >
+      <td>{item.price}</td>
+      <td>{`${item.contract.amount} ${baseToken}`}</td>
+      <td>{`${item.order.amount} ${quoteToken}`}</td>
+    </OrderbookTableRow>
     ));
   };
 
   return (
-    <div className="mt2">
+    <div>
       <FieldSet legend="Order Book">
           <div>
-            {/* Left Column */}
-            <div>
-              <p>Asks</p>
-              <OrderTable>
-                <thead>
-                  <tr>
-                    <th>Price</th>
-                    <th>Amount {baseToken}</th>
-                    <th>Amount {quoteToken}</th>
-                  </tr>
-                </thead>
-                <tbody>{renderTableAsks(orderBook.asks)}</tbody>
-              </OrderTable>
-            </div>
-            <div>
-              <p>Bids</p>
-              <OrderTable>
-                <thead>
-                  <tr>
-                    <th>Price</th>
-                    <th>Amount {baseToken}</th>
-                    <th>Amount {quoteToken}</th>
-                  </tr>
-                </thead>
-                <tbody>{renderTableBids(orderBook.bids)}</tbody>
-              </OrderTable>
-            </div>
+            <OrderTable>
+              <thead>
+                <tr>
+                  <th>Price</th>
+                  <th>Amount [{baseToken}]</th>
+                  <th>Amount [{quoteToken}]</th>
+                </tr>
+              </thead>
+              <tbody>{renderTableAsks(orderBook.asks)}</tbody>
+              <tbody>
+                <tr>
+                  <td 
+                    colSpan="3" 
+                    style={{ 
+                      backgroundColor: '#505050', 
+                      height: '1px', 
+                      border: 'none' 
+                      }}>
+                  </td>
+                </tr>
+              </tbody>
+              <tbody>{renderTableBids(orderBook.bids)}</tbody>
+            </OrderTable>
           </div>
         </FieldSet>
     </div>
