@@ -2,8 +2,8 @@ export const fetchVolumeData = (
   executedOrders
 ) => {
 
-  dataBids = executedOrders.bids || [];
-  dataAsks = executedOrders.asks || [];
+  const dataBids = executedOrders.bids || [];
+  const dataAsks = executedOrders.asks || [];
 
   let quoteTokenVolumeBids = 0;
   let baseTokenVolumeBids = 0;
