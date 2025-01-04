@@ -1,12 +1,16 @@
+import { ChartPageLayout } from "components/styles";
+import OrderBookComp from "components/OrderBookComp";
+
 export default function MarketDepth() {
-    return (
-      <>
-        <div className="Market depth">
-          <h1>Welcome to the DEX</h1>
+  return (
+    <ChartPageLayout>
+      <div className="Chart">
+        <h1>Welcome to the DEX</h1>
           <p>
-            Market depth TBA
+            Market Depth TBA
           </p>
         </div>
-      </>
-    );
+      <OrderBookComp num={20} />
+    </ChartPageLayout>
+  );
 }
