@@ -5,7 +5,7 @@ import {
 import { DEFAULT_MARKET_PAIR } from 'App/Main';
 //const DEFAULT_MARKET_PAIR = 'DIST/NXS';
 
-export const listMarket = async (
+export const listMarket = (
   marketPair = DEFAULT_MARKET_PAIR, 
   path,
   dataFilter = '',
@@ -15,7 +15,7 @@ export const listMarket = async (
   timeFilter = 'all',
   numOfRes = 0,
   typeFilter = null
-) => {
+) => async (dispatch) => {
   try {
     /*
     const params = {
@@ -29,15 +29,15 @@ export const listMarket = async (
     */
     const now = Date.now();
     const timeFilters = {
-      '1d': now - 24 * 60 * 60 * 1000,
-      '1w': now - 7 * 24 * 60 * 60 * 1000,
-      '1m': now - 30 * 24 * 60 * 60 * 1000,
-      '1y': now - 365 * 24 * 60 * 60 * 1000,
+      '1d': (now - 24 * 60 * 60 * 1000),
+      '1w': (now - 7 * 24 * 60 * 60 * 1000),
+      '1m': (now - 30 * 24 * 60 * 60 * 1000),
+      '1y': (now - 365 * 24 * 60 * 60 * 1000),
       'all': 0,
     };
 
     if (!timeFilters.hasOwnProperty(timeFilter)) {
-      showErrorDialog('Invalid time filter value (listMarket)');
+      dispatch(showErrorDialog('Invalid time filter value (listMarket)'));
       return {
         bids: [],
         asks: []
@@ -60,7 +60,7 @@ export const listMarket = async (
       'market/list/' + path + dataFilter + dataOperator,
       { market: marketPair } //params 
     ).catch((error) => {
-      showErrorDialog('Error fetching API market/list/ (listMarket):', error);
+      dispatch(showErrorDialog('Error fetching API market/list/ (listMarket):', error));
       return {
         bids: [],
         asks: []
@@ -111,7 +111,7 @@ export const listMarket = async (
       resultArray = [...resultInit.asks ];
     } else {
       resultArray = [];
-      showErrorDialog('Empty data from API (listMarket)');
+      dispatch(showErrorDialog('Empty data from API (listMarket)'));
       return {
         bids: [],
         asks: []
@@ -134,16 +134,16 @@ export const listMarket = async (
 
     // Sorting results based on what to sort, and asc or desc
     const sortFunctions = {
-      'time': (a, b) => new Date(b.timestamp) - new Date(a.timestamp),
-      'price': (a, b) => (b.contract.amount / b.order.amount) - (a.contract.amount / a.order.amount),
-      // 'price': (a, b) => b.price - a.price,
+      'time': (a, b) => (b.timestamp) - (a.timestamp),
+      // 'price': (a, b) => (b.contract.amount / b.order.amount) - (a.contract.amount / a.order.amount),
+      'price': (a, b) => b.price - a.price,
       'volumeQuote': (a, b) => b.contract.amount - a.contract.amount,
       'volumeBase': (a, b) => b.order.amount - a.order.amount
     };
     if (asc_desc === 'asc') {
-      sortFunctions.price = (a, b) => (a.contract.amount / a.order.amount) - (b.contract.amount / b.order.amount);
-      // sortFunctions.price = (a, b) => a.price - b.price;
-      sortFunctions.time = (a, b) => new Date(a.timestamp) - new Date(b.timestamp);
+      // sortFunctions.price = (a, b) => (a.contract.amount / a.order.amount) - (b.contract.amount / b.order.amount);
+      sortFunctions.price = (a, b) => a.price - b.price;
+      sortFunctions.time = (a, b) => (a.timestamp) - (b.timestamp);
       sortFunctions.volumeQuote = (a, b) => a.contract.amount - b.contract.amount;
       sortFunctions.volumeBase = (a, b) => a.order.amount - b.order.amount;
     }
@@ -163,7 +163,7 @@ export const listMarket = async (
       sortedBids = bids.sort(sortFunctions[sort]);
       sortedAsks = asks.sort(sortFunctions[sort]);
     } else {
-      showErrorDialog('Invalid input for number of results (listMarket)');
+      dispatch(showErrorDialog('Invalid input for number of results (listMarket)'));
       return {
         bids: [],
         asks: []
@@ -178,7 +178,7 @@ export const listMarket = async (
     // return sorted result;
     return sortedResult;
   } catch (error) {
-    showErrorDialog('Error listing market (listMarket):', error);
+    dispatch(showErrorDialog('Error listing market (listMarket):', error));
     return {
       bids: [],
       asks: []
