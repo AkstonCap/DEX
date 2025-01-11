@@ -26,9 +26,7 @@ export default function TradeHistory({num}) {
           <table>
             <tbody>
               <tr>
-                <td colSpan="3">No executed orders (
-                  {executedOrders?.bids.length}/{executedOrders?.asks.length}
-                  )</td>
+                <td colSpan="3">No executed orders</td>
               </tr>
             </tbody>
           </table>
