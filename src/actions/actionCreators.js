@@ -24,7 +24,7 @@ export const setExecutedOrders = (executedOrders) => ({
   payload: executedOrders,
 });
 
-export const setOrder = (txid, price, amount, type, marketPair) => ({
+export const setOrder = (txid, price, amount, type, marketPair, orderMethod) => ({
   type: TYPE.SET_ORDER,
   payload: {
     txid,
@@ -32,6 +32,7 @@ export const setOrder = (txid, price, amount, type, marketPair) => ({
     amount,
     type,
     marketPair,
+    orderMethod,
   },
 });
 
@@ -43,6 +44,11 @@ export const setMyOrders = (myOrders) => ({
 export const setMyTrades = (myTrades) => ({
   type: TYPE.SET_MY_TRADES,
   payload: myTrades,
+});
+
+export const setTimeSpan = (timeSpan) => ({
+  type: TYPE.SET_TIMESPAN,
+  payload: timeSpan,
 });
 
 /*
