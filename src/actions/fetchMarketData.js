@@ -10,7 +10,7 @@ export const fetchMarketData = () => async (dispatch, getState) => {
   try {
     
     await dispatch(fetchOrderBook(marketPair));
-    await dispatch(fetchExecuted(marketPair, '1y'));
+    await dispatch(fetchExecuted());
   
   } catch (error) {
     dispatch(
