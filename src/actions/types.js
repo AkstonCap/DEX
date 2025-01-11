@@ -13,3 +13,5 @@ export const SET_ORDER = 'SET_ORDER';
 export const SET_MY_ORDERS = 'SET_MY_ORDERS';
 
 export const SET_MY_TRADES = 'SET_MY_TRADES';
+
+export const SET_TIMESPAN = 'SET_TIMESPAN';
