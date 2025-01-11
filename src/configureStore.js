@@ -8,7 +8,7 @@ export default function configureStore() {
   //Middlewares will automatically save when the state as changed,
   //ie state.settings will be stored on disk and will save every time state.settings is changed.
   const middlewares = [
-    storageMiddleware(({ }) => ({ })), //Data saved to disk
+    storageMiddleware(({ settings }) => ({ settings })), //Data saved to disk
     stateMiddleware(({ ui }) => ({ ui })), //Data saved to session
     thunk
   ];
