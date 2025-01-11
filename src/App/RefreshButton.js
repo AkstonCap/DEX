@@ -1,3 +1,4 @@
+// Based on github.com/Nexusoft/nexus-market-data-module/src/App/RefreshButton.js
 import { keyframes } from '@emotion/react';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
