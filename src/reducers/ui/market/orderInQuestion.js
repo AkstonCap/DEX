@@ -6,6 +6,7 @@ const initialState = {
   amount: 0,
   type: '',
   marketPair: '',
+  orderMethod: 'bid',
 };
 
 export default (state = initialState, action) => {
@@ -18,6 +19,7 @@ export default (state = initialState, action) => {
         amount: action.payload.amount,
         type: action.payload.type,
         marketPair: action.payload.marketPair,
+        orderMethod: action.payload.orderMethod,
       };
 
     default:
