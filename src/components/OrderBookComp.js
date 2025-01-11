@@ -11,9 +11,9 @@ export default function OrderBookComp({ num }) {
 
   const handleOrderClick = (order) => {
     if (order.type === 'ask') {
-      dispatch(setOrder(order.txid, order.price, order.order.amount, order.type, order.market));
+      dispatch(setOrder(order.txid, order.price, order.order.amount, order.type, order.market, 'execute'));
     } else if (order.type === 'bid') {
-      dispatch(setOrder(order.txid, order.price, order.contract.amount, order.type, order.market));
+      dispatch(setOrder(order.txid, order.price, order.contract.amount, order.type, order.market, 'execute'));
     }
   };
 
