@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { 
   FieldSet,
   Arrow,
@@ -9,6 +9,7 @@ import {
  } from 'nexus-module';
 import { fetchVolumeData } from 'actions/fetchVolumeData';
 import { fetchMarketData } from 'actions/fetchMarketData';
+import { setTimeSpan } from 'actions/actionCreators';
 import { 
   BottomRow,
   TopRow,
@@ -25,6 +26,7 @@ import PersonalTradeHistory from 'components/PersonalTradeHistory';
 import PersonalOpenOrders from 'components/PersonalOpenOrders';
 
 export default function Overview() {
+  const dispatch = useDispatch();
   const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
@@ -33,6 +35,7 @@ export default function Overview() {
   const executedOrders = useSelector(
     (state) => state.ui.market.executedOrders
   );
+  const timeSpan = useSelector((state) => state.settings.timeSpan);
 
   // Declare state variables
   const [baseTokenVolume, setBaseTokenVolume] = useState(0);
@@ -41,7 +44,7 @@ export default function Overview() {
   const [high, setHigh] = useState(0);
   const [low, setLow] = useState(0);
   const [change, setChange] = useState(0);
-  const [timeFrame, setTimeFrame] = useState('1y');
+  //const [timeFrame, setTimeFrame] = useState('1y');
   const [highestBid, setHighestBid] = useState('N/A');
   const [lowestAsk, setLowestAsk] = useState('N/A');
 
@@ -74,6 +77,7 @@ export default function Overview() {
 
   // Define updateData function at the component level
   const updateData = () => {
+    fetchMarketData();
     if (
       executedOrders &&
       (executedOrders.bids?.length > 0 || executedOrders.asks?.length > 0)
@@ -118,6 +122,7 @@ export default function Overview() {
     );
   };
 
+  /*
   useEffect(() => {
     fetchMarketData();
 
@@ -127,11 +132,11 @@ export default function Overview() {
     // Cleanup interval on unmount
     return () => clearInterval(intervalId);
   }, []);
-
+  */
   useEffect(() => {
     // Update data when dependencies change
     updateData();
-  }, [marketPair, executedOrders, orderBook]);
+  }, [marketPair, executedOrders, orderBook, timeSpan]);
 
   return (
     <PageLayout>
@@ -170,8 +175,8 @@ export default function Overview() {
             <div className='mt3'>
               <FormField label={('Time span')}>
                 <Select
-                  value={timeFrame}
-                  onChange={(val) => dispatch(setTimeFrame(val))}
+                  value={timeSpan}
+                  onChange={(val) => dispatch(setTimeSpan(val))}
                   options={timeFrames}
                 />
               </FormField>
