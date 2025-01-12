@@ -71,7 +71,23 @@ export const fetchOrderBook = (
                 message: 'Cannot get my orders (market/user/order)',
                 note: error1?.message || 'Unknown error',
             }));
-            return myOrders = {bids: [], asks: []};
+            return myOrders = {orders: []};
+        });
+
+        myOrders.orders.forEach((element) => {
+            if (element.contract.ticker === 'NXS') {
+                element.contract.amount = element.contract.amount / 1e6;
+            } else if (element.order.ticker === 'NXS') {
+                element.order.amount = element.order.amount / 1e6;
+            }
+        });
+
+        myOrders.orders.forEach((element) => {
+            if (element.type === 'bid' && element.price !== (element.order.amount / element.contract.amount)) {
+                element.price = (element.order.amount / element.contract.amount);
+            } else if (element.type === 'ask' && element.price !== (element.contract.amount / element.order.amount)) {
+                element.price = (element.contract.amount / element.order.amount);
+            }
         });
 
         dispatch(setMyOrders(myOrders));
