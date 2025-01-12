@@ -1,16 +1,15 @@
 import * as TYPE from 'actions/types';
 
 const initialState = {
-        bids: [],
-        asks: [],
+        orders: [],
 };
 
 export default (state = initialState, action) => {
     switch (action.type) {
         case TYPE.SET_MY_ORDERS:
             return {
-                    bids: action.payload.bids || [],
-                    asks: action.payload.asks || [],
+                    orders: action.payload.orders || [],
+                    
             };
             
         default:
