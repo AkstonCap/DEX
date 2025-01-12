@@ -1,11 +1,26 @@
 import * as TYPE from './types';
 
-export const setMarketPair = (baseToken, quoteToken) => ({
+export const setMarketPair = (
+  baseToken, 
+  quoteToken, 
+  baseTokenMaxsupply, 
+  quoteTokenMaxsupply, 
+  baseTokenCirculatingSupply, 
+  quoteTokenCirculatingSupply,
+  baseTokenDecimals,
+  quoteTokenDecimals
+) => ({
   type: TYPE.SET_MARKET_PAIR,
   payload: {
     marketPair: `${baseToken}/${quoteToken}`,
     baseToken,
     quoteToken,
+    baseTokenMaxsupply,
+    quoteTokenMaxsupply,
+    baseTokenCirculatingSupply,
+    quoteTokenCirculatingSupply,
+    baseTokenDecimals,
+    quoteTokenDecimals,
   },
 });
 
