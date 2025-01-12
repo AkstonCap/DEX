@@ -4,6 +4,12 @@ const initialState = {
   baseToken: 'DIST',
   quoteToken: 'NXS',
   marketPair: 'DIST/NXS',
+  baseTokenMaxsupply: 0,
+  quoteTokenMaxsupply: 0,
+  baseTokenCirculatingSupply: 0,
+  quoteTokenCirculatingSupply: 0,
+  baseTokenDecimals: 0,
+  quoteTokenDecimals: 0,
 };
 
 export default (state = initialState, action) => {
@@ -14,6 +20,12 @@ export default (state = initialState, action) => {
         marketPair: action.payload.marketPair,
         baseToken: action.payload.baseToken,
         quoteToken: action.payload.quoteToken,
+        baseTokenMaxsupply: action.payload.baseTokenMaxsupply,
+        quoteTokenMaxsupply: action.payload.quoteTokenMaxsupply,
+        baseTokenCirculatingSupply: action.payload.baseTokenCirculatingSupply,
+        quoteTokenCirculatingSupply: action.payload.quoteTokenCirculatingSupply,
+        baseTokenDecimals: action.payload.baseTokenDecimals,
+        quoteTokenDecimals: action.payload.quoteTokenDecimals,
       };
 
     default:
