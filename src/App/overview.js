@@ -76,8 +76,7 @@ export default function Overview() {
   ];
 
   // Define updateData function at the component level
-  const updateData = () => {
-    fetchMarketData();
+  const updateData = (executedOrders, orderBook) => {
     if (
       executedOrders &&
       (executedOrders.bids?.length > 0 || executedOrders.asks?.length > 0)
@@ -114,6 +113,8 @@ export default function Overview() {
       setBaseTokenVolume(0);
       setQuoteTokenVolume(0);
       setLastPrice('N/A');
+      setHigh(0);
+      setLow(0);
     }
 
     setHighestBid(orderBook?.bids?.[0]?.price || 'N/A');
@@ -122,21 +123,12 @@ export default function Overview() {
     );
   };
 
-  /*
   useEffect(() => {
-    fetchMarketData();
 
-    // Set interval to update data every 60 seconds
-    const intervalId = setInterval(updateData, 60000);
+    // Fetch data immediately
+    updateData(executedOrders, orderBook);
 
-    // Cleanup interval on unmount
-    return () => clearInterval(intervalId);
-  }, []);
-  */
-  useEffect(() => {
-    // Update data when dependencies change
-    updateData();
-  }, [marketPair, executedOrders, orderBook, timeSpan]);
+  }, [marketPair, executedOrders, orderBook]);
 
   return (
     <PageLayout>
