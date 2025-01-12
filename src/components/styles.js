@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { Arrow } from 'nexus-module';
+import { Arrow, Button } from 'nexus-module';
 
 export const overviewGridContainer = styled.div`
   display: grid;
@@ -82,6 +82,48 @@ export const TradeTableRow = styled.tr`
   padding-right: 8px;
 `;
 
+export const MyOrdersTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+
+  th:nth-of-type(1) {
+    width: 20%;
+  }
+
+  th:nth-of-type(2) {
+    width: 20%;
+  }
+
+  th:nth-of-type(3) {
+    width: 20%;
+  }
+
+  th:nth-of-type(4) {
+    width: 40%;
+  }
+
+  th {
+    padding: 2px;
+    text-align: right;
+    padding-right: 5px;
+    font-size: 18px;
+  }
+
+  td {
+    padding: 2px;
+    text-align: right;
+    padding-right: 8px;
+  }
+
+`;
+
+export const MyOrdersTableRow = styled.tr`
+  cursor: pointer;
+  color: ${(props) => (props.orderType === 'ask' ? 'green' : 'red')};
+  padding-right: 8px;
+`;
+
 export const ChangeText = styled.span`
   color: ${(props) => (props.change > 0 ? 'green' : 'red')};
 `;
@@ -125,3 +167,86 @@ export const ChartPageLayout = styled.div`
   gap: 10px;
   overflow: auto;
 `;
+
+export const BidButton = styled(Button)`
+  && {
+    /* Double ampersand ensures higher specificity */
+    border: 2px solid green !important;
+    background-color: ${({ orderMethod }) =>
+      orderMethod === 'bid' ? 'green' : 'transparent'} !important;
+    color: ${({ orderMethod }) =>
+      orderMethod === 'bid' ? 'white' : 'inherit'} !important;
+  }
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 18px;
+  cursor: pointer;
+`;
+
+export const AskButton = styled(Button)`
+  && {
+    /* Double ampersand ensures higher specificity */
+    border: 2px solid red !important;
+    background-color: ${({ orderMethod }) =>
+      orderMethod === 'ask' ? 'red' : 'transparent'} !important;
+    color: ${({ orderMethod }) =>
+      orderMethod === 'ask' ? 'white' : 'inherit'} !important;
+  }
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 18px;
+  cursor: pointer;
+`;
+
+export const ExecuteButton = styled(Button)`
+  && {
+    /* Double ampersand ensures higher specificity */
+    border: 2px solid blue !important;
+    background-color: ${({ orderMethod }) =>
+      orderMethod === 'execute' ? 'blue' : 'transparent'} !important;
+    color: ${({ orderMethod }) =>
+      orderMethod === 'execute' ? 'white' : 'inherit'} !important;
+  }
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 18px;
+  cursor: pointer;
+`;
+
+export const TradeFormContainer = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+`;
+
+
+export const SubmitButton = styled(Button)`
+  && {
+    //border: 2px solid white !important;
+    background-color: ${({ orderMethod }) =>
+      orderMethod === 'execute' 
+        ? 'blue' 
+        : orderMethod === 'ask' 
+        ? 'red' 
+        : orderMethod === 'bid' 
+        ? 'green' 
+        : 'transparent'} !important;
+    color: ${({ orderMethod }) =>
+      orderMethod === 'execute' ? 'white' : 'inherit'} !important;
+  }
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 18px;
+  cursor: pointer;
+`;
+//*/
