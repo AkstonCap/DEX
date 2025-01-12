@@ -36,6 +36,7 @@ export default function Main() {
   const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const activeTab = useSelector((state) => state.ui.activeTab);
+  const timeSpan = useSelector((state) => state.settings.timeSpan);
 
   const [inputPair, setInputPair] = useState({
     baseTokenInput: baseToken,
@@ -63,7 +64,7 @@ export default function Main() {
   
     // Cleanup interval on unmount
     return () => clearInterval(intervalId);
-  }, [dispatch, marketPair]);
+  }, [dispatch, marketPair, timeSpan]);
 
   const handleSwitchTab = (tab) => {
     dispatch(switchTab(tab));
