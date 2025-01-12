@@ -2,7 +2,7 @@
 import { keyframes } from '@emotion/react';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { Icon, Tooltip, Button } from 'nexus-module';
+import { Icon, Tooltip, Button, apiCall } from 'nexus-module';
 import { setMarketPair } from 'actions/actionCreators';
 import { fetchMarketData } from 'actions/fetchMarketData';
 
@@ -23,7 +23,49 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
     if (refreshing) return;
     setRefreshing(true);
     try {
-      dispatch(setMarketPair(baseTokenField, quoteTokenField)),
+      let baseTokenAttributes;
+      let quoteTokenAttributes;
+      
+      if ( baseTokenField !== 'NXS' ) {
+        baseTokenAttributes = await apiCall(
+          'register/get/finance:token/decimals,currentsupply,maxsupply', 
+          { name: baseTokenField }
+        ).catch((error) => {
+          return { decimals: 'N/A', currentsupply: 'N/A', maxsupply: 'N/A' };
+        });
+      } else {
+        baseTokenAttributes = {
+          decimals: 8,
+          currentsupply: 0,
+          maxsupply: 0
+        }
+      }
+
+      if ( quoteTokenField !== 'NXS' ) {
+        quoteTokenAttributes = await apiCall(
+          'register/get/finance:token/decimals,currentsupply,maxsupply', 
+          { name: quoteTokenField }
+        ).catch((error) => {
+          return { decimals: 'N/A', currentsupply: 'N/A', maxsupply: 'N/A' };
+        });
+      } else {
+        quoteTokenAttributes = {
+          decimals: 8,
+          currentsupply: 0,
+          maxsupply: 0
+        }
+      }
+
+      dispatch(setMarketPair(
+        baseTokenField, 
+        quoteTokenField, 
+        baseTokenAttributes.maxsupply, 
+        quoteTokenAttributes.maxsupply, 
+        baseTokenAttributes.currentsupply, 
+        quoteTokenAttributes.currentsupply,
+        baseTokenAttributes.decimals,
+        quoteTokenAttributes.decimals
+      ));
       await dispatch(fetchMarketData())
     } finally {
       setRefreshing(false);
