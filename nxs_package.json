@@ -13,7 +13,8 @@
     "dist/js/app.js", 
     "dist/syncing.svg",
     "dist/distordia-large.svg",
-    "dist/distordia-small.svg"
+    "dist/distordia-small.svg",
+    "dist/trash-svgrepo-com.svg"
 ],
   "author": {
     "name": "AkstonCap"
