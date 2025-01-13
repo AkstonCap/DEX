@@ -48,7 +48,7 @@ export default function PersonalOpenOrders() {
         <td>{`${order.contract.amount} ${order.contract.ticker}`}</td>
         <td>{`${order.order.amount} ${order.order.ticker}`}</td>
         <td>{new Date(order.timestamp).toLocaleString()}</td>
-        <DeleteButton order={order.txid} />
+        <DeleteButton txid={order.txid} />
       </MyOrdersTableRow>
     ));
 
