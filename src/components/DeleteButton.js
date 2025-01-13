@@ -1,3 +1,4 @@
+//Based on https://github.com/Nexusoft/nexus-market-data-module/blob/master/src/App/RefreshButton.js
 import { keyframes } from '@emotion/react';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
@@ -21,7 +22,7 @@ function useCancelOrder( txid ) {
     if (canceling) return;
     setCanceling(true);
     try {
-      cancelOrder(txid);
+      dispatch(cancelOrder(txid));
     } finally {
       setCanceling(false);
     }
