@@ -38,7 +38,7 @@ export default function DeleteButton({ txid }) {
     <Tooltip.Trigger tooltip="Delete">
       <Button square skin="plain" onClick={cancelingOrder}>
         <Icon
-          icon={{ url: 'syncing.svg', id: 'icon' }}
+          icon={{ url: 'trash-svgrepo-com.svg', id: 'icon' }}
           style={
             canceling
               ? {
