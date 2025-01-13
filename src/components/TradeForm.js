@@ -56,14 +56,16 @@ export default function TradeForm() {
           sort: 'balance',
           order: 'desc',
         };
+        setQuoteAmount(orderInQuestion.amount);
+        setBaseAmount(orderInQuestion.amount / orderInQuestion.price);
         const result = await apiCall('finance/list/account/balance,ticker,address', params);
         let quoteAccounts = [];
         let baseAccounts = [];
-        if (orderMethod === 'bid' || (orderMethod === 'execute' && orderInQuestion.type === 'bid')) {
+        if (orderMethod === 'bid' || (orderMethod === 'execute' && orderInQuestion.type === 'ask')) {
           const quoteAccounts = result.filter((acct) => acct.ticker === quoteToken && acct.balance >= quoteAmount);
           const baseAccounts = result.filter((acct) => acct.ticker === baseToken);
           setAccounts({ quoteAccounts, baseAccounts });
-        } else if (orderMethod === 'ask' || (orderMethod === 'execute' && orderInQuestion.type === 'ask')) {
+        } else if (orderMethod === 'ask' || (orderMethod === 'execute' && orderInQuestion.type === 'bid')) {
           const quoteAccounts = result.filter((acct) => acct.ticker === quoteToken);
           const baseAccounts = result.filter((acct) => acct.ticker === baseToken && acct.balance > baseAmount);
           setAccounts({ quoteAccounts, baseAccounts });
@@ -138,7 +140,7 @@ export default function TradeForm() {
   let paymentOptions;
   let payToken;
   let receiveToken;
-  if (orderMethod === 'ask' || (orderMethod === 'execute' && orderInQuestion.type === 'ask')) {
+  if (orderMethod === 'ask' || (orderMethod === 'execute' && orderInQuestion.type === 'bid')) {
     receivingOptions = quoteAccountOptions;
     receiveToken = quoteToken;
     paymentOptions = baseAccountOptions;
