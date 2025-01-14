@@ -57,18 +57,21 @@ export const createOrder = (
     // create order through secure api call
     try {
         const result = await secureApiCall('market/create/' + orderType, params);
-        if (result.success === true) {
+        dispatch(fetchMarketData());
+        
+        if (result.success) {
             dispatch(showSuccessDialog(
-                'Order placed successfully, txid: ', 
-                result.txid, 
-                'Order address: ', 
-                result.address));
+                'Order placed successfully',
+                `Transaction ID: ${result.txid}`,
+                `Order address: ${result.address}`
+            ));
             dispatch(fetchMarketData());
             return result;
         } else {
             dispatch(showErrorDialog('Error placing order (success = false):', result));
-            return;
+            return null;
         }
+
     } catch (error) {
         dispatch(showErrorDialog('Error placing order:', error));
         return;
@@ -77,10 +80,16 @@ export const createOrder = (
 
 
 export const executeOrder = ( 
-    txid, fromAccount, toAccount 
+    txid, fromAccount, toAccount, quoteAmount, baseAmount 
 ) => async (
     dispatch, getState
 ) => {
+
+    if (!txid || !fromAccount || !toAccount) {
+        dispatch(showErrorDialog('Missing required parameters'));
+        return null;
+    }
+
     const state = getState();
     const quoteToken = state.ui.market.marketPairs.quoteToken;
     const baseToken = state.ui.market.marketPairs.baseToken;
@@ -106,6 +115,14 @@ export const executeOrder = (
         });
 
         const orderType = orderInfo.type;
+        let amount;
+
+        if (orderType === 'bid') {
+            amount = quoteAmount;
+        } else if (orderType === 'ask') {
+            amount = baseAmount;
+        }
+
         const infoFromAccount = await apiCall(
             'finance/get/account', 
             {address: fromAccount}
@@ -155,12 +172,11 @@ export const executeOrder = (
             return error;
         });
 
-        if (result.success === true) {
+        if (result.success) {
             dispatch(showSuccessDialog(
-                'Order executed successfully, txid: ', 
-                result.txid, 
-                'Order address: ', 
-                result.address));
+                'Order executed successfully',
+                `Transaction ID: ${result.txid}`,
+                `Order address: ${result.address}`));
             dispatch(fetchMarketData());
             return result;
         } else {
@@ -194,12 +210,11 @@ export const cancelOrder = (
             }
         );
         
-        if (result.success === true) {
+        if (result.success) {
             dispatch(showSuccessDialog(
-                'Order cancelled successfully, txid: ', 
-                result.txid, 
-                'Order address: ', 
-                result.address));
+                'Order cancelled successfully',
+                `Transaction ID: ${result.txid}`,
+                `Order address: ${result.address}`));
             dispatch(fetchMarketData());
             return result;
         } else {
