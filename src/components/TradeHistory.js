@@ -61,7 +61,7 @@ export default function TradeHistory({num}) {
           <thead>
             <tr>
               <th>Price</th>
-              <th>Amount {baseToken}</th>
+              <th>Amount</th>
               <th>Time</th>
             </tr>
           </thead>
