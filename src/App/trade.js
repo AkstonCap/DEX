@@ -17,10 +17,10 @@ export default function Trade() {
     <PageLayout>
       <TopRow>
         <TradeForm />
-        <OrderBookComp />
+        <OrderBookComp num={8}/>
       </TopRow>
       <BottomRow>
-        <TradeHistory />
+        <TradeHistory num={6}/>
         <PersonalTradeHistory />
         <PersonalOpenOrders />
       </BottomRow>
