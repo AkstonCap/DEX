@@ -42,8 +42,12 @@ export default function TradeForm() {
   const handleOrderMethodChange = (val) => {
     if (val === 'bid') {
       dispatch(setOrder( '', 0, 0, 'bid', '', 'bid' ));
+      setQuoteAmount(0);
+      setBaseAmount(0);
     } else if (val === 'ask') {
       dispatch(setOrder( '', 0, 0, 'ask', '', 'ask' ));
+      setQuoteAmount(0);
+      setBaseAmount(0);
     } else if (val === 'execute') {
       dispatch(setOrder( '', 0, 0, '', '', 'execute' ));
     }
@@ -52,15 +56,22 @@ export default function TradeForm() {
   useEffect(() => {
     async function fetchAccounts() {
       try {
+        
         const params = {
           sort: 'balance',
           order: 'desc',
         };
-        setQuoteAmount(orderInQuestion.amount);
-        setBaseAmount(orderInQuestion.amount / orderInQuestion.price);
+
+        if (orderMethod === 'execute') {
+          setQuoteAmount(orderInQuestion.amount);
+          setBaseAmount(orderInQuestion.amount / orderInQuestion.price);
+        }
+
         const result = await apiCall('finance/list/account/balance,ticker,address', params);
+        
         let quoteAccounts = [];
         let baseAccounts = [];
+
         if (orderMethod === 'bid' || (orderMethod === 'execute' && orderInQuestion.type === 'ask')) {
           const quoteAccounts = result.filter((acct) => acct.ticker === quoteToken && acct.balance >= quoteAmount);
           const baseAccounts = result.filter((acct) => acct.ticker === baseToken);
@@ -72,21 +83,26 @@ export default function TradeForm() {
         } else {
           setAccounts({ quoteAccounts, baseAccounts });
         }
+
       } catch (error) {
+
         dispatch(showErrorDialog('Error fetching account information:', error));
+      
       }
     }
+
     fetchAccounts();
+
   }, [dispatch, orderMethod, orderInQuestion, marketPair, quoteAmount]);
 
   const quoteAccountOptions = accounts.quoteAccounts.map((acct) => ({
     value: acct.address,
-    display: `${acct.address.slice(0, 5)}...${acct.address.slice(-5)} - ${acct.balance} ${acct.ticker}`,
+    display: `${acct.address.slice(0, 4)}...${acct.address.slice(-4)} - ${acct.balance} ${acct.ticker}`,
   }));
   
   const baseAccountOptions = accounts.baseAccounts.map((acct) => ({
     value: acct.address,
-    display: `${acct.address.slice(0, 5)}...${acct.address.slice(-5)} - ${acct.balance} ${acct.ticker}`,
+    display: `${acct.address.slice(0, 4)}...${acct.address.slice(-4)} - ${acct.balance} ${acct.ticker}`,
   }));
 
   const handleSubmit = (e) => {
@@ -110,8 +126,8 @@ export default function TradeForm() {
           step="0.0001"
           value={quoteAmount}
           onChange={(e) => {
-            setQuoteAmount(e.target.value),
-            setBaseAmount(e.target.value / price)
+            setQuoteAmount(e.target.value);
+            setBaseAmount(e.target.value / price);
             }
           }
         />
@@ -192,7 +208,7 @@ export default function TradeForm() {
             <FormField label={('Payment Account ' + payToken)}>
               <Select
                 value={fromAccount}
-                onChange={(val) => dispatch(setFromAccount(val))}
+                onChange={(val) => setFromAccount(val)}
                 options={paymentOptions}
               />
             </FormField>
@@ -200,13 +216,16 @@ export default function TradeForm() {
             <FormField label={('Receiving Account ' + receiveToken)}>
               <Select
                 value={toAccount}
-                onChange={(option) => dispatch(setToAccount(option))}
+                onChange={(option) => setToAccount(option)}
                 options={
                   receivingOptions
                 }
               />
             </FormField>
           </TradeFormContainer>
+          <div className='mt2'>
+            txid: {orderInQuestion.txid.slice(0, 10)}....{orderInQuestion.txid.slice(-10)}
+          </div>
           <div className='mt2'>
             <div className='text-center'>
               <SubmitButton 
