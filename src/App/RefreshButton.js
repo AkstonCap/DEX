@@ -56,6 +56,7 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
         }
       }
 
+      // Set the market pair - need to add check if tokens exists
       dispatch(setMarketPair(
         baseTokenField, 
         quoteTokenField, 
