@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Icon, Tooltip, Button } from 'nexus-module';
 import { cancelOrder } from 'actions/placeOrder';
+import { fetchMarketData } from 'actions/fetchMarketData';
 
 const spin = keyframes`
   from {
@@ -23,6 +24,7 @@ function useCancelOrder( txid ) {
     setCanceling(true);
     try {
       dispatch(cancelOrder(txid));
+      dispatch(fetchMarketData());
     } finally {
       setCanceling(false);
     }
