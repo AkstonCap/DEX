@@ -8,6 +8,8 @@ export default function OrderBookComp({ num }) {
   const orderBook = useSelector((state) => state.ui.market.orderBook);
   const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
+  const baseTokenDecimals = useSelector((state) => state.ui.market.marketPairs.baseTokenDecimals);
+  const quoteTokenDecimals = useSelector((state) => state.ui.market.marketPairs.quoteTokenDecimals);
 
   const handleOrderClick = (order) => {
     if (order.type === 'ask') {
@@ -27,9 +29,9 @@ export default function OrderBookComp({ num }) {
       onClick={() => handleOrderClick(item)}
       orderType={item.type}
       >
-      <td>{item.price}</td>
-      <td>{`${item.order.amount} ${baseToken}`}</td>
-      <td>{`${item.contract.amount} ${quoteToken}`}</td>
+      <td>{parseFloat(item.price).toFixed(Math.min(3, quoteTokenDecimals))}</td>
+      <td>{`${parseFloat(item.order.amount).toFixed(Math.min(3, baseTokenDecimals))} ${item.order.ticker}`}</td>
+      <td>{`${parseFloat(item.contract.amount).toFixed(Math.min(3, quoteTokenDecimals))} ${item.contract.ticker}`}</td>
       </OrderbookTableRow>
     ));
   };
@@ -45,9 +47,9 @@ export default function OrderBookComp({ num }) {
       onClick={() => handleOrderClick(item)}
       orderType={item.type}
     >
-      <td>{item.price}</td>
-      <td>{`${item.contract.amount} ${baseToken}`}</td>
-      <td>{`${item.order.amount} ${quoteToken}`}</td>
+      <td>{parseFloat(item.price).toFixed(Math.min(3, quoteTokenDecimals))}</td>
+      <td>{`${parseFloat(item.contract.amount).toFixed(Math.min(3, baseTokenDecimals))} ${item.contract.ticker}`}</td>
+      <td>{`${parseFloat(item.order.amount).toFixed(Math.min(3, quoteTokenDecimals))} ${item.order.ticker}`}</td>
     </OrderbookTableRow>
     ));
   };
