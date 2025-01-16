@@ -4,12 +4,12 @@ const initialState = {
   baseToken: 'DIST',
   quoteToken: 'NXS',
   marketPair: 'DIST/NXS',
-  baseTokenMaxsupply: 0,
+  baseTokenMaxsupply: 1e7,
   quoteTokenMaxsupply: 0,
   baseTokenCirculatingSupply: 0,
   quoteTokenCirculatingSupply: 0,
   baseTokenDecimals: 0,
-  quoteTokenDecimals: 0,
+  quoteTokenDecimals: 8,
 };
 
 export default (state = initialState, action) => {
