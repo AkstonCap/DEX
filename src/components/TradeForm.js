@@ -108,7 +108,7 @@ export default function TradeForm() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (orderMethod === 'execute') {
-      dispatch(executeOrder(orderInQuestion.txid, fromAccount, toAccount));
+      dispatch(executeOrder(orderInQuestion.txid, fromAccount, toAccount, quoteAmount));
     } else if (orderMethod === 'bid' || orderMethod === 'ask') {
       dispatch(createOrder(orderMethod, price, quoteAmount, fromAccount, toAccount));
     }
@@ -224,7 +224,11 @@ export default function TradeForm() {
             </FormField>
           </TradeFormContainer>
           <div className='mt2'>
-            txid: {orderInQuestion.txid.slice(0, 10)}....{orderInQuestion.txid.slice(-10)}
+            {orderMethod === 'execute' ? (
+              orderInQuestion.txid
+                ? <>txid: {orderInQuestion.txid.slice(0, 10)}....{orderInQuestion.txid.slice(-10)}</>
+                : <>Choose order to execute from orderbook</>
+            ) : null}
           </div>
           <div className='mt2'>
             <div className='text-center'>
