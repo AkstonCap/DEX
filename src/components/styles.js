@@ -15,21 +15,28 @@ export const tradeGridContainer = styled.div`
 
 export const PageLayout = styled.div`
   display: grid;
-  grid-template-rows: 57% 38%;
-  height: 70vh;
+  grid-template-rows: 49% 49%;
+  height: 180vh;
   gap: 10px;
 `;
 
 export const TopRow = styled.div`
   display: grid;
-  grid-template-columns: 57% 38%;
+  grid-template-columns: 59% 39%;
   gap: 10px;
   overflow: auto;
 `;
 
 export const BottomRow = styled.div`
   display: grid;
-  grid-template-columns: 32% 31% 31%;
+  grid-template-columns: 31% 31% 35%;
+  gap: 10px;
+  overflow: auto;
+`;
+
+export const TradeBottomRow = styled.div`
+  display: grid;
+  grid-template-columns: 49% 49%;
   gap: 10px;
   overflow: auto;
 `;
@@ -92,15 +99,15 @@ export const MyOrdersTable = styled.table`
   }
 
   th:nth-of-type(2) {
-    width: 20%;
+    width: 40%;
   }
 
   th:nth-of-type(3) {
-    width: 20%;
+    width: 40%;
   }
 
   th:nth-of-type(4) {
-    width: 40%;
+    width: 25%;
   }
 
   th {
