@@ -7,7 +7,8 @@ import PersonalOpenOrders from 'components/PersonalOpenOrders';
 import { 
   PageLayout, 
   TopRow, 
-  BottomRow, 
+  BottomRow,
+  TradeBottomRow, 
 } from 'components/styles';
 
 export default function Trade() {
@@ -17,13 +18,13 @@ export default function Trade() {
     <PageLayout>
       <TopRow>
         <TradeForm />
-        <OrderBookComp num={8}/>
+        <OrderBookComp num={6}/>
       </TopRow>
-      <BottomRow>
-        <TradeHistory num={6}/>
+      <TradeBottomRow>
+        {/*<TradeHistory num={6}/>*/}
         <PersonalTradeHistory />
         <PersonalOpenOrders />
-      </BottomRow>
+      </TradeBottomRow>
     </PageLayout>
   );
 }
