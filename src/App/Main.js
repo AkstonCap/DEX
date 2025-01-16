@@ -59,8 +59,8 @@ export default function Main() {
     // Fetch data immediately
     fetchData();
   
-    // Set interval to fetch data every 60 seconds
-    const intervalId = setInterval(fetchData, 60000);
+    // Set interval to fetch data every 15 seconds
+    const intervalId = setInterval(fetchData, 15000);
   
     // Cleanup interval on unmount
     return () => clearInterval(intervalId);
