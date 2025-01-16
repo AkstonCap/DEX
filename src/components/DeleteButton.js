@@ -38,16 +38,16 @@ export default function DeleteButton({ txid }) {
   
   return (
     <Tooltip.Trigger tooltip="Delete">
-      <Button square skin="plain" onClick={cancelingOrder}>
+      <Button 
+        onClick={cancelingOrder}
+        style={{
+          width: '24px',
+          height: '24px',
+          padding: '4px'
+        }}
+      >
         <Icon
-          icon={{ url: 'trash-svgrepo-com.svg', id: 'icon' }}
-          style={
-            canceling
-              ? {
-                  animation: `${spin} 2s linear infinite`,
-                }
-              : undefined
-          }
+          icon={{ url: 'icons/delete2.svg', id: 'icon' }}
         />
       </Button>
     </Tooltip.Trigger>
