@@ -78,7 +78,7 @@ export default function TradeForm() {
           setAccounts({ quoteAccounts, baseAccounts });
         } else if (orderMethod === 'ask' || (orderMethod === 'execute' && orderInQuestion.type === 'bid')) {
           const quoteAccounts = result.filter((acct) => acct.ticker === quoteToken);
-          const baseAccounts = result.filter((acct) => acct.ticker === baseToken && acct.balance > baseAmount);
+          const baseAccounts = result.filter((acct) => acct.ticker === baseToken && acct.balance >= baseAmount);
           setAccounts({ quoteAccounts, baseAccounts });
         } else {
           setAccounts({ quoteAccounts, baseAccounts });
@@ -93,7 +93,11 @@ export default function TradeForm() {
 
     fetchAccounts();
 
-  }, [dispatch, orderMethod, orderInQuestion, marketPair, quoteAmount]);
+  }, [dispatch, orderMethod, orderInQuestion, marketPair, quoteAmount, baseAmount]);
+
+  useEffect(() => {
+    setBaseAmount(quoteAmount / price);
+  }, [quoteAmount, price]);
 
   const quoteAccountOptions = accounts.quoteAccounts.map((acct) => ({
     value: acct.address,
@@ -127,7 +131,7 @@ export default function TradeForm() {
           value={quoteAmount}
           onChange={(e) => {
             setQuoteAmount(e.target.value);
-            setBaseAmount(e.target.value / price);
+            //setBaseAmount(e.target.value / price);
             }
           }
         />
@@ -227,7 +231,7 @@ export default function TradeForm() {
             {orderMethod === 'execute' ? (
               orderInQuestion.txid
                 ? <>txid: {orderInQuestion.txid.slice(0, 10)}....{orderInQuestion.txid.slice(-10)}</>
-                : <>Choose order to execute from orderbook</>
+                : <>Click on order to execute in order book</>
             ) : null}
           </div>
           <div className='mt2'>
