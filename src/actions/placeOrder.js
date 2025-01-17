@@ -6,22 +6,28 @@ import { apiCall,
 import { fetchMarketData } from './fetchMarketData';
 
 export const createOrder = (
-    orderType, price, amount, fromAccount, toAccount
+    orderType, price, quoteAmount, fromAccount, toAccount
 ) => async (
     dispatch, getState
 ) => {
+    if (!orderType || !price || !quoteAmount || !fromAccount || !toAccount) {
+        dispatch(showErrorDialog('Missing required parameters'));
+        return null;
+    }
+    
     const state = getState();
 
     // get market pair and tokens from state
     const marketPair = state.ui.market.marketPairs.marketPair;
     const quoteToken = state.ui.market.marketPairs.quoteToken;
     const baseToken = state.ui.market.marketPairs.baseToken;
+    const baseAmount = quoteAmount / price;
 
     // set params for api call
     const params = {
         market: marketPair,
         price: price,
-        amount: amount,
+        amount: quoteAmount,
         from: fromAccount,
         to: toAccount,
     };
@@ -38,7 +44,10 @@ export const createOrder = (
         } else if (orderType === 'ask' && infoFromAccount.ticker !== baseToken) {
             dispatch(showErrorDialog('Invalid payment account (wrong token)', error));
             return error;
-        } else if (infoFromAccount.balance < amount) {
+        } else if (
+            (orderType === 'bid' && infoFromAccount.balance < quoteAmount) || 
+            (orderType === 'ask' && infoFromAccount.balance < baseAmount)
+        ) {
             dispatch(showErrorDialog('Not enough balance', error));
             return error;
         }
