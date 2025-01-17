@@ -15,10 +15,10 @@ export const tradeGridContainer = styled.div`
 
 export const PageLayout = styled.div`
   display: grid;
-  grid-template-rows: 49% 49%;
-  height: 180vh;
+  grid-template-rows: auto auto;
   gap: 10px;
 `;
+/*height: 100vh;*/
 
 export const TopRow = styled.div`
   display: grid;
@@ -74,18 +74,21 @@ export const OrderTable = styled.table`
 `;
 
 export const OrderbookTableHeader = styled.thead`
-  background-color: #f1f1f1;
+  color: white;
+  th {
+    padding-right: 12px;
+  }
 `;
 
 export const OrderbookTableRow = styled.tr`
   cursor: pointer;
-  color: ${(props) => (props.orderType === 'ask' ? 'red' : 'green')};
+  color: ${(props) => (props.orderType === 'ask' ? 'red' : '#7cfc00')};
   padding-right: 8px;
 `;
 
 export const TradeTableRow = styled.tr`
   cursor: pointer;
-  color: ${(props) => (props.orderType === 'ask' ? 'green' : 'red')};
+  color: ${(props) => (props.orderType === 'ask' ? '#7cfc00' : 'red')};
   padding-right: 8px;
 `;
 
@@ -99,21 +102,21 @@ export const MyOrdersTable = styled.table`
   }
 
   th:nth-of-type(2) {
-    width: 40%;
+    width: 25%;
   }
 
   th:nth-of-type(3) {
-    width: 40%;
+    width: 25%;
   }
 
   th:nth-of-type(4) {
-    width: 25%;
+    width: 28%;
   }
 
   th {
     padding: 2px;
     text-align: right;
-    padding-right: 5px;
+    padding-right: 12px;
     font-size: 18px;
   }
 
@@ -127,12 +130,12 @@ export const MyOrdersTable = styled.table`
 
 export const MyOrdersTableRow = styled.tr`
   cursor: pointer;
-  color: ${(props) => (props.orderType === 'ask' ? 'green' : 'red')};
+  color: ${(props) => (props.orderType === 'ask' ? '#7cfc00' : 'red')};
   padding-right: 8px;
 `;
 
 export const ChangeText = styled.span`
-  color: ${(props) => (props.change > 0 ? 'green' : 'red')};
+  color: ${(props) => (props.change > 0 ? '#7cfc00' : 'red')};
 `;
 
 export const ChangeArrow = styled(Arrow)`
@@ -170,7 +173,7 @@ export function SummaryValue({ summary, prop, percentage }) {
 
 export const ChartPageLayout = styled.div`
   display: grid;
-  grid-template-columns: 65% 30%;
+  grid-template-columns: 47% 50%;
   gap: 10px;
   overflow: auto;
 `;
@@ -178,9 +181,9 @@ export const ChartPageLayout = styled.div`
 export const BidButton = styled(Button)`
   && {
     /* Double ampersand ensures higher specificity */
-    border: 2px solid green !important;
+    border: 2px solid #004d00 !important;
     background-color: ${({ orderMethod }) =>
-      orderMethod === 'bid' ? 'green' : 'transparent'} !important;
+      orderMethod === 'bid' ? '#004d00' : 'transparent'} !important;
     color: ${({ orderMethod }) =>
       orderMethod === 'bid' ? 'white' : 'inherit'} !important;
   }
@@ -195,9 +198,9 @@ export const BidButton = styled(Button)`
 export const AskButton = styled(Button)`
   && {
     /* Double ampersand ensures higher specificity */
-    border: 2px solid red !important;
+    border: 2px solid #ab2328 !important;
     background-color: ${({ orderMethod }) =>
-      orderMethod === 'ask' ? 'red' : 'transparent'} !important;
+      orderMethod === 'ask' ? '#ab2328' : 'transparent'} !important;
     color: ${({ orderMethod }) =>
       orderMethod === 'ask' ? 'white' : 'inherit'} !important;
   }
@@ -213,9 +216,27 @@ export const AskButton = styled(Button)`
 export const ExecuteButton = styled(Button)`
   && {
     /* Double ampersand ensures higher specificity */
-    border: 2px solid blue !important;
+    border: 2px solid #025e93 !important;
     background-color: ${({ orderMethod }) =>
-      orderMethod === 'execute' ? 'blue' : 'transparent'} !important;
+      orderMethod === 'execute' ? '#025e93' : 'transparent'} !important;
+    color: ${({ orderMethod }) =>
+      orderMethod === 'execute' ? 'white' : 'inherit'} !important;
+  }
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 18px;
+  cursor: pointer;
+`;
+
+export const MarketFillButton = styled(Button)`
+  && {
+    /* Double ampersand ensures higher specificity */
+    border: 2px solid #025e93 !important;
+    background-color: ${({ orderMethod }) =>
+      orderMethod === 'execute' ? '#025e93' : 'transparent'} !important;
     color: ${({ orderMethod }) =>
       orderMethod === 'execute' ? 'white' : 'inherit'} !important;
   }
@@ -240,11 +261,11 @@ export const SubmitButton = styled(Button)`
     //border: 2px solid white !important;
     background-color: ${({ orderMethod }) =>
       orderMethod === 'execute' 
-        ? 'blue' 
+        ? '#025e93' 
         : orderMethod === 'ask' 
-        ? 'red' 
+        ? '#ab2328' 
         : orderMethod === 'bid' 
-        ? 'green' 
+        ? '#004d00' 
         : 'transparent'} !important;
     color: ${({ orderMethod }) =>
       orderMethod === 'execute' ? 'white' : 'inherit'} !important;
