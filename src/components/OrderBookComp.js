@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { FieldSet } from 'nexus-module';
 import { setOrder } from 'actions/actionCreators';
-import { OrderTable, OrderbookTableRow } from './styles';
+import { OrderTable, OrderbookTableHeader, OrderbookTableRow } from './styles';
 
 export default function OrderBookComp({ num }) {
   const dispatch = useDispatch();
@@ -59,13 +59,13 @@ export default function OrderBookComp({ num }) {
       <FieldSet legend="Order Book">
           <div>
             <OrderTable>
-              <thead>
+              <OrderbookTableHeader>
                 <tr>
                   <th>Price</th>
                   <th>Amount [{baseToken}]</th>
                   <th>Amount [{quoteToken}]</th>
                 </tr>
-              </thead>
+              </OrderbookTableHeader>
               <tbody>{renderTableAsks(orderBook.asks)}</tbody>
               <tbody>
                 <tr>
