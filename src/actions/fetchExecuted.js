@@ -87,7 +87,7 @@ export const fetchExecuted = (
       'market/user/executed', 
       {
         token: baseToken,
-        sort: 'price', 
+        sort: 'timestamp', 
         order: 'desc', 
         limit: 10
       }
