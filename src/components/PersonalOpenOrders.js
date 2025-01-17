@@ -1,12 +1,21 @@
 import { useSelector } from 'react-redux';
 import { FieldSet } from 'nexus-module';
-import { MyOrdersTable, MyOrdersTableRow } from './styles';
+import { MyOrdersTable, MyOrdersTableRow, OrderbookTableHeader } from './styles';
 import DeleteButton from './DeleteButton';
 
 export default function PersonalOpenOrders() {
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
   const myOrders = useSelector((state) => state.ui.market.myOrders.orders);
+  const quoteTokenDecimals = useSelector((state) => state.ui.market.marketPairs.quoteTokenDecimals);
+  const baseTokenDecimals = useSelector((state) => state.ui.market.marketPairs.baseTokenDecimals);
+
+  // Helper function to get decimals for a given ticker
+  function decimalsForTicker(ticker, baseToken, quoteToken, baseTokenDecimals, quoteTokenDecimals) {
+    if (ticker === baseToken) return baseTokenDecimals;
+    if (ticker === quoteToken) return quoteTokenDecimals;
+    return 3; // default/fallback
+  }
 
   // If no orders, display “No orders” row
   if (!myOrders || myOrders?.length === 0 ) {
@@ -25,44 +34,56 @@ export default function PersonalOpenOrders() {
     );
   } else {
 
-    /*
-    const myAsks = myOrders.filter((order) => order.type === 'ask');
-    // Adjust 'asks' so that order.amount matches contract.amount
-    if (myAsks.length > 0) {
-      myOrders.forEach((element) => {
-        if (myOrders.type === 'ask') {
-          element.order.amount = element.contract.amount;
-        }
-      });
-    };
-    */
     // Merge and sort
     const sortedOrders = myOrders.sort(
       (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
     );
 
     // Convert each order into a table row
-    const rows = sortedOrders.map((order, index) => (
-      <MyOrdersTableRow key={index} orderType={order.type}>
-        <td>{`${order.price} ${quoteToken}`}</td>
-        <td>{`${order.contract.amount} ${order.contract.ticker}`}</td>
-        <td>{`${order.order.amount} ${order.order.ticker}`}</td>
-        <td>{new Date(order.timestamp).toLocaleString()}</td>
-        <td><DeleteButton txid={order.txid} /></td>
+    const rows = sortedOrders.map((order, index) => {
+
+      const contractDecimals = decimalsForTicker(
+        order.contract.ticker,
+        baseToken,
+        quoteToken,
+        baseTokenDecimals,
+        quoteTokenDecimals
+      );
+      const orderDecimals = decimalsForTicker(
+        order.order.ticker,
+        baseToken,
+        quoteToken,
+        baseTokenDecimals,
+        quoteTokenDecimals
+      );
+
+      return (
+        <MyOrdersTableRow key={index} orderType={order.type}>
+          <td>{parseFloat(order.price).toFixed(Math.min(3, quoteTokenDecimals))}</td>
+          <td>
+            {parseFloat(order.contract.amount).toFixed(Math.min(3, contractDecimals))} {order.contract.ticker}
+          </td>
+          <td>
+            {parseFloat(order.order.amount).toFixed(Math.min(3, orderDecimals))} {order.order.ticker}
+          </td>
+          <td>{new Date(order.timestamp * 1000).toLocaleString()}</td>
+          <td><DeleteButton txid={order.txid} /></td>
       </MyOrdersTableRow>
-    ));
+      );
+    });
 
     return (
       <div>
         <FieldSet legend="My Open Orders">
           <MyOrdersTable>
-            <thead>
+            <OrderbookTableHeader>
               <tr>
                 <th>Price</th>
-                <th colspan="2">Amount</th>
+                <th>Sell amount</th>
+                <th>Buy amount</th>
                 <th>Time</th>
               </tr>
-            </thead>
+            </OrderbookTableHeader>
             <tbody>{rows}</tbody>
           </MyOrdersTable>
         </FieldSet>
