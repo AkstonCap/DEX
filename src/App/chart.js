@@ -5,12 +5,11 @@ export default function Chart() {
     return (
       <ChartPageLayout>
         <div className="Chart">
-          <h1>Welcome to the DEX</h1>
           <p>
-            Chart TBA
+            Charting is in development. For now, here is a list of the last 50 trades:
           </p>
         </div>
-        <TradeHistory num={20} />
+        <TradeHistory num={50} />
       </ChartPageLayout>
     );
 }
