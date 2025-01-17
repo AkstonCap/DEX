@@ -10,6 +10,12 @@ export default function TradeHistory({num}) {
   const quoteToken = useSelector(
     (state) => state.ui.market.marketPairs.quoteToken
   );
+  const baseTokenDecimals = useSelector(
+    (state) => state.ui.market.marketPairs.baseTokenDecimals
+  );
+  const quoteTokenDecimals = useSelector(
+    (state) => state.ui.market.marketPairs.quoteTokenDecimals
+  );
 
   const bids = executedOrders && Array.isArray(executedOrders.bids)
     ? executedOrders.bids
@@ -38,6 +44,12 @@ export default function TradeHistory({num}) {
   // Adjust 'asks' so that order.amount matches contract.amount
   asks.forEach((element) => {
     element.order.amount = element.contract.amount;
+    element.baseAmount = element.contract.amount;
+    element.quoteAmount = element.order.amount;
+  });
+  bids.forEach((element) => {
+    element.baseAmount = element.order.amount;
+    element.quoteAmount = element.contract.amount;
   });
 
   // Merge and sort the executed orders
@@ -48,8 +60,8 @@ export default function TradeHistory({num}) {
   // Map each order to a table row
   const rows = sortedExecutedOrders.slice(0, num).map((order, index) => (
     <TradeTableRow key={index} orderType={order.type}>
-      <td>{`${order.price} ${quoteToken}`}</td>
-      <td>{`${order.order.amount} ${baseToken}`}</td>
+      <td>{parseFloat(order.price).toFixed(Math.min(3, quoteTokenDecimals))}</td>
+      <td>{parseFloat(order.order.amount).toFixed(Math.min(3, baseTokenDecimals))} {baseToken}</td>
       <td>{new Date(order.timestamp*1000).toLocaleString()}</td>
     </TradeTableRow>
   ));
