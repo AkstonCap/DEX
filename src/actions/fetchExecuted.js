@@ -96,16 +96,9 @@ export const fetchExecuted = (
         message: 'Cannot get my trades from apiCall (fetchExecuted)',
         note: error?.message || 'Unknown error',
       }));
-      const trades={bids: [], asks: []};
+      const trades={executed: []};
       dispatch(setMyTrades(trades));
     });
-
-    if (!myTrades.bids) {
-      myTrades.bids = [];
-    }
-    if (!myTrades.asks) {
-      myTrades.asks = [];
-    }
 
     dispatch(setMyTrades(myTrades));
 
@@ -116,6 +109,6 @@ export const fetchExecuted = (
     }));
 
     dispatch(setExecutedOrders({ bids: [], asks: [] }));
-    dispatch(setMyTrades({ bids: [], asks: [] }));
+    dispatch(setMyTrades({ executed: [] }));
   }
 };
