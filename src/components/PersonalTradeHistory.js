@@ -7,7 +7,7 @@ export default function PersonalTradeHistory() {
   const myTrades = useSelector((state) => state.ui.market.myTrades);
 
   // If no trades, display a single table row saying "No trades"
-  if (!myTrades || (myTrades.bids?.length === 0 && myTrades.asks?.length === 0)) {
+  if (!myTrades || myTrades.executed?.length === 0 ) {
     return (
       <div>
         <FieldSet legend="My Trades">
@@ -24,13 +24,9 @@ export default function PersonalTradeHistory() {
   } else {
 
   // Adjust "asks" so that order.amount matches contract.amount
-    if (myTrades.asks.length > 0) {  
-      myTrades.asks.forEach((element) => {
-        element.order.amount = element.contract.amount;
-      });
-    };
+    
   // Merge and sort
-    const sortedTrades = [...myTrades.bids, ...myTrades.asks].sort(
+    const sortedTrades = myTrades.executed.sort(
       (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
     );
 
@@ -49,8 +45,8 @@ export default function PersonalTradeHistory() {
           <table>
             <thead>
               <tr>
-                <th>Price [{quoteToken}/{baseToken}]</th>
-                <th>Amount {baseToken}</th>
+                <th>Price</th>
+                <th>Amount</th>
                 <th>Time</th>
               </tr>
             </thead>
