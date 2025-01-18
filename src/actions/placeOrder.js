@@ -23,14 +23,25 @@ export const createOrder = (
     const baseToken = state.ui.market.marketPairs.baseToken;
     const baseAmount = quoteAmount / price;
 
+    let params;
     // set params for api call
-    const params = {
-        market: marketPair,
-        price: price,
-        amount: quoteAmount,
-        from: fromAccount,
-        to: toAccount,
-    };
+    if (orderType === 'bid') {
+        params = {
+            market: marketPair,
+            price: price,
+            amount: quoteAmount,
+            from: fromAccount,
+            to: toAccount,
+        };
+    } else if (orderType === 'ask') {
+        params = {
+            market: marketPair,
+            price: price,
+            amount: baseAmount,
+            from: fromAccount,
+            to: toAccount,
+        };
+    }
 
     // fetch account information, return error if not fetched
     try {
