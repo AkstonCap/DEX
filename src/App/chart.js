@@ -6,7 +6,7 @@ export default function Chart() {
       <ChartPageLayout>
         <div className="Chart">
           <p>
-            Charting is in development. For now, here is a list of the last 50 trades:
+            Charts coming soon..
           </p>
         </div>
         <TradeHistory num={50} />
