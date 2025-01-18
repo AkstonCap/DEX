@@ -71,10 +71,10 @@ export default function Overview() {
       value: '1d',
       display: ('1 Day'),
     },
-    {
+    /*{
       value: '1h',
       display: ('1 Hour'),
-    },
+    },*/
   ];
 
   // Define updateData function at the component level
