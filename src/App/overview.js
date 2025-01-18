@@ -30,6 +30,8 @@ export default function Overview() {
   const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
+  const quoteTokenDecimals = useSelector((state) => state.ui.market.marketPairs.quoteTokenDecimals);
+  const baseTokenDecimals = useSelector((state) => state.ui.market.marketPairs.baseTokenDecimals);
 
   const orderBook = useSelector((state) => state.ui.market.orderBook);
   const executedOrders = useSelector(
@@ -82,8 +84,8 @@ export default function Overview() {
       (executedOrders.bids?.length > 0 || executedOrders.asks?.length > 0)
     ) {
       const volumeData = fetchVolumeData(executedOrders);
-      setBaseTokenVolume(volumeData.baseTokenVolume);
-      setQuoteTokenVolume(volumeData.quoteTokenVolume);
+      setBaseTokenVolume(volumeData.baseTokenVolume.toFixed(Math.min(3, baseTokenDecimals)));
+      setQuoteTokenVolume(volumeData.quoteTokenVolume.toFixed(Math.min(3, quoteTokenDecimals)));
 
       const sortedExecutedOrders = [
         ...executedOrders.bids,
@@ -94,19 +96,19 @@ export default function Overview() {
 
       const highPrice = Math.max(
         ...sortedExecutedOrders.map((order) => order.price)
-      );
+      ).toFixed(Math.min(3, quoteTokenDecimals));
       setHigh(highPrice);
 
       const lowPrice = Math.min(
         ...sortedExecutedOrders.map((order) => order.price)
-      );
+      ).toFixed(Math.min(3, quoteTokenDecimals));
       setLow(lowPrice);
 
       const changePercentage = (
         ((lastPrice - sortedExecutedOrders[sortedExecutedOrders.length - 1].price) /
           sortedExecutedOrders[sortedExecutedOrders.length - 1].price) *
         100
-      ).toFixed(2);
+      ).toFixed(1);
       setChange(changePercentage);
 
     } else {
@@ -128,6 +130,12 @@ export default function Overview() {
     // Fetch data immediately
     updateData(executedOrders, orderBook);
 
+    /*// Fetch data every 5 seconds
+    const intervalId = setInterval(updateData, 5000);
+  
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId);
+*/
   }, [marketPair, executedOrders, orderBook]);
 
   return (
@@ -139,7 +147,7 @@ export default function Overview() {
             <Line>
               <div>
                 <Label>Last Price:</Label>
-                <Value>{lastPrice}</Value>
+                <Value>{parseFloat(lastPrice).toFixed(Math.min(3, quoteTokenDecimals))}</Value>
               </div>
               <div>
                 <Label>High</Label>
