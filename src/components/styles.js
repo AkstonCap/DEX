@@ -178,6 +178,20 @@ export const ChartPageLayout = styled.div`
   overflow: auto;
 `;
 
+export const DepthPageLayout = styled.div`
+  display: grid;
+  grid-template-rows: Auto Auto;
+  gap: 10px;
+  overflow: auto;
+`;
+
+export const DepthPageBottomRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  overflow: auto;
+`;
+
 export const BidButton = styled(Button)`
   && {
     /* Double ampersand ensures higher specificity */
