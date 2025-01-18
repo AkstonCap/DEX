@@ -23,7 +23,8 @@ export default function OrderBookComp({ num }) {
     if (!Array.isArray(data)) {
       return null;
     }
-    return data.slice(0, num).map((item, index) => (
+    const len = data.length;
+    return data.slice(0, Math.min(num, len)).map((item, index) => (
       <OrderbookTableRow
       key={index}
       onClick={() => handleOrderClick(item)}
@@ -41,7 +42,7 @@ export default function OrderBookComp({ num }) {
       return null;
     }
     const len = data.length;
-    return data.slice(len-num, len).map((item, index) => (
+    return data.slice(Math.max(len-num, 0), len).map((item, index) => (
       <OrderbookTableRow
       key={index}
       onClick={() => handleOrderClick(item)}
