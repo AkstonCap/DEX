@@ -114,8 +114,13 @@ export default function TradeForm() {
     e.preventDefault();
     if (orderMethod === 'execute') {
       dispatch(executeOrder(orderInQuestion.txid, fromAccount, toAccount, quoteAmount));
+      dispatch(setOrder( '', 0, 0, '', '', 'execute' ));
     } else if (orderMethod === 'bid' || orderMethod === 'ask') {
       dispatch(createOrder(orderMethod, price, quoteAmount, fromAccount, toAccount));
+      dispatch(setOrder( '', 0, 0, orderMethod, '', orderMethod ));
+      setQuoteAmount(0);
+      setBaseAmount(0);
+      setPrice(0);
     }
   };
 
@@ -238,8 +243,16 @@ export default function TradeForm() {
           <div className='mt2'>
             {orderMethod === 'execute' ? (
               orderInQuestion.txid
-                ? <>txid: {orderInQuestion.txid.slice(0, 10)}....{orderInQuestion.txid.slice(-10)}</>
-                : <>Click on order to execute in order book</>
+                ? <>
+                    txid: {orderInQuestion.txid.slice(0, 10)}....{orderInQuestion.txid.slice(-10)}
+                    <br />
+                    Click on another order in the order book (right hand side) to change which order to fill.
+                  </>
+                : <>
+                    txid: 
+                    <br />
+                    Click on an order in the order book (right hand side) which you would like to fill.
+                  </>
             ) : null}
           </div>
           <div className='mt2'>
