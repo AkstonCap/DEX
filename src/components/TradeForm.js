@@ -13,7 +13,8 @@ import {
 import { 
   BidButton, 
   AskButton, 
-  ExecuteButton, 
+  ExecuteButton,
+  MarketFillButton, 
   TradeFormContainer,
   SubmitButton,
 } from './styles';
@@ -198,6 +199,13 @@ export default function TradeForm() {
               >
                 Execute
               </ExecuteButton>
+              <MarketFillButton
+                orderMethod={orderMethod}
+                //onClick={() => handleOrderMethodChange('execute')}
+                //variant={orderMethod === 'execute'}
+              >
+                Market (coming soon)
+              </MarketFillButton>
             </div>
           </FormField>
           <TradeFormContainer> 
