@@ -22,21 +22,21 @@ export const PageLayout = styled.div`
 
 export const TopRow = styled.div`
   display: grid;
-  grid-template-columns: 59% 39%;
+  grid-template-columns: 59% 40%;
   gap: 10px;
   overflow: auto;
 `;
 
 export const BottomRow = styled.div`
   display: grid;
-  grid-template-columns: 31% 31% 35%;
+  grid-template-columns: 32% 31% 35%;
   gap: 10px;
   overflow: auto;
 `;
 
 export const TradeBottomRow = styled.div`
   display: grid;
-  grid-template-columns: 49% 49%;
+  grid-template-columns: 49% 50%;
   gap: 10px;
   overflow: auto;
 `;
@@ -234,12 +234,8 @@ export const ExecuteButton = styled(Button)`
 export const MarketFillButton = styled(Button)`
   && {
     /* Double ampersand ensures higher specificity */
-    border: 2px solid #025e93 !important;
-    background-color: ${({ orderMethod }) =>
-      orderMethod === 'execute' ? '#025e93' : 'transparent'} !important;
-    color: ${({ orderMethod }) =>
-      orderMethod === 'execute' ? 'white' : 'inherit'} !important;
-  }
+    border: 2px solid #0ca4fb !important;
+    background-color: transparent !important;
   color: white;
   padding: 15px 32px;
   text-align: center;
