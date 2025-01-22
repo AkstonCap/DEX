@@ -2,7 +2,7 @@
 import { keyframes } from '@emotion/react';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { Icon, Tooltip, Button, apiCall } from 'nexus-module';
+import { Icon, Tooltip, Button, apiCall, showErrorDialog } from 'nexus-module';
 import { setMarketPair } from 'actions/actionCreators';
 import { fetchMarketData } from 'actions/fetchMarketData';
 
@@ -25,15 +25,29 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
     try {
       let baseTokenAttributes;
       let quoteTokenAttributes;
+      let baseTokenExist;
+      let quoteTokenExist;
       
+      // Check token attributes if not NXS, and if existing with global name
       if ( baseTokenField !== 'NXS' ) {
+        
         baseTokenAttributes = await apiCall(
           'register/get/finance:token/decimals,currentsupply,maxsupply', 
           { name: baseTokenField }
         ).catch((error) => {
-          return { decimals: 'N/A', currentsupply: 'N/A', maxsupply: 'N/A' };
+          baseTokenExist = false;
+          dispatch(showErrorDialog({
+            message: 'Cannot get base token attributes from apiCall',
+            note: error?.message || 'Unknown error',
+          }));
         });
+
+        if (baseTokenExist !== false) {
+          baseTokenExist = true;
+        } 
+
       } else {
+        baseTokenExist = true;
         baseTokenAttributes = {
           decimals: 8,
           currentsupply: 0,
@@ -46,9 +60,20 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
           'register/get/finance:token/decimals,currentsupply,maxsupply', 
           { name: quoteTokenField }
         ).catch((error) => {
-          return { decimals: 'N/A', currentsupply: 'N/A', maxsupply: 'N/A' };
-        });
+          quoteTokenExist = false;
+          dispatch(showErrorDialog({
+            message: 'Cannot get quote token attributes from apiCall',
+            note: error?.message || 'Unknown error',
+          }));
+        }
+        );
+
+        if (quoteTokenExist !== false) {
+          quoteTokenExist = true;
+        }
+
       } else {
+        quoteTokenExist = true;
         quoteTokenAttributes = {
           decimals: 8,
           currentsupply: 0,
@@ -56,18 +81,21 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
         }
       }
 
-      // Set the market pair - need to add check if tokens exists
-      dispatch(setMarketPair(
-        baseTokenField, 
-        quoteTokenField, 
-        baseTokenAttributes.maxsupply, 
-        quoteTokenAttributes.maxsupply, 
-        baseTokenAttributes.currentsupply, 
-        quoteTokenAttributes.currentsupply,
-        baseTokenAttributes.decimals,
-        quoteTokenAttributes.decimals
-      ));
-      await dispatch(fetchMarketData())
+      // Set the market pair if tokens exists
+      if (baseTokenExist === true && quoteTokenExist === true) {
+        dispatch(setMarketPair(
+          baseTokenField, 
+          quoteTokenField, 
+          baseTokenAttributes.maxsupply, 
+          quoteTokenAttributes.maxsupply, 
+          baseTokenAttributes.currentsupply, 
+          quoteTokenAttributes.currentsupply,
+          baseTokenAttributes.decimals,
+          quoteTokenAttributes.decimals
+        ));
+        await dispatch(fetchMarketData())
+      }
+      
     } finally {
       setRefreshing(false);
     }
