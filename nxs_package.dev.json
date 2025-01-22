@@ -4,5 +4,5 @@
   "description": "DEX module",
   "type": "app",
   "entry": "http://localhost:24011/dev.html",
-  "icon": "dist/distordia-small.svg"
+  "icon": "dist/distordia-large.svg"
 }
