@@ -1,9 +1,15 @@
-import { PageLayout } from "components/styles";
+import { 
+  PageLayout, 
+  OrderbookTableHeader, 
+  OrderbookTableRow, 
+  OrderTable,
+  MarketsTable
+} from "components/styles";
 import { 
   showErrorDialog, 
   apiCall 
 } from 'nexus-module';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
 export default function Markets() {
@@ -55,14 +61,11 @@ export default function Markets() {
     
     globalTokenList.forEach(async (token) => {
       
-      const tradesBids = await apiCall( 
-        'market/list/executed/timestamp,price,type,contract.amount,contract.ticker,order.amount,order.ticker', 
+      const bidsVolume = await apiCall( 
+        'market/list/executed/contract.amount/sum', 
         {
           market: token.ticker + '/NXS',
-          sort: 'timestamp', 
-          order: 'desc', 
-          limit: 100,
-          where: 'results.timestamp>since(`1 day`); AND results.type=bid',
+          where: 'results.timestamp>since(`1 week`); AND results.type=bid',
         }
       ).catch((error) => {
         dispatch(showErrorDialog({
@@ -74,14 +77,11 @@ export default function Markets() {
         }
       );
 
-      const tradesAsks = await apiCall( 
-        'market/list/executed/timestamp,price,type,contract.amount,contract.ticker,order.amount,order.ticker', 
+      const asksVolume = await apiCall( 
+        'market/list/executed/order.amount/sum', 
         {
           market: token.ticker + '/NXS',
-          sort: 'timestamp', 
-          order: 'desc', 
-          limit: 100,
-          where: 'results.timestamp>since(`1 day`); AND results.type=ask',
+          where: 'results.timestamp>since(`1 week`); AND results.type=ask',
         }
       ).catch((error) => {
         dispatch(showErrorDialog({
@@ -92,9 +92,21 @@ export default function Markets() {
         dispatch(setExecutedOrders(data));
         }
       );
+
+      token.volume = (bidsVolume + asksVolume)/1e6;
 
     });
+
+    const sorted = globalTokenList.sort((a, b) => b.volume - a.volume);
+    const hotList = sorted.slice(0, 10);
+
+    setMarkets(hotList);
+
   };
+
+  useEffect(() => {
+    fetchTokens();
+  }, []);
 
   const handleClick = (item) => {
   };
@@ -104,17 +116,16 @@ export default function Markets() {
       return null;
     }
     const len = data.length;
-    /*return data.slice(0, Math.min(num, len)).map((item, index) => (
+    return data.slice(0, len).map((item, index) => (
       <OrderbookTableRow
       key={index}
       onClick={() => handleClick(item)}
-      orderType={item.type}
       >
-      <td>{parseFloat(item.price).toFixed(Math.min(3, quoteTokenDecimals))}</td>
-      <td>{`${parseFloat(item.order.amount).toFixed(Math.min(3, baseTokenDecimals))} ${item.order.ticker}`}</td>
-      <td>{`${parseFloat(item.contract.amount).toFixed(Math.min(3, quoteTokenDecimals))} ${item.contract.ticker}`}</td>
+      <td>{item.name}</td>
+      <td>{`${parseFloat(item.volume).toFixed(3)} NXS`}</td>
+      <td></td>
       </OrderbookTableRow>
-    ));*/
+    )); 
   };
 
   return (
@@ -124,8 +135,17 @@ export default function Markets() {
                 List of trending market pairs coming soon...
             </p>
         </div>
-        <div>
-
+        <div className="text-center">
+          <MarketsTable>
+            <OrderbookTableHeader>
+              <tr>
+                <th>Name</th>
+                <th>Volume</th>
+                <th>Mcap </th>
+              </tr>
+            </OrderbookTableHeader>
+            <tbody>{renderMarkets(markets)}</tbody>
+          </MarketsTable>
         </div>
     </PageLayout>
   );
