@@ -134,6 +134,38 @@ export const MyOrdersTableRow = styled.tr`
   padding-right: 8px;
 `;
 
+export const MarketsTable = styled.table`
+  width: 50%;
+  border-collapse: collapse;
+  margin-top: 8px;
+
+  th:nth-of-type(1) {
+    width: 30%;
+  }
+
+  th:nth-of-type(2) {
+    width: 30%;
+  }
+
+  th:nth-of-type(3) {
+    width: 30%;
+  }
+
+  th {
+    padding: 2px;
+    text-align: right;
+    padding-right: 5px;
+    font-size: 18px;
+  }
+
+  td {
+    padding: 2px;
+    text-align: right;
+    padding-right: 8px;
+  }
+
+`;
+
 export const ChangeText = styled.span`
   color: ${(props) => (props.change > 0 ? '#7cfc00' : 'red')};
 `;
