@@ -60,8 +60,8 @@ export default function Main() {
     // Fetch data immediately
     fetchData();
   
-    // Set interval to fetch data every 15 seconds
-    const intervalId = setInterval(fetchData, 15000);
+    // Set interval to fetch data every 10 seconds
+    const intervalId = setInterval(fetchData, 10000);
   
     // Cleanup interval on unmount
     return () => clearInterval(intervalId);
@@ -99,7 +99,7 @@ export default function Main() {
         </div>
       }
       title={"Distordia DEX Module"} 
-      icon={{ url: 'distordia-large.svg', id: 'icon' }}>
+      icon={{ url: 'dist/distordia-small2.svg', id: 'icon' }}>
       <div className="text-center">
         <HorizontalTab.TabBar>
           <HorizontalTab
