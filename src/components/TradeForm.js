@@ -214,10 +214,13 @@ export default function TradeForm() {
             </div>
           </FormField>
           <TradeFormContainer> 
-            <FormField label={('Price ' + quoteToken)}>
+            <FormField
+              label={('Price ' + quoteToken)}>
               {renderPriceField()}
             </FormField>
-            <FormField label={('Amount ' + quoteToken)}>
+            <FormField
+              orderMethod={orderMethod}
+              label={('Amount ' + quoteToken)}>
               {renderAmountField()}
             </FormField>
           </TradeFormContainer>
