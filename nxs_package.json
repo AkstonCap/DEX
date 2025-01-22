@@ -6,7 +6,7 @@
   "description": "DEX module",
   "type": "app",
   "entry": "dist/index.html",
-  "icon": "dist/distordia-small.svg",
+  "icon": "dist/distordia-large.svg",
   "files": [
     "dist/index.html", 
     "dist/react.svg", 
