@@ -32,6 +32,8 @@ export default function Overview() {
   const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
   const quoteTokenDecimals = useSelector((state) => state.ui.market.marketPairs.quoteTokenDecimals);
   const baseTokenDecimals = useSelector((state) => state.ui.market.marketPairs.baseTokenDecimals);
+  const baseTokenCirculatingSupply = useSelector((state) => state.ui.market.marketPairs.baseTokenCirculatingSupply);
+  const baseTokenMaxsupply = useSelector((state) => state.ui.market.marketPairs.baseTokenMaxsupply);
 
   const orderBook = useSelector((state) => state.ui.market.orderBook);
   const executedOrders = useSelector(
@@ -49,6 +51,7 @@ export default function Overview() {
   //const [timeFrame, setTimeFrame] = useState('1y');
   const [highestBid, setHighestBid] = useState('N/A');
   const [lowestAsk, setLowestAsk] = useState('N/A');
+  const [mcap, setMcap] = useState(lastPrice * baseTokenCirculatingSupply);
 
   const timeFrames = [
     {
@@ -93,6 +96,7 @@ export default function Overview() {
       ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     
       setLastPrice(sortedExecutedOrders[0]?.price || 'N/A');
+      setMcap((lastPrice * baseTokenCirculatingSupply).toFixed(Math.min(2, quoteTokenDecimals)));
 
       const highPrice = Math.max(
         ...sortedExecutedOrders.map((order) => order.price)
@@ -124,6 +128,10 @@ export default function Overview() {
       orderBook?.asks?.[orderBook?.asks?.length - 1]?.price || 'N/A'
     );
   };
+
+  useEffect(() => {
+    setMcap((lastPrice * baseTokenCirculatingSupply).toFixed(Math.min(2, quoteTokenDecimals)));
+  }, [lastPrice, baseTokenCirculatingSupply]);
 
   useEffect(() => {
 
@@ -180,6 +188,22 @@ export default function Overview() {
                   options={timeFrames}
                 />
               </FormField>
+            </div>
+            <div className='mt3'>
+              <Line>
+                <div>
+                  <Label>{baseToken} Mcap</Label>
+                  <Value>{mcap} {quoteToken}</Value>
+                </div>
+                <div>
+                  <Label>Circulating Supply {baseToken}</Label>
+                  <Value>{baseTokenCirculatingSupply}</Value>
+                </div>
+                <div>
+                  <Label>Max Supply {baseToken}</Label>
+                  <Value>{baseTokenMaxsupply}</Value>
+                </div>
+              </Line>
             </div>
           </FieldSet>
         </div>
