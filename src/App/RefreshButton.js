@@ -88,12 +88,12 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
         dispatch(setMarketPair(
           baseTokenField, 
           quoteTokenField, 
-          baseTokenData.maxsupply, 
-          quoteTokenData.maxsupply, 
-          baseTokenData.currentsupply,
-          quoteTokenData.currentsupply,
-          baseTokenData.decimals,
-          quoteTokenData.decimals
+          baseTokenAttributes.maxsupply, 
+          quoteTokenAttributes.maxsupply, 
+          baseTokenAttributes.currentsupply,
+          quoteTokenAttributes.currentsupply,
+          baseTokenAttributes.decimals,
+          quoteTokenAttributes.decimals
         ));
 
         await dispatch(fetchMarketData())
