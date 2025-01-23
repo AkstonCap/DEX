@@ -136,7 +136,7 @@ export default function Markets() {
             </p>
         </div>
         <div className="text-center">
-          <MarketsTable>
+          {/*<MarketsTable>
             <OrderbookTableHeader>
               <tr>
                 <th>Name</th>
@@ -145,7 +145,7 @@ export default function Markets() {
               </tr>
             </OrderbookTableHeader>
             <tbody>{renderMarkets(markets)}</tbody>
-          </MarketsTable>
+          </MarketsTable>*/}
         </div>
     </PageLayout>
   );
