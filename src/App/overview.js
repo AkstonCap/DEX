@@ -96,7 +96,8 @@ export default function Overview() {
       ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     
       setLastPrice(sortedExecutedOrders[0]?.price || 'N/A');
-      setMcap((lastPrice * baseTokenCirculatingSupply).toFixed(Math.min(2, quoteTokenDecimals)));
+      
+      //setMcap((lastPrice * baseTokenCirculatingSupply).toFixed(Math.min(2, quoteTokenDecimals)));
 
       const highPrice = Math.max(
         ...sortedExecutedOrders.map((order) => order.price)
