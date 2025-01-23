@@ -5,6 +5,7 @@ import {
   Panel,
   HorizontalTab,
   TextField,
+  apiCall,
 } from 'nexus-module';
 
 import Overview from './overview';
@@ -13,9 +14,10 @@ import Chart from './chart';
 import MarketDepth from './marketDepth';
 import Markets from './markets';
 
-import { switchTab } from 'actions/actionCreators';
+import { switchTab, setMarketPair } from 'actions/actionCreators';
 import RefreshButton from './RefreshButton';
 import { fetchMarketData } from 'actions/fetchMarketData';
+import { refreshMarket } from 'actions/fetchTokenAttributes';
 
 const TokenTextField = styled(TextField)({
   maxWidth: 200,
@@ -38,6 +40,7 @@ export default function Main() {
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const activeTab = useSelector((state) => state.ui.activeTab);
   const timeSpan = useSelector((state) => state.settings.timeSpan);
+  //const marketPairData = useSelector((state) => state.ui.market.marketPairs);
 
   const [inputPair, setInputPair] = useState({
     baseTokenInput: baseToken,
@@ -54,14 +57,17 @@ export default function Main() {
 
   useEffect(() => {
     const fetchData = () => {
+      
       dispatch(fetchMarketData());
+      dispatch(refreshMarket(baseToken, quoteToken));
+    
     };
   
     // Fetch data immediately
     fetchData();
   
     // Set interval to fetch data every 10 seconds
-    const intervalId = setInterval(fetchData, 10000);
+    const intervalId = setInterval(fetchData, 5000);
   
     // Cleanup interval on unmount
     return () => clearInterval(intervalId);
@@ -99,7 +105,7 @@ export default function Main() {
         </div>
       }
       title={"Distordia DEX Module"} 
-      icon={{ url: 'dist/distordia-small2.svg', id: 'icon' }}>
+      icon={{ url: 'dist/distordia-large.svg', id: 'icon' }}>
       <div className="text-center">
         <HorizontalTab.TabBar>
           <HorizontalTab
