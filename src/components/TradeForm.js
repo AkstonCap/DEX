@@ -121,6 +121,8 @@ export default function TradeForm() {
       setQuoteAmount(0);
       setBaseAmount(0);
       setPrice(0);
+      setFromAccount('');
+      setToAccount('');
     }
   };
 
