@@ -19,10 +19,11 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
   const [refreshing, setRefreshing] = useState(false);
   const dispatch = useDispatch();
   
-  const refreshMarket = async () => {
+  const refreshMarket =  async () => {
     if (refreshing) return;
     setRefreshing(true);
     try {
+      
       let baseTokenAttributes;
       let quoteTokenAttributes;
       let baseTokenExist;
@@ -83,16 +84,18 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
 
       // Set the market pair if tokens exists
       if (baseTokenExist === true && quoteTokenExist === true) {
+
         dispatch(setMarketPair(
           baseTokenField, 
           quoteTokenField, 
-          baseTokenAttributes.maxsupply, 
-          quoteTokenAttributes.maxsupply, 
-          baseTokenAttributes.currentsupply, 
-          quoteTokenAttributes.currentsupply,
-          baseTokenAttributes.decimals,
-          quoteTokenAttributes.decimals
+          baseTokenData.maxsupply, 
+          quoteTokenData.maxsupply, 
+          baseTokenData.currentsupply,
+          quoteTokenData.currentsupply,
+          baseTokenData.decimals,
+          quoteTokenData.decimals
         ));
+
         await dispatch(fetchMarketData())
       }
       
