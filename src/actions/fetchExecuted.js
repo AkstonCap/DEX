@@ -100,6 +100,23 @@ export const fetchExecuted = (
       dispatch(setMyTrades(trades));
     });
 
+    if ( myTrades.executed?.length !== 0) {
+      myTrades.executed.forEach((element) => {
+        if (element.contract.ticker === 'NXS') {
+          element.contract.amount = element.contract.amount / 1e6;
+        } else if (element.order.ticker === 'NXS') {
+          element.order.amount = element.order.amount / 1e6;
+        }
+      });
+      myTrades.executed.forEach((element) => {
+        if (element.price !== (element.contract.amount / element.order.amount) && element.type === 'ask') {
+          element.price = (element.contract.amount / element.order.amount);
+        } else if (element.price !== (element.order.amount / element.contract.amount) && element.type === 'bid') {
+          element.price = (element.order.amount / element.contract.amount);
+        }
+      });
+    }
+
     dispatch(setMyTrades(myTrades));
 
   } catch (error) {
