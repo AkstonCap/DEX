@@ -41,16 +41,23 @@ export default function TradeHistory({num}) {
     );
   }
 
+  // Helper function to get decimals for a given ticker
+  function decimalsForTicker(ticker, baseToken, quoteToken, baseTokenDecimals, quoteTokenDecimals) {
+    if (ticker === baseToken) return baseTokenDecimals;
+    if (ticker === quoteToken) return quoteTokenDecimals;
+    return 3; // default/fallback
+  }
+
   // Adjust 'asks' so that order.amount matches contract.amount
-  asks.forEach((element) => {
-    element.order.amount = element.contract.amount;
+  /*asks.forEach((element) => {
+    //element.order.amount = element.contract.amount;
     element.baseAmount = element.contract.amount;
     element.quoteAmount = element.order.amount;
   });
   bids.forEach((element) => {
     element.baseAmount = element.order.amount;
     element.quoteAmount = element.contract.amount;
-  });
+  });*/
 
   // Merge and sort the executed orders
   const sortedExecutedOrders = [...bids, ...asks].sort(
@@ -58,13 +65,24 @@ export default function TradeHistory({num}) {
   );
 
   // Map each order to a table row
-  const rows = sortedExecutedOrders.slice(0, num).map((order, index) => (
-    <TradeTableRow key={index} orderType={order.type}>
-      <td>{parseFloat(order.price).toFixed(Math.min(3, quoteTokenDecimals))}</td>
-      <td>{parseFloat(order.order.amount).toFixed(Math.min(3, baseTokenDecimals))} {baseToken}</td>
-      <td>{new Date(order.timestamp*1000).toLocaleString()}</td>
-    </TradeTableRow>
-  ));
+  const rows = sortedExecutedOrders.slice(0, num).map((order, index) => {
+
+    const contractDecimals = decimalsForTicker(
+      order.contract.ticker,
+      baseToken,
+      quoteToken,
+      baseTokenDecimals,
+      quoteTokenDecimals
+    );
+
+    return (
+      <TradeTableRow key={index} orderType={order.type}>
+        <td>{parseFloat(order.price).toFixed(Math.min(3, quoteTokenDecimals))}</td>
+        <td>{parseFloat(order.contract.amount).toFixed(Math.min(3, contractDecimals))} {order.contract.ticker}</td>
+        <td>{new Date(order.timestamp*1000).toLocaleString()}</td>
+      </TradeTableRow>
+    );
+  });
 
   return (
     <div>
@@ -72,8 +90,8 @@ export default function TradeHistory({num}) {
         <OrderTable>
           <thead>
             <tr>
-              <th>Price</th>
-              <th>Amount</th>
+              <th>Price [{quoteToken}]</th>
+              <th>Buy amount</th>
               <th>Time</th>
             </tr>
           </thead>
