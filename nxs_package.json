@@ -1,7 +1,7 @@
 {
   "name": "dex_module",
-  "displayName": "DEX module",
-  "version": "0.1.0",
+  "displayName": "DEX",
+  "version": "0.1.2",
   "targetWalletVersion": "3.1.5",
   "description": "DEX module",
   "type": "app",
