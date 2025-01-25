@@ -28,7 +28,9 @@ import { setOrder } from 'actions/actionCreators';
 export default function TradeForm() {
   const dispatch = useDispatch();
   const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
+  const quoteTokenAddress = useSelector((state) => state.ui.market.marketPairs.quoteTokenAddress);
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
+  const baseTokenAddress = useSelector((state) => state.ui.market.marketPairs.baseTokenAddress);
   const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
   const orderInQuestion = useSelector((state) => state.ui.market.orderInQuestion);
   const orderMethod = orderInQuestion.orderMethod;
@@ -69,32 +71,43 @@ export default function TradeForm() {
         }
 
         const result = await apiCall('finance/list/account/balance,ticker,address', params);
-        const resultTokens = await apiCall('finance/list/token/maxsupply,circulatingsupply,ticker,address');
-        const tokens = resultTokens.array.map(element => ({
-          ...element,
-          balance: element.maxsupply - element.circulatingsupply,
-        }));
+        const tokens = await apiCall('finance/list/token/balance,ticker,address');
         
         let quoteAccounts = [];
         let baseAccounts = [];
 
         if (orderMethod === 'bid' || (orderMethod === 'execute' && orderInQuestion.type === 'ask')) {
 
-          const quoteTokenOwned = tokens.filter((token) => token.ticker === quoteToken && (token.maxsupply - token.circulatingsupply) >= quoteAmount);
+          const quoteTokenOwned = tokens
+            ?.filter((token) => token.address === quoteTokenAddress && token.balance >= quoteAmount);
           const quoteAccounts1 = result.filter((acct) => acct.ticker === quoteToken && acct.balance >= quoteAmount);
-          const quoteAccounts = [...quoteAccounts1, ...quoteTokenOwned];
-          const baseTokenOwned = tokens.filter((token) => token.ticker === baseToken);
-          const baseAccounts1 = result.filter((acct) => acct.ticker === baseToken);
-          const baseAccounts = [...baseAccounts1, ...baseTokenOwned];
+          if (quoteTokenOwned.length > 0) {
+            quoteAccounts = [...quoteAccounts1, ...quoteTokenOwned];
+          } else {
+            quoteAccounts = quoteAccounts1;
+          }
 
+          const baseTokenOwned = tokens
+            ?.filter((token) => token.address === baseTokenAddress);
+          const baseAccounts1 = result
+            .filter((acct) => acct.ticker === baseToken);
+          if (baseTokenOwned.length > 0) {
+            baseAccounts = [...baseAccounts1, ...baseTokenOwned];
+          } else {
+            baseAccounts = baseAccounts1;
+          }
+          
           setAccounts({ quoteAccounts, baseAccounts });
 
         } else if (orderMethod === 'ask' || (orderMethod === 'execute' && orderInQuestion.type === 'bid')) {
 
-          const quoteTokenOwned = tokens.filter((token) => token.ticker === quoteToken );
+          const quoteTokenOwned = tokens
+            ?.filter((token) => token.address === quoteTokenAddress );
           const quoteAccounts1 = result.filter((acct) => acct.ticker === quoteToken);
           const quoteAccounts = [...quoteAccounts1, ...quoteTokenOwned];
-          const baseTokenOwned = tokens.filter((token) => token.ticker === baseToken && (token.maxsupply - token.circulatingsupply) >= baseAmount );
+          
+          const baseTokenOwned = tokens
+            ?.filter((token) => token.address === baseTokenAddress && token.balance >= baseAmount );
           const baseAccounts1 = result.filter((acct) => acct.ticker === baseToken && acct.balance >= baseAmount);
           const baseAccounts = [...baseAccounts1, ...baseTokenOwned];
 

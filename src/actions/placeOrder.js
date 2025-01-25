@@ -5,11 +5,14 @@ import { apiCall,
 } from 'nexus-module';
 import { fetchMarketData } from './fetchMarketData';
 
+// create order
 export const createOrder = (
     orderType, price, quoteAmount, fromAccount, toAccount
 ) => async (
     dispatch, getState
 ) => {
+
+    // Validate parameters
     if (!orderType || !price || !quoteAmount || !fromAccount || !toAccount) {
         dispatch(showErrorDialog('Missing required parameters'));
         return null;
@@ -45,33 +48,73 @@ export const createOrder = (
 
     // fetch account information, return error if not fetched
     try {
-        const infoFromAccount = await apiCall('finance/get/account', {address: fromAccount});
-        const infoToAccount = await apiCall('finance/get/account', {address: toAccount});
+
+        const infoFromAccountTest = await apiCall(
+            'finance/get/account', 
+            {address: fromAccount}
+        ).catch((error) => {
+            return [];
+        });
+
+        const infoFromTokenTest = await apiCall(
+            'register/get/finance:token', 
+            {address: fromAccount}
+        ).catch((error) => {
+            return [];
+        });
+
+        let infoFromAccount = [];
+        if ( infoFromAccountTest?.address === fromAccount ) {
+            infoFromAccount = infoFromAccountTest;
+        } else if ( infoFromTokenTest?.address === fromAccount ) {
+            infoFromAccount = infoFromTokenTest;
+        }
+
+        const infoToAccountTest = await apiCall(
+            'finance/get/account', 
+            {address: toAccount}
+        ).catch((error) => {
+            return [];
+        });
+
+        const infoToTokenTest = await apiCall(
+            'register/get/finance:token', 
+            {address: toAccount}
+        ).catch((error) => {
+            return [];
+        });
+
+        let infoToAccount = [];
+        if ( infoToAccountTest?.address === toAccount ) {
+            infoToAccount = infoToAccountTest;
+        } else if ( infoToTokenTest?.address === toAccount ) {
+            infoToAccount = infoToTokenTest;
+        }
 
     // check account token type and balance
         if (orderType === 'bid' && infoFromAccount.ticker !== quoteToken) {
-            dispatch(showErrorDialog('Invalid payment account (wrong token)', error));
-            return error;
+            dispatch(showErrorDialog('Invalid payment account (wrong token)'));
+            return;
         } else if (orderType === 'ask' && infoFromAccount.ticker !== baseToken) {
-            dispatch(showErrorDialog('Invalid payment account (wrong token)', error));
-            return error;
+            dispatch(showErrorDialog('Invalid payment account (wrong token)'));
+            return;
         } else if (
             (orderType === 'bid' && infoFromAccount.balance < quoteAmount) || 
             (orderType === 'ask' && infoFromAccount.balance < baseAmount)
         ) {
-            dispatch(showErrorDialog('Not enough balance', error));
-            return error;
+            dispatch(showErrorDialog('Not enough balance'));
+            return;
         }
         if (orderType === 'bid' && infoToAccount.ticker !== baseToken) {
-            dispatch(showErrorDialog('Invalid receival account (wrong token)', error));
-            return error;
+            dispatch(showErrorDialog('Invalid receival account (wrong token)'));
+            return;
         } else if (orderType === 'ask' && infoToAccount.ticker !== quoteToken) {
-            dispatch(showErrorDialog('Invalid receival account (wrong token)', error));
-            return error;
+            dispatch(showErrorDialog('Invalid receival account (wrong token)'));
+            return;
         }
     } catch (error) {
         dispatch(showErrorDialog('Error fetching account information:', error));
-        return;
+        return error;
     }
 
     // create order through secure api call
@@ -143,6 +186,49 @@ export const executeOrder = (
             amount = baseAmount;
         }
 
+        const infoFromAccountTest = await apiCall(
+            'finance/get/account', 
+            {address: fromAccount}
+        ).catch((error) => {
+            return [];
+        });
+
+        const infoFromTokenTest = await apiCall(
+            'register/get/finance:token', 
+            {address: fromAccount}
+        ).catch((error) => {
+            return [];
+        });
+
+        let infoFromAccount;
+        if ( infoFromAccountTest?.address === fromAccount ) {
+            infoFromAccount = infoFromAccountTest;
+        } else if ( infoFromTokenTest?.address === fromAccount ) {
+            infoFromAccount = infoFromTokenTest;
+        }
+
+        const infoToAccountTest = await apiCall(
+            'finance/get/account', 
+            {address: toAccount}
+        ).catch((error) => {
+            return [];
+        });
+
+        const infoToTokenTest = await apiCall(
+            'register/get/finance:token', 
+            {address: toAccount}
+        ).catch((error) => {
+            return [];
+        });
+
+        let infoToAccount;
+        if ( infoToAccountTest?.address === toAccount ) {
+            infoToAccount = infoToAccountTest;
+        } else if ( infoToTokenTest?.address === toAccount ) {
+            infoToAccount = infoToTokenTest;
+        }
+
+        /*
         const infoFromAccount = await apiCall(
             'finance/get/account', 
             {address: fromAccount}
@@ -158,6 +244,7 @@ export const executeOrder = (
             dispatch(showErrorDialog('Error fetching receival account information:', error));
             return error;
         });
+        */
     
         // check account token type and balance
         if (orderType === 'bid' && infoFromAccount.ticker !== quoteToken) {
