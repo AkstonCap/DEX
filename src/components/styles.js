@@ -135,20 +135,24 @@ export const MyOrdersTableRow = styled.tr`
 `;
 
 export const MarketsTable = styled.table`
-  width: 50%;
+  width: 100%;
   border-collapse: collapse;
   margin-top: 8px;
 
   th:nth-of-type(1) {
-    width: 30%;
+    width: 24%;
   }
 
   th:nth-of-type(2) {
-    width: 30%;
+    width: 24%;
   }
 
   th:nth-of-type(3) {
-    width: 30%;
+    width: 24%;
+  }
+
+  th:nth-of-type(4) {
+    width: 24%;
   }
 
   th {
@@ -156,12 +160,15 @@ export const MarketsTable = styled.table`
     text-align: right;
     padding-right: 5px;
     font-size: 18px;
+    color: #6dcefe;
   }
 
   td {
     padding: 2px;
     text-align: right;
     padding-right: 8px;
+    font-size: 12px;
+    color: white;
   }
 
 `;
