@@ -33,7 +33,7 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
       if ( baseTokenField !== 'NXS' ) {
         
         baseTokenAttributes = await apiCall(
-          'register/get/finance:token/decimals,currentsupply,maxsupply', 
+          'register/get/finance:token/decimals,currentsupply,maxsupply,address', 
           { name: baseTokenField }
         ).catch((error) => {
           baseTokenExist = false;
@@ -58,7 +58,7 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
 
       if ( quoteTokenField !== 'NXS' ) {
         quoteTokenAttributes = await apiCall(
-          'register/get/finance:token/decimals,currentsupply,maxsupply', 
+          'register/get/finance:token/decimals,currentsupply,maxsupply,address', 
           { name: quoteTokenField }
         ).catch((error) => {
           quoteTokenExist = false;
@@ -93,7 +93,9 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
           baseTokenAttributes.currentsupply,
           quoteTokenAttributes.currentsupply,
           baseTokenAttributes.decimals,
-          quoteTokenAttributes.decimals
+          quoteTokenAttributes.decimals,
+          baseTokenAttributes.address,
+          quoteTokenAttributes.address
         ));
 
         await dispatch(fetchMarketData())
