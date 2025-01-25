@@ -69,20 +69,41 @@ export default function TradeForm() {
         }
 
         const result = await apiCall('finance/list/account/balance,ticker,address', params);
+        const resultTokens = await apiCall('finance/list/token/maxsupply,circulatingsupply,ticker,address');
+        const tokens = resultTokens.array.map(element => ({
+          ...element,
+          balance: element.maxsupply - element.circulatingsupply,
+        }));
         
         let quoteAccounts = [];
         let baseAccounts = [];
 
         if (orderMethod === 'bid' || (orderMethod === 'execute' && orderInQuestion.type === 'ask')) {
-          const quoteAccounts = result.filter((acct) => acct.ticker === quoteToken && acct.balance >= quoteAmount);
-          const baseAccounts = result.filter((acct) => acct.ticker === baseToken);
+
+          const quoteTokenOwned = tokens.filter((token) => token.ticker === quoteToken && (token.maxsupply - token.circulatingsupply) >= quoteAmount);
+          const quoteAccounts1 = result.filter((acct) => acct.ticker === quoteToken && acct.balance >= quoteAmount);
+          const quoteAccounts = [...quoteAccounts1, ...quoteTokenOwned];
+          const baseTokenOwned = tokens.filter((token) => token.ticker === baseToken);
+          const baseAccounts1 = result.filter((acct) => acct.ticker === baseToken);
+          const baseAccounts = [...baseAccounts1, ...baseTokenOwned];
+
           setAccounts({ quoteAccounts, baseAccounts });
+
         } else if (orderMethod === 'ask' || (orderMethod === 'execute' && orderInQuestion.type === 'bid')) {
-          const quoteAccounts = result.filter((acct) => acct.ticker === quoteToken);
-          const baseAccounts = result.filter((acct) => acct.ticker === baseToken && acct.balance >= baseAmount);
+
+          const quoteTokenOwned = tokens.filter((token) => token.ticker === quoteToken );
+          const quoteAccounts1 = result.filter((acct) => acct.ticker === quoteToken);
+          const quoteAccounts = [...quoteAccounts1, ...quoteTokenOwned];
+          const baseTokenOwned = tokens.filter((token) => token.ticker === baseToken && (token.maxsupply - token.circulatingsupply) >= baseAmount );
+          const baseAccounts1 = result.filter((acct) => acct.ticker === baseToken && acct.balance >= baseAmount);
+          const baseAccounts = [...baseAccounts1, ...baseTokenOwned];
+
           setAccounts({ quoteAccounts, baseAccounts });
+
         } else {
+
           setAccounts({ quoteAccounts, baseAccounts });
+
         }
 
       } catch (error) {
