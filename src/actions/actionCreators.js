@@ -8,7 +8,9 @@ export const setMarketPair = (
   baseTokenCirculatingSupply, 
   quoteTokenCirculatingSupply,
   baseTokenDecimals,
-  quoteTokenDecimals
+  quoteTokenDecimals,
+  baseTokenAddress,
+  quoteTokenAddress
 ) => ({
   type: TYPE.SET_MARKET_PAIR,
   payload: {
@@ -21,6 +23,8 @@ export const setMarketPair = (
     quoteTokenCirculatingSupply,
     baseTokenDecimals,
     quoteTokenDecimals,
+    baseTokenAddress,
+    quoteTokenAddress
   },
 });
 
