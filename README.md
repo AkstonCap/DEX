@@ -2,7 +2,16 @@
 
 This is a decentralized exchange wallet module for the Nexus Interface built with React and Redux. It will include an overview of the on-chain existing orders and history of executed orders, the ability to create and execute orders, and watching charts and market depth statistics. Everything on-chain and 100% decentralized.
 
-### How to use this module (not yet checked by Nexus DAO dev team)
+### How to install module
+
+1. Download and install the [latest version of Nexus Wallet](https://github.com/Nexusoft/NexusInterface/releases/latest) if you haven't.
+2. Go to latest verified release of the DEX module (currently v0.1.1 - https://github.com/AkstonCap/DEX/releases/tag/v0.1.1)
+3. Download zip folder "DEX@0.1.1.zip"
+4. Go to the Nexus Wallet -> Settings -> Modules
+5. Import "DEX@0.1.1.zip" in the "Add module" box
+6. Click "Install module" in pop-up.
+
+### How to use unverified beta- or official releases of this module (not yet verified by Nexus DAO dev team)
 
 1. Download and install the [latest version of Nexus Wallet](https://github.com/Nexusoft/NexusInterface/releases/latest) if you haven't.
 2. Download [this module's zip file](https://github.com/AkstonCap/DEX/releases/latest).
