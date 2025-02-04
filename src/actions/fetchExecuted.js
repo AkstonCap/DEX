@@ -18,6 +18,7 @@ export const fetchExecuted = (
     const state = getState();
     const marketPair = state.ui.market.marketPairs.marketPair;
     const baseToken = state.ui.market.marketPairs.baseToken;
+    const quoteToken = state.ui.market.marketPairs.quoteToken;
     const timeSpan = state.settings.timeSpan;
     //const timestampMin = Date.now()/1000 - 60*60*24*365; // 1 year
     let queryString = 'results.timestamp>since(`1 year`);';
@@ -100,15 +101,29 @@ export const fetchExecuted = (
       dispatch(setMyTrades(trades));
     });
 
-    if ( myTrades.executed?.length !== 0) {
-      myTrades.executed.forEach((element) => {
+    const myTrades1 = {
+      executed: myTrades.executed?.filter((element) => 
+        (
+          element.contract.ticker === baseToken && 
+          element.type === 'bid' && 
+          element.order.ticker === quoteToken
+        ) || (
+          element.order.ticker === baseToken &&
+          element.type === 'ask' &&
+          element.contract.ticker === quoteToken
+        )
+      )
+    };
+
+    if ( myTrades1.executed?.length !== 0) {
+      myTrades1.executed.forEach((element) => {
         if (element.contract.ticker === 'NXS') {
           element.contract.amount = element.contract.amount / 1e6;
         } else if (element.order.ticker === 'NXS') {
           element.order.amount = element.order.amount / 1e6;
         }
       });
-      myTrades.executed.forEach((element) => {
+      myTrades1.executed.forEach((element) => {
         if (element.price !== (element.contract.amount / element.order.amount) && element.type === 'ask') {
           element.price = (element.contract.amount / element.order.amount);
         } else if (element.price !== (element.order.amount / element.contract.amount) && element.type === 'bid') {
@@ -117,7 +132,7 @@ export const fetchExecuted = (
       });
     }
 
-    dispatch(setMyTrades(myTrades));
+    dispatch(setMyTrades(myTrades1));
 
   } catch (error) {
     dispatch(showErrorDialog({
