@@ -84,22 +84,31 @@ export const fetchExecuted = (
 
     dispatch(setExecutedOrders(data1));
 
-    const myTrades = await apiCall(
-      'market/user/executed', 
-      {
-        token: baseToken,
-        sort: 'timestamp', 
-        order: 'desc', 
-        limit: 10
-      }
-    ).catch((error) => {
-      dispatch(showErrorDialog({
-        message: 'Cannot get my trades from apiCall (fetchExecuted)',
-        note: error?.message || 'Unknown error',
-      }));
-      const trades={executed: []};
-      dispatch(setMyTrades(trades));
-    });
+    let myTrades = {executed: []};
+    if (baseToken !== 'NXS') {
+
+      myTrades = await apiCall(
+        'market/user/executed', 
+        {
+          token: baseToken,
+          sort: 'timestamp', 
+          order: 'desc', 
+          limit: 10
+        }
+
+      ).catch((error) => {
+
+        dispatch(showErrorDialog({
+          message: 'Cannot get my trades from apiCall (fetchExecuted)',
+          note: error?.message || 'Unknown error',
+        }));
+        myTrades={executed: []};
+        dispatch(setMyTrades(myTrades));
+
+      });
+    }
+
+    // Add length check
 
     const myTrades1 = {
       executed: myTrades.executed?.filter((element) => 
