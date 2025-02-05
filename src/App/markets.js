@@ -4,7 +4,8 @@ import {
   OrderbookTableRow, 
   OrderTable,
   MarketsTable,
-  TradeBottomRow
+  TradeBottomRow,
+  TickerText
 } from "components/styles";
 import { 
   showErrorDialog, 
@@ -61,75 +62,72 @@ export default function Markets() {
       const tokenDataPromises = globalTokenList?.map(
         async (token) => {
         
-        const [bidsVolume, asksVolume, lastExecuted, supply] = await Promise.all([
-          apiCall( 
-            'market/list/executed/contract.amount/sum', 
-            {
-              market: token.ticker + '/NXS',
-              where: 'results.timestamp>since(`1 year`); AND results.type=bid',
-            }
-          ).catch((error) => {
-            return 0;
-            }
-          ),
+          const [bidsVolume, asksVolume, lastExecuted, supply] = await Promise.all([
 
-          apiCall( 
-            'market/list/executed/order.amount/sum', 
-            {
-              market: token.ticker + '/NXS',
-              where: 'results.timestamp>since(`1 year`); AND results.type=ask',
-            }
-          ).catch((error) => {
-            return 0;
-            }
-          ),
+            apiCall( 
+              'market/list/executed/contract.amount/sum', 
+              {
+                market: token.ticker + '/NXS',
+                where: 'results.timestamp>since(`1 year`); AND results.type=bid',
+              }
+            ).catch(() => ({ amount: 0 })
+            ),
 
-          apiCall(
-            'market/list/executed/type,order.amount,contract.amount',
-            {
-              market: token.ticker + '/NXS',
-              sort: 'timestamp',
-              order: 'desc',
-              limit: 5,
-              where: 'results.timestamp>since(`1 year`);',
-            }
-          ).catch((error) => {
-            return [];
-            }
-          ),
+            apiCall( 
+              'market/list/executed/order.amount/sum', 
+              {
+                market: token.ticker + '/NXS',
+                where: 'results.timestamp>since(`1 year`); AND results.type=ask',
+              }
+            ).catch(() => ({ amount: 0 })
+            ),
 
-          apiCall(
-            'register/get/finance:token/currentsupply',
-            {
-              name: token.ticker,
-            }
-          ).catch((error) => {
-            return 0;
-            }
-          )
-        ]);
+            apiCall(
+              'market/list/executed/type,order.amount,contract.amount,timestamp',
+              {
+                market: token.ticker + '/NXS',
+                sort: 'timestamp',
+                order: 'desc',
+                limit: 5,
+                where: 'results.timestamp>since(`1 year`);',
+              }
+            ).catch(() => ({})
+            ),
 
-        const volume = (bidsVolume + asksVolume) / 1e6;
-        let lastPrice = 0;
+            apiCall(
+              'register/get/finance:token/currentsupply',
+              {
+                name: token.ticker,
+              }
+            ).catch(() => ({ currentsupply: 0 })
+            )
 
-        if (lastExecuted?.length > 0) {
-          lastPrice = lastExecuted[0].type === 'ask'
-            ? (lastExecuted[0].order.amount / 1e6) / lastExecuted[0].contract.amount
-            : (lastExecuted[0].contract.amount / 1e6) / lastExecuted[0].order.amount;
-        }
+          ]);
+
+          const volume = ((bidsVolume.amount || 0) + (asksVolume.amount || 0)) / 1e6;
+          let lastPrice = 0;
+          const lastExecutedAsks = lastExecuted.asks?.sort((a, b) => b.timestamp - a.timestamp);
+          const lastExecutedBids = lastExecuted.bids?.sort((a, b) => b.timestamp - a.timestamp);
+
+
+          if (lastExecutedAsks[0]?.timestamp > lastExecutedBids[0]?.timestamp) {
+            lastPrice = (lastExecutedAsks[0]?.order.amount / 1e6) / lastExecutedAsks[0]?.contract.amount;
+          } else if (lastExecutedBids[0]?.timestamp > lastExecutedAsks[0]?.timestamp) {
+            lastPrice = (lastExecutedBids[0]?.contract.amount / 1e6) / lastExecutedBids[0]?.order.amount;
+          }
       
-        return {
-          ticker: token.ticker,
-          volume: volume,
-          lastPrice: lastPrice,
-          mCap: supply.currentsupply * lastPrice
-        };
+          return {
+            ticker: token.ticker,
+            volume: volume,
+            lastPrice: lastPrice,
+            mCap: supply?.currentsupply * lastPrice
+          };
 
-      });
+        });
 
       globalTokenList = await Promise.all(tokenDataPromises);
 
-      const sortedVolume = [...globalTokenList].sort((a, b) => b.volume - a.volume);
+      const sortedVolume = globalTokenList.sort((a, b) => b.volume - a.volume);
       const sortedMarketCap = [...globalTokenList].sort((a, b) => b.mCap - a.mCap);
 
       setTopVolumeMarkets(sortedVolume.slice(0, 10));
@@ -168,7 +166,7 @@ export default function Markets() {
       key={index}
       onClick={() => handleClick(item)}
       >
-      <td>{item.ticker}</td>
+      <td><TickerText>{item.ticker}</TickerText></td>
       <td>{`${parseFloat(item.lastPrice).toFixed(3)} NXS`}</td>
       <td>{`${parseFloat(item.volume).toFixed(3)} NXS`}</td>
       <td>{`${parseFloat(item.mCap).toFixed(3)} NXS`}</td>
@@ -178,22 +176,16 @@ export default function Markets() {
 
   return (
     <PageLayout>
-        <div className="text-center">
-            <p>
-                List of trending market pairs coming soon...
-            </p>
-        </div>
-        <div className="text-center">
-          
+        <div className="text-center"> 
           <TradeBottomRow>
-            <FieldSet legend="Top 10 tokens weekly volume">
+            <FieldSet legend="Top 10 token volume">
               <MarketsTable>
                 <OrderbookTableHeader>
                   <tr>
                     <th>Token</th>
                     <th>Price</th>
                     <th>1yr volume</th>
-                    <th>Mcap </th>
+                    <th>Market cap </th>
                   </tr>
                 </OrderbookTableHeader>
                 <tbody>{renderMarkets(topVolumeMarkets)}</tbody>
@@ -206,7 +198,7 @@ export default function Markets() {
                     <th>Token</th>
                     <th>Price</th>
                     <th>1yr volume</th>
-                    <th>Mcap </th>
+                    <th>Market Cap </th>
                   </tr>
                 </OrderbookTableHeader>
                 <tbody>{renderMarkets(topMarketCapMarkets)}</tbody>
