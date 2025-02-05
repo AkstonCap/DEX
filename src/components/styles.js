@@ -326,4 +326,11 @@ export const SubmitButton = styled(Button)`
   font-size: 18px;
   cursor: pointer;
 `;
+
+export const TickerText = styled.span`
+  color: yellow;
+  font-weight: bold;
+  padding: 2px 4px;
+  border-radius: 3px;
+`;
 //*/
