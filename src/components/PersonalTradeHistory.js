@@ -18,6 +18,7 @@ export default function PersonalTradeHistory() {
 
   // If no trades, display a single table row saying "No trades"
   if (!myTrades || myTrades.executed?.length === 0 ) {
+    
     return (
       <div>
         <FieldSet legend="My Trades">
@@ -31,9 +32,8 @@ export default function PersonalTradeHistory() {
         </FieldSet>
       </div>
     );
-  } else {
 
-  // Adjust "asks" so that order.amount matches contract.amount
+  } else {
     
   // Merge and sort
     const sortedTrades = myTrades.executed.sort(
@@ -60,6 +60,7 @@ export default function PersonalTradeHistory() {
           <td>{new Date(trade.timestamp * 1000).toLocaleString()}</td>
         </TradeTableRow>
       );
+      
     });
 
     return (
