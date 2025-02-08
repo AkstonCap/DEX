@@ -1,3 +1,4 @@
+import market from 'reducers/ui/market';
 import { 
   setExecutedOrders,
   setMyTrades,
@@ -85,6 +86,7 @@ export const fetchExecuted = (
     dispatch(setExecutedOrders(data1));
 
     let myTrades = {executed: []};
+    
     if (baseToken !== 'NXS') {
 
       myTrades = await apiCall(
@@ -93,7 +95,7 @@ export const fetchExecuted = (
           token: baseToken,
           sort: 'timestamp', 
           order: 'desc', 
-          limit: 10
+          limit: 20
         }
 
       ).catch((error) => {
@@ -126,11 +128,13 @@ export const fetchExecuted = (
 
     if ( myTrades1.executed?.length !== 0) {
       myTrades1.executed.forEach((element) => {
+
         if (element.contract.ticker === 'NXS') {
           element.contract.amount = element.contract.amount / 1e6;
         } else if (element.order.ticker === 'NXS') {
           element.order.amount = element.order.amount / 1e6;
         }
+
       });
       myTrades1.executed.forEach((element) => {
         if (element.price !== (element.contract.amount / element.order.amount) && element.type === 'ask') {
@@ -138,6 +142,12 @@ export const fetchExecuted = (
         } else if (element.price !== (element.order.amount / element.contract.amount) && element.type === 'bid') {
           element.price = (element.order.amount / element.contract.amount);
         }
+
+        if (element.market === quoteToken + '/' + baseToken) {
+          element.type = element.type === 'bid' ? 'ask' : 'bid';
+          element.market = marketPair;
+        }
+
       });
     }
 
