@@ -5,15 +5,25 @@ import {
   OrderTable,
   MarketsTable,
   TradeBottomRow,
-  TickerText
+  TickerText,
+  DualColRow,
+  SingleColRow,
+  WideMarketsTable,
+  MarketsTableHeader,
 } from "components/styles";
+import styled from '@emotion/styled';
 import { 
   showErrorDialog, 
   apiCall,
-  FieldSet, 
+  FieldSet,
+  TextField,
 } from 'nexus-module';
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+
+const SearchField = styled(TextField)({
+  maxWidth: 200,
+});
 
 export default function Markets() {
   
@@ -21,6 +31,17 @@ export default function Markets() {
   const num = 50;
   const [topVolumeMarkets, setTopVolumeMarkets] = useState([]); 
   const [topMarketCapMarkets, setTopMarketCapMarkets] = useState([]);
+  const [tokenList, setTokenList] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
+  const [search, setSearch] = useState('');
+
+  function handleSearchInputChange(e) {
+    setSearch(e.target.value);
+  }
+
+  useEffect(() => {
+    setSearchResults(tokenList.filter(token => token.ticker.toLowerCase().includes(search.toLowerCase())));
+  } , [search]);
 
   const fetchTokens = async () => {
 
@@ -126,6 +147,9 @@ export default function Markets() {
         });
 
       globalTokenList = await Promise.all(tokenDataPromises);
+      
+      setTokenList(globalTokenList);
+      setSearchResults(globalTokenList);
 
       const sortedVolume = globalTokenList.sort((a, b) => b.volume - a.volume);
       const sortedMarketCap = [...globalTokenList].sort((a, b) => b.mCap - a.mCap);
@@ -176,22 +200,21 @@ export default function Markets() {
 
   return (
     <PageLayout>
-        <div className="text-center"> 
-          <TradeBottomRow>
-            <FieldSet legend="Top 10 token volume">
-              <MarketsTable>
-                <OrderbookTableHeader>
-                  <tr>
-                    <th>Token</th>
-                    <th>Price</th>
-                    <th>1yr volume</th>
-                    <th>Market cap </th>
-                  </tr>
-                </OrderbookTableHeader>
-                <tbody>{renderMarkets(topVolumeMarkets)}</tbody>
-              </MarketsTable>
-            </FieldSet>
-            <FieldSet legend="Top 10 Market Cap">
+      <DualColRow> 
+          <FieldSet legend="Top 10 token volume">
+            <MarketsTable>
+              <OrderbookTableHeader>
+                <tr>
+                  <th>Token</th>
+                  <th>Price</th>
+                  <th>1yr volume</th>
+                  <th>Market cap </th>
+                </tr>
+              </OrderbookTableHeader>
+              <tbody>{renderMarkets(topVolumeMarkets)}</tbody>
+            </MarketsTable>
+          </FieldSet>
+          <FieldSet legend="Top 10 Market Cap">
               <MarketsTable>
                 <OrderbookTableHeader>
                   <tr>
@@ -203,10 +226,34 @@ export default function Markets() {
                 </OrderbookTableHeader>
                 <tbody>{renderMarkets(topMarketCapMarkets)}</tbody>
               </MarketsTable>
-            </FieldSet>
-          </TradeBottomRow>
-          
-        </div>
+          </FieldSet>
+      </DualColRow>
+      <SingleColRow>
+        <SearchField
+          label="Search"
+          name="search"
+          value={search}
+          onChange={handleSearchInputChange}
+          placeholder="Search Token"
+          >
+
+        </SearchField>
+      </SingleColRow>
+      <div className="text-center">
+        <FieldSet legend="Tokens">
+          <WideMarketsTable>
+            <MarketsTableHeader>
+              <tr>
+                <th>Token</th>
+                <th>Price</th>
+                <th>1yr volume</th>
+                <th>Market cap </th>
+              </tr>
+            </MarketsTableHeader>
+            <tbody>{renderMarkets(searchResults)}</tbody>
+          </WideMarketsTable>
+        </FieldSet>
+      </div>
     </PageLayout>
   );
 }
