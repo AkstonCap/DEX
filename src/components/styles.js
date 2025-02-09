@@ -365,19 +365,31 @@ export const WideMarketsTable = styled.table`
   margin-top: 8px;
 
   th:nth-of-type(1) {
-    width: 24%;
+    width: 12%;
   }
 
   th:nth-of-type(2) {
-    width: 24%;
+    width: 12%;
   }
 
   th:nth-of-type(3) {
-    width: 24%;
+    width: 10%;
   }
 
   th:nth-of-type(4) {
-    width: 24%;
+    width: 10%;
+  }
+
+  th:nth-of-type(5) {
+    width: 18%;
+  }
+
+  th:nth-of-type(6) {
+    width: 18%;
+  }
+
+  th:nth-of-type(7) {
+    width: 18%;
   }
 
   th {
