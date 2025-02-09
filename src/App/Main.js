@@ -136,7 +136,7 @@ export default function Main() {
             active={activeTab === 'Markets'}
             onClick={() => handleSwitchTab('Markets')}
           >
-            Markets (tba)
+            Markets
           </HorizontalTab>
         </HorizontalTab.TabBar>
       </div>
