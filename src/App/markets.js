@@ -83,7 +83,7 @@ export default function Markets() {
       const tokenDataPromises = globalTokenList?.map(
         async (token) => {
         
-          const [bidsVolume, asksVolume, lastExecuted, supply] = await Promise.all([
+          const [bidsVolume, asksVolume, lastExecuted, supply, bidList, askList] = await Promise.all([
 
             apiCall( 
               'market/list/executed/contract.amount/sum', 
@@ -116,12 +116,34 @@ export default function Markets() {
             ),
 
             apiCall(
-              'register/get/finance:token/currentsupply',
+              'register/get/finance:token/currentsupply,maxsupply',
               {
                 name: token.ticker,
               }
-            ).catch(() => ({ currentsupply: 0 })
-            )
+            ).catch(() => ({ currentsupply: 0, maxsupply: 0 })
+            ),
+
+            apiCall(
+              'market/list/bid/price,order.amount,contract.amount',
+              {
+                market: token.ticker + '/NXS',
+                sort: 'price',
+                order: 'desc',
+                //limit: 2,
+              }
+            ).catch(() => ({bids: []}),
+            ),
+
+            apiCall(
+              'market/list/ask/price,order.amount,contract.amount',
+              {
+                market: token.ticker + '/NXS',
+                sort: 'price',
+                order: 'desc',
+                //limit: 2,
+              }
+            ).catch(() => ({asks: []}),
+            ),
 
           ]);
 
@@ -136,12 +158,37 @@ export default function Markets() {
           } else if (lastExecutedBids[0]?.timestamp > lastExecutedAsks[0]?.timestamp) {
             lastPrice = (lastExecutedBids[0]?.contract.amount / 1e6) / lastExecutedBids[0]?.order.amount;
           }
+
+          const bids = bidList.bids;
+          const asks = askList.asks;
+          let sortedBids;
+          let sortedAsks;
+
+          if (bids.length > 0) {
+            bids.forEach(element => {
+              element.price = element.contract.amount / element.order.amount / 1e6;
+            });
+            sortedBids = bids.sort((a, b) => b.price - a.price);
+          }
+
+          if (asks.length > 0) {
+            asks.forEach(element => {
+              element.price = element.order.amount / element.contract.amount / 1e6;
+            });
+            sortedAsks = asks.sort((a, b) => a.price - b.price);
+          }
+
+          const bidPrice = bids?.length > 0 ? sortedBids[0].price : 0;
+          const askPrice = asks?.length > 0 ? sortedAsks[0].price : 0;
       
           return {
             ticker: token.ticker,
             volume: volume,
             lastPrice: lastPrice,
-            mCap: supply?.currentsupply * lastPrice
+            mCap: supply?.currentsupply * lastPrice,
+            dilutedMcap: supply?.maxsupply * lastPrice,
+            bid: bidPrice,
+            ask: askPrice,
           };
 
         });
@@ -178,6 +225,7 @@ export default function Markets() {
   }, []);
 
   const handleClick = (item) => {
+    // set market pair as item.ticker + '/NXS'
   };
   
   const renderMarkets = (data) => {
@@ -198,10 +246,31 @@ export default function Markets() {
     )); 
   };
 
+  const renderMarketsWide = (data) => {
+    if (!Array.isArray(data)) {
+      return null;
+    }
+    const len = 20;
+    return data.slice(0, len).map((item, index) => (
+      <OrderbookTableRow
+      key={index}
+      onClick={() => handleClick(item)}
+      >
+      <td><TickerText>{item.ticker}</TickerText></td>
+      <td>{`${parseFloat(item.lastPrice).toFixed(3)} NXS`}</td>
+      <td>{`${parseFloat(item.bid).toFixed(3)} NXS`}</td>
+      <td>{`${parseFloat(item.ask).toFixed(3)} NXS`}</td>
+      <td>{`${parseFloat(item.volume).toFixed(3)} NXS`}</td>
+      <td>{`${parseFloat(item.mCap).toFixed(3)} NXS`}</td>
+      <td>{`${parseFloat(item.dilutedMcap).toFixed(3)} NXS`}</td>
+      </OrderbookTableRow>
+    )); 
+  };
+
   return (
     <PageLayout>
       <DualColRow> 
-          <FieldSet legend="Top 10 token volume">
+          <FieldSet legend="Top 10 by volume">
             <MarketsTable>
               <OrderbookTableHeader>
                 <tr>
@@ -214,7 +283,7 @@ export default function Markets() {
               <tbody>{renderMarkets(topVolumeMarkets)}</tbody>
             </MarketsTable>
           </FieldSet>
-          <FieldSet legend="Top 10 Market Cap">
+          <FieldSet legend="Top 10 by Market Cap">
               <MarketsTable>
                 <OrderbookTableHeader>
                   <tr>
@@ -246,11 +315,14 @@ export default function Markets() {
               <tr>
                 <th>Token</th>
                 <th>Price</th>
+                <th>Bid</th>
+                <th>Ask</th>
                 <th>1yr volume</th>
                 <th>Market cap </th>
+                <th>Fully diluted MCap </th>
               </tr>
             </MarketsTableHeader>
-            <tbody>{renderMarkets(searchResults)}</tbody>
+            <tbody>{renderMarketsWide(searchResults)}</tbody>
           </WideMarketsTable>
         </FieldSet>
       </div>
