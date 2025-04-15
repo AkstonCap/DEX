@@ -70,6 +70,22 @@ export const setTimeSpan = (timeSpan) => ({
   payload: timeSpan,
 });
 
+export const addUnconfirmedOrder = (txid, price, amount, type, marketPair) => ({
+  type: TYPE.ADD_UNCONFIRMED_ORDER,
+  payload: {
+    txid,
+    price,
+    amount,
+    type,
+    marketPair,
+  },
+});
+
+export const removeUnconfirmedOrder = (txid) => ({
+  type: TYPE.REMOVE_UNCONFIRMED_ORDER,
+  payload: txid,
+});
+
 /*
 export const updateInput = (orderToken, baseToken) => ({
   type: TYPE.UPDATE_INPUT,
