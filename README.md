@@ -40,7 +40,7 @@ This shows a set of market attributes for the chosen market pair, together with 
 
 5. Markets
 
-Here you'll see an overview of tokens on Nexus and their market attributes (price, volume, etc) vs NXS. You can also search for specific token names by inputting in the search field above the bottom table.
+Here you'll see overview tables of tokens on Nexus and their market attributes (price, volume, etc) vs NXS. You can also search for specific token names by inputting characters in the search field above the bottom table.
 
 ### Module security
 
