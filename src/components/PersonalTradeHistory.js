@@ -53,9 +53,9 @@ export default function PersonalTradeHistory() {
 
       return (
         <TradeTableRow key={index} orderType={trade.type}>
-          <td>{parseFloat(trade.price).toFixed(Math.min(3, quoteTokenDecimals))}</td>
+          <td>{parseFloat(trade.price).toFixed(Math.min(4, quoteTokenDecimals))}</td>
           <td>
-            {parseFloat(trade.contract.amount).toFixed(Math.min(3, contractDecimals))} {trade.contract.ticker}
+            {parseFloat(trade.contract.amount).toFixed(Math.min(4, contractDecimals))} {trade.contract.ticker}
           </td>
           <td>{new Date(trade.timestamp * 1000).toLocaleString()}</td>
         </TradeTableRow>

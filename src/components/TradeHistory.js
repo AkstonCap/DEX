@@ -77,8 +77,8 @@ export default function TradeHistory({num}) {
 
     return (
       <TradeTableRow key={index} orderType={order.type}>
-        <td>{parseFloat(order.price).toFixed(Math.min(3, quoteTokenDecimals))}</td>
-        <td>{parseFloat(order.contract.amount).toFixed(Math.min(3, contractDecimals))} {order.contract.ticker}</td>
+        <td>{parseFloat(order.price).toFixed(Math.min(4, quoteTokenDecimals))}</td>
+        <td>{parseFloat(order.contract.amount).toFixed(Math.min(4, contractDecimals))} {order.contract.ticker}</td>
         <td>{new Date(order.timestamp*1000).toLocaleString()}</td>
       </TradeTableRow>
     );
