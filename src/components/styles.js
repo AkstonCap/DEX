@@ -46,10 +46,11 @@ export const TopRow = styled.div`
 
 export const BottomRow = styled.div`
   display: grid;
-  grid-template-columns: 32% 31% 35%;
   gap: 10px;
-  overflow: auto;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 500px));
+  justify-content: center;
 `;
+//grid-template-columns: 32% 31% 35%; overflow: auto;
 
 export const TradeBottomRow = styled.div`
   display: grid;
