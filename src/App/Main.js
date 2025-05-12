@@ -124,13 +124,13 @@ export default function Main() {
             active={activeTab === 'Chart'}
             onClick={() => handleSwitchTab('Chart')}
           >
-            History and Chart (tba)
+            History and Chart
           </HorizontalTab>
           <HorizontalTab
             active={activeTab === 'MarketDepth'}
             onClick={() => handleSwitchTab('MarketDepth')}
           >
-            Market Depth (tba)
+            Market Depth
           </HorizontalTab>
           <HorizontalTab
             active={activeTab === 'Markets'}
