@@ -101,12 +101,12 @@ export default function Overview() {
 
       const highPrice = Math.max(
         ...sortedExecutedOrders.map((order) => order.price)
-      ).toFixed(Math.min(3, quoteTokenDecimals));
+      ).toFixed(Math.min(4, quoteTokenDecimals));
       setHigh(highPrice);
 
       const lowPrice = Math.min(
         ...sortedExecutedOrders.map((order) => order.price)
-      ).toFixed(Math.min(3, quoteTokenDecimals));
+      ).toFixed(Math.min(4, quoteTokenDecimals));
       setLow(lowPrice);
 
       const changePercentage = (
@@ -156,7 +156,7 @@ export default function Overview() {
             <Line>
               <div>
                 <Label>Last Price:</Label>
-                <Value>{parseFloat(lastPrice).toFixed(Math.min(3, quoteTokenDecimals))}</Value>
+                <Value>{parseFloat(lastPrice).toFixed(Math.min(4, quoteTokenDecimals))}</Value>
               </div>
               <div>
                 <Label>High</Label>

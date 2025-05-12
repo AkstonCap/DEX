@@ -26,9 +26,9 @@ export default function BidBook({ num }) {
       onClick={() => handleOrderClick(item)}
       orderType={item.type}
       >
-      <td>{parseFloat(item.price).toFixed(Math.min(3, quoteTokenDecimals))}</td>
-      <td>{`${parseFloat(item.order.amount).toFixed(Math.min(3, baseTokenDecimals))} ${item.order.ticker}`}</td>
-      <td>{`${parseFloat(item.contract.amount).toFixed(Math.min(3, quoteTokenDecimals))} ${item.contract.ticker}`}</td>
+      <td>{parseFloat(item.price).toFixed(Math.min(4, quoteTokenDecimals))}</td>
+      <td>{`${parseFloat(item.order.amount).toFixed(Math.min(4, baseTokenDecimals))} ${item.order.ticker}`}</td>
+      <td>{`${parseFloat(item.contract.amount).toFixed(Math.min(4, quoteTokenDecimals))} ${item.contract.ticker}`}</td>
       </OrderbookTableRow>
     ));
   };
