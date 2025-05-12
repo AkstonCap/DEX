@@ -39,10 +39,11 @@ export const SingleColRow = styled.div`
 
 export const TopRow = styled.div`
   display: grid;
-  grid-template-columns: 59% 40%;
   gap: 10px;
-  overflow: auto;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 800px));
+  justify-content: center;
 `;
+//grid-template-columns: 59% 40%; overflow: auto;
 
 export const BottomRow = styled.div`
   display: grid;
