@@ -240,13 +240,13 @@ export default function TradeForm() {
               >
                 Execute
               </ExecuteButton>
-              <MarketFillButton
+              {/*<MarketFillButton
                 orderMethod={orderMethod}
                 //onClick={() => handleOrderMethodChange('execute')}
                 //variant={orderMethod === 'execute'}
               >
                 Market (coming soon)
-              </MarketFillButton>
+              </MarketFillButton>*/}
             </div>
           </FormField>
           <TradeFormContainer> 
