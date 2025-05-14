@@ -149,7 +149,7 @@ export const MyOrdersTable = styled.table`
 
 export const MyOrdersTableRow = styled.tr`
   cursor: pointer;
-  color: ${(props) => (props.orderType === 'ask' ? '#7cfc00' : 'red')};
+  color: ${(props) => (props.orderType === 'bid' ? '#7cfc00' : 'red')};
   padding-right: 8px;
 `;
 
