@@ -60,7 +60,9 @@ export default function PersonalOpenOrders() {
 
       return (
         <MyOrdersTableRow key={index} orderType={order.type}>
-          <td>{parseFloat(order.price).toFixed(Math.min(4, quoteTokenDecimals))}</td>
+          <td>
+            {parseFloat(order.price).toFixed(Math.min(4, quoteTokenDecimals))}
+          </td>
           <td>
             {parseFloat(order.contract.amount).toFixed(Math.min(4, contractDecimals))} {order.contract.ticker}
           </td>
