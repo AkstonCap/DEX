@@ -159,7 +159,7 @@ export const MyOrdersTableRow = styled.tr`
   padding-right: 8px;
 `;
 
-export const MyPendingOrdersTableRow = styled.tr`
+export const MyUnconfirmedOrdersTableRow = styled.tr`
   cursor: pointer;
   color: ${(props) => (props.orderType === 'ask' ? '#7cfc00' : 'red')};
   padding-right: 8px;
