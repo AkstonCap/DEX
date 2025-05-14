@@ -1,6 +1,10 @@
 import { useSelector } from 'react-redux';
 import { FieldSet } from 'nexus-module';
-import { MyOrdersTable, MyOrdersTableRow, OrderbookTableHeader } from './styles';
+import { MyOrdersTable, 
+  MyOrdersTableRow, 
+  MyUnconfirmedOrdersTableRow, 
+  OrderbookTableHeader 
+} from './styles';
 import DeleteButton from './DeleteButton';
 
 export default function PersonalOpenOrders() {
