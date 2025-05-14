@@ -7,6 +7,7 @@ export default function PersonalOpenOrders() {
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
   const myOrders = useSelector((state) => state.ui.market.myOrders.orders);
+  const myUnconfirmedOrders = useSelector((state) => state.ui.market.myOrders.unconfirmedOrders);
   const quoteTokenDecimals = useSelector((state) => state.ui.market.marketPairs.quoteTokenDecimals);
   const baseTokenDecimals = useSelector((state) => state.ui.market.marketPairs.baseTokenDecimals);
 
@@ -68,7 +69,7 @@ export default function PersonalOpenOrders() {
           </td>
           <td>{new Date(order.timestamp * 1000).toLocaleString()}</td>
           <td><DeleteButton txid={order.txid} /></td>
-      </MyOrdersTableRow>
+        </MyOrdersTableRow>
       );
     });
 
