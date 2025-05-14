@@ -2,6 +2,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { FieldSet } from 'nexus-module';
 import { setOrder } from 'actions/actionCreators';
 import { OrderTable, OrderbookTableHeader, OrderbookTableRow } from './styles';
+import { formatNumberWithLeadingZeros } from '../actions/formatNumber';
+
 
 export default function OrderBookComp({ num }) {
   const dispatch = useDispatch();
@@ -30,7 +32,12 @@ export default function OrderBookComp({ num }) {
       onClick={() => handleOrderClick(item)}
       orderType={item.type}
       >
-      <td>{parseFloat(item.price).toFixed(Math.min(4, quoteTokenDecimals))}</td>
+      <td>
+        {/*parseFloat(item.price).toFixed(Math.min(4, quoteTokenDecimals))*/}
+        {parseFloat(item.price) < 0.001
+            ? formatNumberWithLeadingZeros(parseFloat(item.price), Math.min(8, quoteTokenDecimals))
+            : parseFloat(item.price).toFixed(Math.min(4, quoteTokenDecimals))}
+      </td>
       <td>{`${parseFloat(item.order.amount).toFixed(Math.min(4, baseTokenDecimals))} ${item.order.ticker}`}</td>
       <td>{`${parseFloat(item.contract.amount).toFixed(Math.min(4, quoteTokenDecimals))} ${item.contract.ticker}`}</td>
       </OrderbookTableRow>
