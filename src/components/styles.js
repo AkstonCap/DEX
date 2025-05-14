@@ -111,6 +111,12 @@ export const TradeTableRow = styled.tr`
   padding-right: 8px;
 `;
 
+export const MyTradeTableRow = styled.tr`
+  cursor: pointer;
+  color: ${(props) => (props.orderType === 'bid' ? '#7cfc00' : 'red')};
+  padding-right: 8px;
+`;
+
 export const MyOrdersTable = styled.table`
   width: 100%;
   border-collapse: collapse;
