@@ -29,8 +29,8 @@ export default function AssetMarkets() {
   
   const dispatch = useDispatch();
   const num = 50;
-  const [topVolumeMarkets, setTopVolumeMarkets] = useState([]); 
-  const [topMarketCapMarkets, setTopMarketCapMarkets] = useState([]);
+  const [topVolumeAssets, setTopVolumeAssets] = useState([]); 
+  const [topPriceAssets, setTopPriceAssets] = useState([]);
   const [assetList, setAssetList] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [search, setSearch] = useState('');
@@ -46,17 +46,16 @@ export default function AssetMarkets() {
   const fetchAssets = async () => {
 
     try {
-      const tokens = await apiCall(
-        'register/list/finance:token/token,ticker,maxsupply,currentsupply', //
+      const assets = await apiCall(
+        'register/list/assets:asset', //
         {
-          sort: 'currentsupply',
+          sort: 'modified',
           order: 'desc',
           limit: 100,
-          where: 'results.currentsupply>0'
         }
       ).catch((error) => {
         dispatch(showErrorDialog({
-          message: 'Cannot get tokens from apiCall (fetchTokens)',
+          message: 'Cannot get assets from apiCall (fetchAssets)',
           note: error?.message || 'Unknown error',
         }));
         return [];
@@ -68,27 +67,27 @@ export default function AssetMarkets() {
       ).catch((error) => {
         return [];
         }
-      );
+      );      
 
-      let globalTokenList = tokens
-        .filter(token => globalNames.some(name => name.register === token.token))
-        .map(token => {
-          const globalName = globalNames.find(name => name.register === token.token);
+      let globalAssetList = assets
+        .filter(asset => globalNames.some(name => name.register === asset.address))
+        .map(asset => {
+          const globalName = globalNames.find(name => name.register === asset.address);
           return {
             name: globalName?.name || '',
-            ticker: token.ticker
+            address: asset.address
           };
         });
     
-      const tokenDataPromises = globalTokenList?.map(
-        async (token) => {
+      const assetDataPromises = globalAssetList?.map(
+        async (asset) => {
         
-          const [bidsVolume, asksVolume, lastExecuted, supply, bidList, askList] = await Promise.all([
+          const [bidsVolume, asksVolume, lastExecuted, bidList, askList] = await Promise.all([
 
             apiCall( 
               'market/list/executed/contract.amount/sum', 
               {
-                market: token.ticker + '/NXS',
+                market: asset.address + '/NXS',
                 where: 'results.timestamp>since(`1 year`); AND results.type=bid',
               }
             ).catch(() => ({ amount: 0 })
@@ -97,7 +96,7 @@ export default function AssetMarkets() {
             apiCall( 
               'market/list/executed/order.amount/sum', 
               {
-                market: token.ticker + '/NXS',
+                market: asset.address + '/NXS',
                 where: 'results.timestamp>since(`1 year`); AND results.type=ask',
               }
             ).catch(() => ({ amount: 0 })
@@ -106,7 +105,7 @@ export default function AssetMarkets() {
             apiCall(
               'market/list/executed/type,order.amount,contract.amount,timestamp',
               {
-                market: token.ticker + '/NXS',
+                market: asset.address + '/NXS',
                 sort: 'timestamp',
                 order: 'desc',
                 limit: 5,
@@ -116,17 +115,9 @@ export default function AssetMarkets() {
             ),
 
             apiCall(
-              'register/get/finance:token/currentsupply,maxsupply',
-              {
-                name: token.ticker,
-              }
-            ).catch(() => ({ currentsupply: 0, maxsupply: 0 })
-            ),
-
-            apiCall(
               'market/list/bid/price,order.amount,contract.amount',
               {
-                market: token.ticker + '/NXS',
+                market: asset.address + '/NXS',
                 sort: 'price',
                 order: 'desc',
                 //limit: 2,
@@ -137,7 +128,7 @@ export default function AssetMarkets() {
             apiCall(
               'market/list/ask/price,order.amount,contract.amount',
               {
-                market: token.ticker + '/NXS',
+                market: asset.address + '/NXS',
                 sort: 'price',
                 order: 'desc',
                 //limit: 2,
@@ -182,31 +173,29 @@ export default function AssetMarkets() {
           const askPrice = asks?.length > 0 ? sortedAsks[0].price : 0;
       
           return {
-            ticker: token.ticker,
+            address: asset.address,
             volume: volume,
             lastPrice: lastPrice,
-            mCap: supply?.currentsupply * lastPrice,
-            dilutedMcap: supply?.maxsupply * lastPrice,
             bid: bidPrice,
             ask: askPrice,
           };
 
         });
 
-      globalTokenList = await Promise.all(tokenDataPromises);
+      globalAssetList = await Promise.all(assetDataPromises);
       
-      setTokenList(globalTokenList);
-      setSearchResults(globalTokenList);
+      setAssetList(globalAssetList);
+      setSearchResults(globalAssetList);
 
-      const sortedVolume = globalTokenList.sort((a, b) => b.volume - a.volume);
-      const sortedMarketCap = [...globalTokenList].sort((a, b) => b.mCap - a.mCap);
+      const sortedVolume = globalAssetList.sort((a, b) => b.volume - a.volume);
+      const sortedPrice = [...globalAssetList].sort((a, b) => b.lastPrice - a.lastPrice);
 
-      setTopVolumeMarkets(sortedVolume.slice(0, 10));
-      setTopMarketCapMarkets(sortedMarketCap.slice(0, 10));
-
+      setTopVolumeAssets(sortedVolume.slice(0, 10));
+      setTopPriceAssets(sortedPrice.slice(0, 10));
+      
     } catch (error) {
       dispatch(showErrorDialog({
-        message: 'Cannot get tokens from apiCall (fetchTokens)',
+        message: 'Cannot get assets from apiCall (fetchAssets)',
         note: error?.message || 'Unknown error',
       }));
     }
@@ -214,10 +203,10 @@ export default function AssetMarkets() {
 
   useEffect(() => {
     
-    fetchTokens();
+    fetchAssets();
 
     // Set up 60 second interval
-    const intervalId = setInterval(fetchTokens, 300000);
+    const intervalId = setInterval(fetchAssets, 300000);
   
     // Cleanup on unmount
     return () => clearInterval(intervalId);
@@ -238,10 +227,9 @@ export default function AssetMarkets() {
       key={index}
       onClick={() => handleClick(item)}
       >
-      <td><TickerText>{item.ticker}</TickerText></td>
-      <td>{`${parseFloat(item.lastPrice).toFixed(3)} NXS`}</td>
+      <td><TickerText>{item.address}</TickerText></td>
+      <td>{`${parseFloat(item.lastPrice).toFixed(4)} NXS`}</td>
       <td>{`${parseFloat(item.volume).toFixed(3)} NXS`}</td>
-      <td>{`${parseFloat(item.mCap).toFixed(3)} NXS`}</td>
       </OrderbookTableRow>
     )); 
   };
@@ -256,13 +244,11 @@ export default function AssetMarkets() {
       key={index}
       onClick={() => handleClick(item)}
       >
-      <td><TickerText>{item.ticker}</TickerText></td>
+      <td><TickerText>{item.address}</TickerText></td>
       <td>{`${parseFloat(item.lastPrice).toFixed(3)} NXS`}</td>
-      <td>{`${parseFloat(item.bid).toFixed(3)} NXS`}</td>
-      <td>{`${parseFloat(item.ask).toFixed(3)} NXS`}</td>
+      <td>{`${parseFloat(item.bidPrice).toFixed(3)} NXS`}</td>
+      <td>{`${parseFloat(item.askPrice).toFixed(3)} NXS`}</td>
       <td>{`${parseFloat(item.volume).toFixed(3)} NXS`}</td>
-      <td>{`${parseFloat(item.mCap).toFixed(3)} NXS`}</td>
-      <td>{`${parseFloat(item.dilutedMcap).toFixed(3)} NXS`}</td>
       </OrderbookTableRow>
     )); 
   };
@@ -274,26 +260,24 @@ export default function AssetMarkets() {
             <MarketsTable>
               <OrderbookTableHeader>
                 <tr>
-                  <th>Token</th>
+                  <th>Asset</th>
                   <th>Price</th>
                   <th>1yr volume</th>
-                  <th>Market cap </th>
                 </tr>
               </OrderbookTableHeader>
-              <tbody>{renderMarkets(topVolumeMarkets)}</tbody>
+              <tbody>{renderMarkets(topVolumeAssets)}</tbody>
             </MarketsTable>
           </FieldSet>
           <FieldSet legend="Top 10 by Market Cap">
               <MarketsTable>
                 <OrderbookTableHeader>
                   <tr>
-                    <th>Token</th>
+                    <th>Asset</th>
                     <th>Price</th>
                     <th>1yr volume</th>
-                    <th>Market Cap </th>
                   </tr>
                 </OrderbookTableHeader>
-                <tbody>{renderMarkets(topMarketCapMarkets)}</tbody>
+                <tbody>{renderMarkets(topPriceAssets)}</tbody>
               </MarketsTable>
           </FieldSet>
       </DualColRow>
@@ -303,23 +287,21 @@ export default function AssetMarkets() {
           name="search"
           value={search}
           onChange={handleSearchInputChange}
-          placeholder="Search Token"
+          placeholder="Search Asset"
           >
 
         </SearchField>
       </SingleColRow>
       <div className="text-center">
-        <FieldSet legend="Tokens">
+        <FieldSet legend="Assets">
           <WideMarketsTable>
             <MarketsTableHeader>
               <tr>
-                <th>Token</th>
+                <th>Asset</th>
                 <th>Price</th>
                 <th>Bid</th>
                 <th>Ask</th>
                 <th>1yr volume</th>
-                <th>Market cap </th>
-                <th>Fully diluted MCap </th>
               </tr>
             </MarketsTableHeader>
             <tbody>{renderMarketsWide(searchResults)}</tbody>
