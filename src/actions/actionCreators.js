@@ -9,8 +9,8 @@ export const setMarketPair = (
   quoteTokenCirculatingSupply,
   baseTokenDecimals,
   quoteTokenDecimals,
-  baseTokenAddress,
-  quoteTokenAddress
+  //baseTokenAddress,
+  //quoteTokenAddress
 ) => ({
   type: TYPE.SET_MARKET_PAIR,
   payload: {
@@ -23,8 +23,8 @@ export const setMarketPair = (
     quoteTokenCirculatingSupply,
     baseTokenDecimals,
     quoteTokenDecimals,
-    baseTokenAddress,
-    quoteTokenAddress
+    //baseTokenAddress,
+    //quoteTokenAddress
   },
 });
 
@@ -70,8 +70,8 @@ export const setTimeSpan = (timeSpan) => ({
   payload: timeSpan,
 });
 
-export const addUnconfirmedOrder = (txid, price, amount, type, marketPair) => ({
-  type: TYPE.ADD_UNCONFIRMED_ORDER,
+export const setUnconfirmedOrders = (txid, price, amount, type, marketPair) => ({
+  type: TYPE.SET_MY_UNCONFIRMEDORDERS,
   payload: {
     txid,
     price,
@@ -81,11 +81,11 @@ export const addUnconfirmedOrder = (txid, price, amount, type, marketPair) => ({
   },
 });
 
-export const removeUnconfirmedOrder = (txid) => ({
+/*export const removeUnconfirmedOrder = (txid) => ({
   type: TYPE.REMOVE_UNCONFIRMED_ORDER,
   payload: txid,
 });
-
+*/
 /*
 export const updateInput = (orderToken, baseToken) => ({
   type: TYPE.UPDATE_INPUT,

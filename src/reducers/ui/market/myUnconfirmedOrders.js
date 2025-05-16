@@ -1,14 +1,14 @@
 import * as TYPE from 'actions/types';
 
 const initialState = {
-        orders: [],
+        unconfirmedorders: [],
 };
 
 export default (state = initialState, action) => {
     switch (action.type) {
-        case TYPE.SET_MY_ORDERS:
+        case TYPE.SET_MY_UNCONFIRMEDORDERS:
             return {
-                orders: action.payload.orders || [],     
+                unconfirmedOrders: action.payload.unconfirmedOrders || [],     
             };
             
         default:
