@@ -100,8 +100,8 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
           quoteTokenAttributes.currentsupply,
           baseTokenAttributes.decimals,
           quoteTokenAttributes.decimals,
-          //baseTokenAttributes.address,
-          //quoteTokenAttributes.address
+          baseTokenAttributes.address,
+          quoteTokenAttributes.address
         ));
 
         await dispatch(fetchMarketData())
