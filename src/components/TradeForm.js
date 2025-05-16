@@ -251,7 +251,7 @@ export default function TradeForm() {
           </FormField>
           <TradeFormContainer> 
             <FormField
-              label={('Price ' + quoteToken)}>
+              label={('Price (' + quoteToken + ' per ' + baseToken + ')')}>
               {renderPriceField()}
             </FormField>
             <FormField
