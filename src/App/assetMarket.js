@@ -28,8 +28,7 @@ const SearchField = styled(TextField)({
 export default function AssetMarkets() {
   
   const dispatch = useDispatch();
-  const num = 50;
-  const [topVolumeAssets, setTopVolumeAssets] = useState([]); 
+  const num = 50; 
   const [topPriceAssets, setTopPriceAssets] = useState([]);
   const [assetList, setAssetList] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
@@ -40,7 +39,7 @@ export default function AssetMarkets() {
   }
 
   useEffect(() => {
-    setSearchResults(assetList.filter(asset => asset.ticker.toLowerCase().includes(search.toLowerCase())));
+    setSearchResults(assetList.filter(asset => asset.address.includes(search)));
   } , [search]);
 
   const fetchAssets = async () => {
@@ -148,6 +147,10 @@ export default function AssetMarkets() {
             lastPrice = (lastExecutedAsks[0]?.order.amount / 1e6) / lastExecutedAsks[0]?.contract.amount;
           } else if (lastExecutedBids[0]?.timestamp > lastExecutedAsks[0]?.timestamp) {
             lastPrice = (lastExecutedBids[0]?.contract.amount / 1e6) / lastExecutedBids[0]?.order.amount;
+          } else if (lastExecutedAsks.length === 0 && lastExecutedBids.length === 0) {
+            lastPrice = 0;
+          } else {
+            lastPrice = (lastExecutedAsks[0]?.order.amount / 1e6) / lastExecutedAsks[0]?.contract.amount;
           }
 
           const bids = bidList.bids;
@@ -187,10 +190,8 @@ export default function AssetMarkets() {
       setAssetList(globalAssetList);
       setSearchResults(globalAssetList);
 
-      const sortedVolume = globalAssetList.sort((a, b) => b.volume - a.volume);
       const sortedPrice = [...globalAssetList].sort((a, b) => b.lastPrice - a.lastPrice);
 
-      setTopVolumeAssets(sortedVolume.slice(0, 10));
       setTopPriceAssets(sortedPrice.slice(0, 10));
       
     } catch (error) {
@@ -245,7 +246,13 @@ export default function AssetMarkets() {
       onClick={() => handleClick(item)}
       >
       <td><TickerText>{item.address}</TickerText></td>
-      <td>{`${parseFloat(item.lastPrice).toFixed(3)} NXS`}</td>
+      <td>
+        {formatNumberWithLeadingZeros(
+          parseFloat(item.lastPrice), 
+          3
+          )
+        }
+      </td>
       <td>{`${parseFloat(item.bidPrice).toFixed(3)} NXS`}</td>
       <td>{`${parseFloat(item.askPrice).toFixed(3)} NXS`}</td>
       <td>{`${parseFloat(item.volume).toFixed(3)} NXS`}</td>
@@ -255,20 +262,8 @@ export default function AssetMarkets() {
 
   return (
     <PageLayout>
-      <DualColRow> 
-          <FieldSet legend="Top 10 by volume">
-            <MarketsTable>
-              <OrderbookTableHeader>
-                <tr>
-                  <th>Asset</th>
-                  <th>Price</th>
-                  <th>1yr volume</th>
-                </tr>
-              </OrderbookTableHeader>
-              <tbody>{renderMarkets(topVolumeAssets)}</tbody>
-            </MarketsTable>
-          </FieldSet>
-          <FieldSet legend="Top 10 by Market Cap">
+      <SingleColRow> 
+          <FieldSet legend="Top 10 assets by Market Cap">
               <MarketsTable>
                 <OrderbookTableHeader>
                   <tr>
@@ -280,7 +275,7 @@ export default function AssetMarkets() {
                 <tbody>{renderMarkets(topPriceAssets)}</tbody>
               </MarketsTable>
           </FieldSet>
-      </DualColRow>
+      </SingleColRow>
       <SingleColRow>
         <SearchField
           label="Search"
@@ -289,7 +284,6 @@ export default function AssetMarkets() {
           onChange={handleSearchInputChange}
           placeholder="Search Asset"
           >
-
         </SearchField>
       </SingleColRow>
       <div className="text-center">
