@@ -34,9 +34,11 @@ export default function OrderBookComp({ num }) {
       >
       <td>
         {/*parseFloat(item.price).toFixed(Math.min(4, quoteTokenDecimals))*/}
-        {parseFloat(item.price) < 0.001
-            ? formatNumberWithLeadingZeros(parseFloat(item.price), Math.min(8, quoteTokenDecimals))
-            : parseFloat(item.price).toFixed(Math.min(4, quoteTokenDecimals))}
+        {formatNumberWithLeadingZeros(
+          parseFloat(item.price), 
+          3
+          )
+        }
       </td>
       <td>{`${parseFloat(item.order.amount).toFixed(Math.min(4, baseTokenDecimals))} ${item.order.ticker}`}</td>
       <td>{`${parseFloat(item.contract.amount).toFixed(Math.min(4, quoteTokenDecimals))} ${item.contract.ticker}`}</td>
@@ -55,7 +57,14 @@ export default function OrderBookComp({ num }) {
       onClick={() => handleOrderClick(item)}
       orderType={item.type}
     >
-      <td>{parseFloat(item.price).toFixed(Math.min(4, quoteTokenDecimals))}</td>
+      <td>
+        {/*parseFloat(item.price).toFixed(Math.min(4, quoteTokenDecimals))*/}
+        {formatNumberWithLeadingZeros(
+          parseFloat(item.price), 
+          3
+          )
+        }
+      </td>
       <td>{`${parseFloat(item.contract.amount).toFixed(Math.min(4, baseTokenDecimals))} ${item.contract.ticker}`}</td>
       <td>{`${parseFloat(item.order.amount).toFixed(Math.min(4, quoteTokenDecimals))} ${item.order.ticker}`}</td>
     </OrderbookTableRow>

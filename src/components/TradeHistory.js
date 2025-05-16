@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux';
 import { FieldSet } from 'nexus-module';
 import { OrderTable, TradeTableRow } from './styles';
+import { formatNumberWithLeadingZeros } from '../actions/formatNumber';
 
 export default function TradeHistory({num}) {
   const executedOrders = useSelector(
@@ -77,7 +78,16 @@ export default function TradeHistory({num}) {
 
     return (
       <TradeTableRow key={index} orderType={order.type}>
-        <td>{parseFloat(order.price).toFixed(Math.min(4, quoteTokenDecimals))}</td>
+        <td>
+          {/*
+          parseFloat(order.price).toFixed(Math.min(4, quoteTokenDecimals))
+          */}
+          {formatNumberWithLeadingZeros(
+              parseFloat(order.price), 
+              3
+            )
+          }
+        </td>
         <td>{parseFloat(order.contract.amount).toFixed(Math.min(4, contractDecimals))} {order.contract.ticker}</td>
         <td>{new Date(order.timestamp*1000).toLocaleString()}</td>
       </TradeTableRow>

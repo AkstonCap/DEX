@@ -24,6 +24,7 @@ import TradeHistory from 'components/TradeHistory';
 import PersonalTradeHistory from 'components/PersonalTradeHistory';
 //import 'components/layout.css';
 import PersonalOpenOrders from 'components/PersonalOpenOrders';
+import { formatNumberWithLeadingZeros } from 'actions/formatNumber';
 
 export default function Overview() {
   const dispatch = useDispatch();
@@ -101,12 +102,12 @@ export default function Overview() {
 
       const highPrice = Math.max(
         ...sortedExecutedOrders.map((order) => order.price)
-      ).toFixed(Math.min(4, quoteTokenDecimals));
+      ).toFixed(Math.min(8, quoteTokenDecimals));
       setHigh(highPrice);
 
       const lowPrice = Math.min(
         ...sortedExecutedOrders.map((order) => order.price)
-      ).toFixed(Math.min(4, quoteTokenDecimals));
+      ).toFixed(Math.min(8, quoteTokenDecimals));
       setLow(lowPrice);
 
       const changePercentage = (
@@ -156,11 +157,21 @@ export default function Overview() {
             <Line>
               <div>
                 <Label>Last Price:</Label>
-                <Value>{parseFloat(lastPrice).toFixed(Math.min(4, quoteTokenDecimals))}</Value>
+                <Value>
+                  {/*parseFloat(lastPrice).toFixed(Math.min(4, quoteTokenDecimals))*/}
+                  {formatNumberWithLeadingZeros(
+                  parseFloat(lastPrice), 
+                  3
+                  )}
+                </Value>
               </div>
               <div>
                 <Label>High</Label>
-                <Value>{high}</Value>
+                <Value>{formatNumberWithLeadingZeros(
+                  parseFloat(high), 
+                  3
+                  )}
+                </Value>
               </div>
               <div>
                 <Label>Volume ({baseToken})</Label>
@@ -174,7 +185,11 @@ export default function Overview() {
               </div>
               <div>
                 <Label>Low</Label>
-                <Value>{low}</Value>
+                <Value>{formatNumberWithLeadingZeros(
+                  parseFloat(low), 
+                  3
+                  )}
+                </Value>
               </div>
               <div>
                 <Label>Volume ({quoteToken})</Label>
