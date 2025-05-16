@@ -20,6 +20,9 @@ import {
 } from 'nexus-module';
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import setMarketPair from "actions/actionCreators";
+import RefreshButton from "./RefreshButton";
+import { formatNumberWithLeadingZeros } from 'actions/formatNumber';
 
 const SearchField = styled(TextField)({
   maxWidth: 200,
@@ -157,6 +160,10 @@ export default function Markets() {
             lastPrice = (lastExecutedAsks[0]?.order.amount / 1e6) / lastExecutedAsks[0]?.contract.amount;
           } else if (lastExecutedBids[0]?.timestamp > lastExecutedAsks[0]?.timestamp) {
             lastPrice = (lastExecutedBids[0]?.contract.amount / 1e6) / lastExecutedBids[0]?.order.amount;
+          } else if (lastExecutedAsks.length === 0 && lastExecutedBids.length === 0) {
+            lastPrice = 0;
+          } else {
+            lastPrice = (lastExecutedAsks[0]?.order.amount / 1e6) / lastExecutedAsks[0]?.contract.amount;
           }
 
           const bids = bidList.bids;
@@ -226,6 +233,8 @@ export default function Markets() {
 
   const handleClick = (item) => {
     // set market pair as item.ticker + '/NXS'
+    //dispatch(setMarketPair());
+    RefreshButton(item.ticker, 'NXS');
   };
   
   const renderMarkets = (data) => {
@@ -239,7 +248,14 @@ export default function Markets() {
       onClick={() => handleClick(item)}
       >
       <td><TickerText>{item.ticker}</TickerText></td>
-      <td>{`${parseFloat(item.lastPrice).toFixed(3)} NXS`}</td>
+      <td>
+        {/*`${parseFloat(item.lastPrice).toFixed(4)} NXS`*/}
+        {formatNumberWithLeadingZeros(
+          parseFloat(item.lastPrice), 
+          3
+          )
+        }
+      </td>
       <td>{`${parseFloat(item.volume).toFixed(3)} NXS`}</td>
       <td>{`${parseFloat(item.mCap).toFixed(3)} NXS`}</td>
       </OrderbookTableRow>
@@ -257,9 +273,16 @@ export default function Markets() {
       onClick={() => handleClick(item)}
       >
       <td><TickerText>{item.ticker}</TickerText></td>
-      <td>{`${parseFloat(item.lastPrice).toFixed(3)} NXS`}</td>
-      <td>{`${parseFloat(item.bid).toFixed(3)} NXS`}</td>
-      <td>{`${parseFloat(item.ask).toFixed(3)} NXS`}</td>
+      <td>
+        {/*`${parseFloat(item.lastPrice).toFixed(5)} NXS`*/}
+        {formatNumberWithLeadingZeros(
+          parseFloat(item.lastPrice), 
+          3
+          )
+        }
+      </td>
+      <td>{`${parseFloat(item.bid).toFixed(4)} NXS`}</td>
+      <td>{`${parseFloat(item.ask).toFixed(4)} NXS`}</td>
       <td>{`${parseFloat(item.volume).toFixed(3)} NXS`}</td>
       <td>{`${parseFloat(item.mCap).toFixed(3)} NXS`}</td>
       <td>{`${parseFloat(item.dilutedMcap).toFixed(3)} NXS`}</td>
