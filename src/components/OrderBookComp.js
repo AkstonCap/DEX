@@ -101,7 +101,7 @@ export default function OrderBookComp({ num }) {
             <OrderTable>
               <OrderbookTableHeader>
                 <tr>
-                  <th>Price</th>
+                  <th>Price [{quoteToken}]</th>
                   <th>Amount [{baseToken}]</th>
                   <th>Amount [{quoteToken}]</th>
                 </tr>
