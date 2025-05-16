@@ -13,6 +13,7 @@ import Trade from './trade';
 import Chart from './chart';
 import MarketDepth from './marketDepth';
 import Markets from './markets';
+import AssetMarkets from './assetMarket';
 
 import { switchTab, setMarketPair } from 'actions/actionCreators';
 import RefreshButton from './RefreshButton';
@@ -138,6 +139,12 @@ export default function Main() {
           >
             Markets
           </HorizontalTab>
+          <HorizontalTab
+            active={activeTab === 'Assets'}
+            onClick={() => handleSwitchTab('Assets')}
+          >
+            Assets
+          </HorizontalTab>
         </HorizontalTab.TabBar>
       </div>
 
@@ -146,6 +153,7 @@ export default function Main() {
       <div>{activeTab === 'Chart' && <Chart />}</div>
       <div>{activeTab === 'MarketDepth' && <MarketDepth />}</div>
       <div>{activeTab === 'Markets' && <Markets />}</div>
+      <div>{activeTab === 'Assets' && <AssetMarkets />}</div>
     </Panel>
   );
 }
