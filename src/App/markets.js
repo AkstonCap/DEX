@@ -281,8 +281,20 @@ export default function Markets() {
           )
         }
       </td>
-      <td>{`${parseFloat(item.bid).toFixed(4)} NXS`}</td>
-      <td>{`${parseFloat(item.ask).toFixed(4)} NXS`}</td>
+      <td>
+        {formatNumberWithLeadingZeros(
+          parseFloat(item.bid), 
+          3
+          )
+        }
+      </td>
+      <td>
+        {formatNumberWithLeadingZeros(
+          parseFloat(item.ask), 
+          3
+          )
+        }
+      </td>
       <td>{`${parseFloat(item.volume).toFixed(3)} NXS`}</td>
       <td>{`${parseFloat(item.mCap).toFixed(3)} NXS`}</td>
       <td>{`${parseFloat(item.dilutedMcap).toFixed(3)} NXS`}</td>
