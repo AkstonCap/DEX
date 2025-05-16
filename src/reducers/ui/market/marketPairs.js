@@ -10,8 +10,8 @@ const initialState = {
   quoteTokenCirculatingSupply: 0,
   baseTokenDecimals: 0,
   quoteTokenDecimals: 8,
-  //baseTokenAddress: '8DgWXw9dV9BgVNQpKwNZ3zJRbU8SKxjW4j1v9fn8Yma7HihMjeA',
-  //quoteTokenAddress: '0',
+  baseTokenAddress: '8DgWXw9dV9BgVNQpKwNZ3zJRbU8SKxjW4j1v9fn8Yma7HihMjeA',
+  quoteTokenAddress: '0',
 };
 
 export default (state = initialState, action) => {
@@ -28,8 +28,8 @@ export default (state = initialState, action) => {
         quoteTokenCirculatingSupply: action.payload.quoteTokenCirculatingSupply,
         baseTokenDecimals: action.payload.baseTokenDecimals,
         quoteTokenDecimals: action.payload.quoteTokenDecimals,
-        //baseTokenAddress: action.payload.baseTokenAddress,
-        //quoteTokenAddress: action.payload.quoteTokenAddress,
+        baseTokenAddress: action.payload.baseTokenAddress,
+        quoteTokenAddress: action.payload.quoteTokenAddress,
       };
 
     default:
