@@ -13,6 +13,9 @@ export function formatNumberWithLeadingZeros(number, decimals) {
   } else if (Math.abs(number) >= 1) {
     // ≥ threshold → normal fixed
     return number.toFixed(2);
+  } else if ( number === 0 ) {
+    // exactly zero → normal fixed
+    return number.toFixed(0);
   }
 
   // very small numbers → subscript zeros
