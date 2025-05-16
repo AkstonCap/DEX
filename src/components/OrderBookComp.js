@@ -40,8 +40,19 @@ export default function OrderBookComp({ num }) {
           )
         }
       </td>
-      <td>{`${parseFloat(item.order.amount).toFixed(Math.min(4, baseTokenDecimals))} ${item.order.ticker}`}</td>
-      <td>{`${parseFloat(item.contract.amount).toFixed(Math.min(4, quoteTokenDecimals))} ${item.contract.ticker}`}</td>
+      <td>
+        {formatNumberWithLeadingZeros(
+          parseFloat(item.order.amount), 
+          3
+          )
+        }
+      </td>
+      <td>{formatNumberWithLeadingZeros(
+          parseFloat(item.contract.amount), 
+          3
+          )
+        }
+      </td>
       </OrderbookTableRow>
     ));
   };
@@ -65,8 +76,20 @@ export default function OrderBookComp({ num }) {
           )
         }
       </td>
-      <td>{`${parseFloat(item.contract.amount).toFixed(Math.min(4, baseTokenDecimals))} ${item.contract.ticker}`}</td>
-      <td>{`${parseFloat(item.order.amount).toFixed(Math.min(4, quoteTokenDecimals))} ${item.order.ticker}`}</td>
+      <td>
+        {formatNumberWithLeadingZeros(
+          parseFloat(item.contract.amount), 
+          3
+          )
+        }
+      </td>
+      <td>
+        {formatNumberWithLeadingZeros(
+          parseFloat(item.order.amount), 
+          3
+          )
+        }
+      </td>
     </OrderbookTableRow>
     ));
   };
