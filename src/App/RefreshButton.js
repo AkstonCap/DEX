@@ -19,7 +19,7 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
   const [refreshing, setRefreshing] = useState(false);
   const dispatch = useDispatch();
   
-  const refreshMarket =  async () => {
+  const refreshMarket = async () => {
     if (refreshing) return;
     setRefreshing(true);
     try {
@@ -47,13 +47,16 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
           baseTokenExist = true;
         } 
 
-      } else {
+      } else if (baseTokenField === 'NXS') {
         baseTokenExist = true;
         baseTokenAttributes = {
           decimals: 8,
           currentsupply: 0,
-          maxsupply: 0
+          maxsupply: 0,
+          address: '0'
         }
+      } else {
+        baseTokenExist = false;
       }
 
       if ( quoteTokenField !== 'NXS' ) {
@@ -66,20 +69,23 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
             message: 'Cannot get quote token attributes from apiCall',
             note: error?.message || 'Unknown error',
           }));
-        }
+          }
         );
 
         if (quoteTokenExist !== false) {
           quoteTokenExist = true;
         }
 
-      } else {
+      } else if (quoteTokenField === 'NXS') {
         quoteTokenExist = true;
         quoteTokenAttributes = {
           decimals: 8,
           currentsupply: 0,
-          maxsupply: 0
+          maxsupply: 0,
+          address: '0'
         }
+      } else {
+        quoteTokenExist = false;
       }
 
       // Set the market pair if tokens exists
@@ -94,8 +100,8 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
           quoteTokenAttributes.currentsupply,
           baseTokenAttributes.decimals,
           quoteTokenAttributes.decimals,
-          baseTokenAttributes.address,
-          quoteTokenAttributes.address
+          //baseTokenAttributes.address,
+          //quoteTokenAttributes.address
         ));
 
         await dispatch(fetchMarketData())
