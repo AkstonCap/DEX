@@ -161,7 +161,8 @@ export default function Overview() {
                   {/*parseFloat(lastPrice).toFixed(Math.min(4, quoteTokenDecimals))*/}
                   {formatNumberWithLeadingZeros(
                   parseFloat(lastPrice), 
-                  3
+                  3,
+                  quoteTokenDecimals
                   )}
                 </Value>
               </div>
@@ -169,13 +170,20 @@ export default function Overview() {
                 <Label>High</Label>
                 <Value>{formatNumberWithLeadingZeros(
                   parseFloat(high), 
-                  3
+                  3,
+                  quoteTokenDecimals
                   )}
                 </Value>
               </div>
               <div>
                 <Label>Volume ({baseToken})</Label>
-                <Value>{baseTokenVolume}</Value>
+                <Value>
+                  {formatNumberWithLeadingZeros(
+                  parseFloat(baseTokenVolume), 
+                  3,
+                  baseTokenDecimals
+                  )}
+                </Value>
               </div>
             </Line>
             <Line>
@@ -187,13 +195,20 @@ export default function Overview() {
                 <Label>Low</Label>
                 <Value>{formatNumberWithLeadingZeros(
                   parseFloat(low), 
-                  3
+                  3,
+                  quoteTokenDecimals
                   )}
                 </Value>
               </div>
               <div>
                 <Label>Volume ({quoteToken})</Label>
-                <Value>{quoteTokenVolume}</Value>
+                <Value>
+                  {formatNumberWithLeadingZeros(
+                  parseFloat(quoteTokenVolume), 
+                  3,
+                  quoteTokenDecimals
+                  )}
+                </Value>
               </div>
             </Line>
             <div className='mt3'>
@@ -209,15 +224,33 @@ export default function Overview() {
               <Line>
                 <div>
                   <Label>{baseToken} Mcap</Label>
-                  <Value>{mcap} {quoteToken}</Value>
+                  <Value>
+                    {formatNumberWithLeadingZeros(
+                    parseFloat(mcap), 
+                    3,
+                    quoteTokenDecimals
+                    )} {quoteToken}
+                  </Value>
                 </div>
                 <div>
                   <Label>Circulating Supply {baseToken}</Label>
-                  <Value>{baseTokenCirculatingSupply}</Value>
+                  <Value>
+                    {formatNumberWithLeadingZeros(
+                    parseFloat(baseTokenCirculatingSupply), 
+                    3,
+                    baseTokenDecimals
+                    )}
+                  </Value>
                 </div>
                 <div>
                   <Label>Max Supply {baseToken}</Label>
-                  <Value>{baseTokenMaxsupply}</Value>
+                  <Value>
+                    {formatNumberWithLeadingZeros(
+                    parseFloat(baseTokenMaxsupply), 
+                    3,
+                    baseTokenDecimals
+                    )}
+                  </Value>
                 </div>
               </Line>
             </div>

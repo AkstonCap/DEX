@@ -36,20 +36,24 @@ export default function OrderBookComp({ num }) {
         {/*parseFloat(item.price).toFixed(Math.min(4, quoteTokenDecimals))*/}
         {formatNumberWithLeadingZeros(
           parseFloat(item.price), 
-          3
+          3,
+          quoteTokenDecimals
           )
         }
       </td>
       <td>
         {formatNumberWithLeadingZeros(
           parseFloat(item.order.amount), 
-          3
+          3,
+          baseTokenDecimals
           )
         }
       </td>
-      <td>{formatNumberWithLeadingZeros(
+      <td>
+        {formatNumberWithLeadingZeros(
           parseFloat(item.contract.amount), 
-          3
+          3,
+          quoteTokenDecimals
           )
         }
       </td>
@@ -72,21 +76,24 @@ export default function OrderBookComp({ num }) {
         {/*parseFloat(item.price).toFixed(Math.min(4, quoteTokenDecimals))*/}
         {formatNumberWithLeadingZeros(
           parseFloat(item.price), 
-          3
+          3,
+          quoteTokenDecimals
           )
         }
       </td>
       <td>
         {formatNumberWithLeadingZeros(
           parseFloat(item.contract.amount), 
-          3
+          3,
+          baseTokenDecimals
           )
         }
       </td>
       <td>
         {formatNumberWithLeadingZeros(
           parseFloat(item.order.amount), 
-          3
+          3,
+          quoteTokenDecimals
           )
         }
       </td>

@@ -32,12 +32,27 @@ export default function AskBook({ num }) {
         {/*parseFloat(item.price).toFixed(Math.min(4, quoteTokenDecimals))*/}
         {formatNumberWithLeadingZeros(
           parseFloat(item.price), 
-          3
+          3,
+          quoteTokenDecimals
           )
         }
       </td>
-      <td>{`${parseFloat(item.contract.amount).toFixed(Math.min(4, baseTokenDecimals))} ${item.contract.ticker}`}</td>
-      <td>{`${parseFloat(item.order.amount).toFixed(Math.min(4, quoteTokenDecimals))} ${item.order.ticker}`}</td>
+      <td>
+        {formatNumberWithLeadingZeros(
+          parseFloat(item.contract.amount), 
+          3,
+          baseTokenDecimals
+          )
+        }
+      </td>
+      <td>
+        {formatNumberWithLeadingZeros(
+          parseFloat(item.order.amount), 
+          3,
+          quoteTokenDecimals
+          )
+        }
+      </td>
     </OrderbookTableRow>
     ));
   };

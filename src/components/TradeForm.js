@@ -24,6 +24,7 @@ import {
   executeOrder,
 } from 'actions/placeOrder';
 import { setOrder } from 'actions/actionCreators';
+import { formatNumberWithLeadingZeros } from 'actions/formatNumber';
 
 export default function TradeForm() {
   const dispatch = useDispatch();
@@ -32,6 +33,8 @@ export default function TradeForm() {
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const baseTokenAddress = useSelector((state) => state.ui.market.marketPairs.baseTokenAddress);
   const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
+  const quoteTokenDecimals = useSelector((state) => state.ui.market.marketPairs.quoteTokenDecimals);
+  const baseTokenDecimals = useSelector((state) => state.ui.market.marketPairs.baseTokenDecimals);
   const orderInQuestion = useSelector((state) => state.ui.market.orderInQuestion);
   const orderMethod = orderInQuestion.orderMethod;
   //const [orderType, setOrderType] = useState('bid');
@@ -161,10 +164,21 @@ export default function TradeForm() {
   };
 
   function renderAmountField() {
-    if (orderMethod === 'execute' && orderInQuestion.type === 'ask') {
-      return (orderInQuestion.amount + ' ' + quoteToken);
-    } else if (orderMethod === 'execute' && orderInQuestion.type === 'bid') {
-      return (orderInQuestion.amount + ' ' + quoteToken);
+    if (
+      (orderMethod === 'execute' && orderInQuestion.type === 'ask') || (orderMethod === 'execute' && orderInQuestion.type === 'bid')
+    ) {
+      return (
+        <>
+          {formatNumberWithLeadingZeros(
+            parseFloat(orderInQuestion.amount), 
+            3,
+            quoteTokenDecimals
+            )
+          }{' '} 
+          {quoteToken}
+        </>
+        //orderInQuestion.price + ' ' + quoteToken
+      );
     } else {
       return (
         <TextField
@@ -182,10 +196,23 @@ export default function TradeForm() {
   }
 
   function renderPriceField() {
-    if (orderMethod === 'execute' && orderInQuestion.type === 'ask') {
-      return (orderInQuestion.price + ' ' + quoteToken);
-    } else if (orderMethod === 'execute' && orderInQuestion.type === 'bid') {
-      return (orderInQuestion.price + ' ' + quoteToken);
+    if (
+      (orderMethod === 'execute' && orderInQuestion.type === 'ask') || (orderMethod === 'execute' && orderInQuestion.type === 'bid')
+    ) {
+      return (
+        <>
+          {formatNumberWithLeadingZeros(
+            parseFloat(orderInQuestion.price), 
+            3,
+            quoteTokenDecimals
+            )
+          }{' '} 
+          {quoteToken}
+        </>
+        //orderInQuestion.price + ' ' + quoteToken
+      );
+    //} else if (orderMethod === 'execute' && orderInQuestion.type === 'bid') {
+    //  return (orderInQuestion.price + ' ' + quoteToken);
     } else {
       return (
         <TextField

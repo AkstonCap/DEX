@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux';
 import { FieldSet } from 'nexus-module';
 import { OrderTable, MyTradeTableRow } from './styles';
+import { formatNumberWithLeadingZeros } from '../actions/formatNumber';
 
 export default function PersonalTradeHistory() {
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
@@ -53,9 +54,21 @@ export default function PersonalTradeHistory() {
 
       return (
         <MyTradeTableRow key={index} orderType={trade.type}>
-          <td>{parseFloat(trade.price).toFixed(Math.min(4, quoteTokenDecimals))}</td>
           <td>
-            {parseFloat(trade.contract.amount).toFixed(Math.min(4, contractDecimals))} {trade.contract.ticker}
+            {formatNumberWithLeadingZeros(
+              parseFloat(trade.price), 
+              3,
+              quoteTokenDecimals
+              )
+            }
+          </td>
+          <td>
+            {formatNumberWithLeadingZeros(
+              parseFloat(trade.contract.amount), 
+              3,
+              contractDecimals
+              )
+            } {trade.contract.ticker}
           </td>
           <td>{new Date(trade.timestamp * 1000).toLocaleString()}</td>
         </MyTradeTableRow>

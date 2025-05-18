@@ -6,6 +6,7 @@ import { MyOrdersTable,
   OrderbookTableHeader 
 } from './styles';
 import DeleteButton from './DeleteButton';
+import { formatNumberWithLeadingZeros } from '../actions/formatNumber';
 
 export default function PersonalOpenOrders() {
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
@@ -65,13 +66,28 @@ export default function PersonalOpenOrders() {
       return (
         <MyOrdersTableRow key={index} orderType={order.type}>
           <td>
-            {parseFloat(order.price).toFixed(Math.min(4, quoteTokenDecimals))}
+            {formatNumberWithLeadingZeros(
+              parseFloat(order.price), 
+              3,
+              quoteTokenDecimals
+              )
+            }
           </td>
           <td>
-            {parseFloat(order.contract.amount).toFixed(Math.min(4, contractDecimals))} {order.contract.ticker}
+            {formatNumberWithLeadingZeros(
+              parseFloat(order.contract.amount), 
+              3,
+              contractDecimals
+              )
+            } {order.contract.ticker}
           </td>
           <td>
-            {parseFloat(order.order.amount).toFixed(Math.min(4, orderDecimals))} {order.order.ticker}
+            {formatNumberWithLeadingZeros(
+              parseFloat(order.order.amount), 
+              3,
+              orderDecimals
+              )
+            } {order.order.ticker}
           </td>
           <td>{new Date(order.timestamp * 1000).toLocaleString()}</td>
           <td><DeleteButton txid={order.txid} /></td>

@@ -255,9 +255,24 @@ export default function Markets() {
           3
           )
         }
+        {' NXS'}
       </td>
-      <td>{`${parseFloat(item.volume).toFixed(3)} NXS`}</td>
-      <td>{`${parseFloat(item.mCap).toFixed(3)} NXS`}</td>
+      <td>
+        {formatNumberWithLeadingZeros(
+          parseFloat(item.volume), 
+          3
+          )
+        }
+        {' NXS'}
+      </td>
+      <td>
+        {formatNumberWithLeadingZeros(
+          parseFloat(item.mCap), 
+          3
+          )
+        }
+        {' NXS'}
+      </td>
       </OrderbookTableRow>
     )); 
   };
@@ -280,6 +295,7 @@ export default function Markets() {
           3
           )
         }
+        {' NXS'}
       </td>
       <td>
         {formatNumberWithLeadingZeros(
@@ -287,6 +303,7 @@ export default function Markets() {
           3
           )
         }
+        {' NXS'}
       </td>
       <td>
         {formatNumberWithLeadingZeros(
@@ -294,10 +311,32 @@ export default function Markets() {
           3
           )
         }
+        {' NXS'}
       </td>
-      <td>{`${parseFloat(item.volume).toFixed(3)} NXS`}</td>
-      <td>{`${parseFloat(item.mCap).toFixed(3)} NXS`}</td>
-      <td>{`${parseFloat(item.dilutedMcap).toFixed(3)} NXS`}</td>
+      <td>
+        {formatNumberWithLeadingZeros(
+          parseFloat(item.volume), 
+          3
+          )
+        }
+        {' NXS'}
+      </td>
+      <td>
+        {formatNumberWithLeadingZeros(
+          parseFloat(item.mCap), 
+          3
+          )
+        }
+        {' NXS'}
+      </td>
+      <td>
+        {formatNumberWithLeadingZeros(
+          parseFloat(item.dilutedMcap), 
+          3
+          )
+        }
+        {' NXS'}
+      </td>
       </OrderbookTableRow>
     )); 
   };

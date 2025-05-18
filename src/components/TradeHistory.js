@@ -49,17 +49,6 @@ export default function TradeHistory({num}) {
     return 3; // default/fallback
   }
 
-  // Adjust 'asks' so that order.amount matches contract.amount
-  /*asks.forEach((element) => {
-    //element.order.amount = element.contract.amount;
-    element.baseAmount = element.contract.amount;
-    element.quoteAmount = element.order.amount;
-  });
-  bids.forEach((element) => {
-    element.baseAmount = element.order.amount;
-    element.quoteAmount = element.contract.amount;
-  });*/
-
   // Merge and sort the executed orders
   const sortedExecutedOrders = [...bids, ...asks].sort(
     (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
@@ -79,16 +68,21 @@ export default function TradeHistory({num}) {
     return (
       <TradeTableRow key={index} orderType={order.type}>
         <td>
-          {/*
-          parseFloat(order.price).toFixed(Math.min(4, quoteTokenDecimals))
-          */}
           {formatNumberWithLeadingZeros(
-              parseFloat(order.price), 
-              3
+            parseFloat(order.price), 
+            3,
+            quoteTokenDecimals
             )
           }
         </td>
-        <td>{parseFloat(order.contract.amount).toFixed(Math.min(4, contractDecimals))} {order.contract.ticker}</td>
+        <td>
+          {formatNumberWithLeadingZeros(
+            parseFloat(order.contract.amount), 
+            3,
+            contractDecimals
+            )
+          } {order.contract.ticker}
+        </td>
         <td>{new Date(order.timestamp*1000).toLocaleString()}</td>
       </TradeTableRow>
     );
