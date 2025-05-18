@@ -1,4 +1,4 @@
-import { 
+/*import { 
   PageLayout, 
   OrderbookTableHeader, 
   OrderbookTableRow, 
@@ -39,7 +39,7 @@ export default function AssetMarkets() {
   }
 
   useEffect(() => {
-    setSearchResults(assetList.filter(asset => asset.address.includes(search)));
+    setSearchResults(assetList?.filter(asset => asset.address.includes(search)));
   } , [search]);
 
   const fetchAssets = async () => {
@@ -60,7 +60,8 @@ export default function AssetMarkets() {
         return [];
         }
       );
-
+*/
+      /*
       const globalNames = await apiCall(
         'register/list/names:global/register,address,name'
       ).catch((error) => {
@@ -77,8 +78,9 @@ export default function AssetMarkets() {
             address: asset.address
           };
         });
-    
-      const assetDataPromises = globalAssetList?.map(
+      */
+/*
+      const assetDataPromises = assets?.map(//globalAssetList?.map(
         async (asset) => {
         
           const [bidsVolume, asksVolume, lastExecuted, bidList, askList] = await Promise.all([
@@ -185,12 +187,12 @@ export default function AssetMarkets() {
 
         });
 
-      globalAssetList = await Promise.all(assetDataPromises);
+      assetList = await Promise.all(assetDataPromises);
       
-      setAssetList(globalAssetList);
-      setSearchResults(globalAssetList);
+      setAssetList(assetList);
+      setSearchResults(assetList);
 
-      const sortedPrice = [...globalAssetList].sort((a, b) => b.lastPrice - a.lastPrice);
+      const sortedPrice = [...assetList].sort((a, b) => b.lastPrice - a.lastPrice);
 
       setTopPriceAssets(sortedPrice.slice(0, 10));
       
@@ -305,3 +307,4 @@ export default function AssetMarkets() {
     </PageLayout>
   );
 }
+*/
