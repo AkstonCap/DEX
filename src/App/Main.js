@@ -139,12 +139,12 @@ export default function Main() {
           >
             Markets
           </HorizontalTab>
-          <HorizontalTab
+          {/*<HorizontalTab
             active={activeTab === 'Assets'}
             onClick={() => handleSwitchTab('Assets')}
           >
             Assets
-          </HorizontalTab>
+          </HorizontalTab>*/}
         </HorizontalTab.TabBar>
       </div>
 
@@ -153,7 +153,7 @@ export default function Main() {
       <div>{activeTab === 'Chart' && <Chart />}</div>
       <div>{activeTab === 'MarketDepth' && <MarketDepth />}</div>
       <div>{activeTab === 'Markets' && <Markets />}</div>
-      <div>{activeTab === 'Assets' && <AssetMarkets />}</div>
+      {/*<div>{activeTab === 'Assets' && <AssetMarkets />}</div>*/}
     </Panel>
   );
 }
