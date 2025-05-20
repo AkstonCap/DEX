@@ -17,9 +17,12 @@ This is a decentralized exchange wallet module for the Nexus Interface built wit
 2. Download [this module's zip file](https://github.com/AkstonCap/DEX/releases/latest).
 3. Unzip the files into your local repository.
 4. Open the terminal and redirect to inside the unzipped folder.
-5. Run <npm install> and <npm run build>.
-6. Open Nexus Wallet, go to Settings/Modules, drag and drop the unzipped folder into the "Add module" section and click "Install module" when prompted (requires that your wallet is in "Developer mode").
-7. After the wallet refreshes, an item for this template module will be added into the bottom navigation bar. Click on it to open the module.
+5. Run
+   "npm install"
+   and then
+   "npm run build"
+7. Open Nexus Wallet, go to Settings/Modules, drag and drop the unzipped folder into the "Add module" section and click "Install module" when prompted (requires that your wallet is in "Developer mode").
+8. After the wallet refreshes, an item for this template module will be added into the bottom navigation bar. Click on it to open the module.
 
 ### Module overview
 
