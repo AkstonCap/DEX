@@ -5,10 +5,10 @@ This is a decentralized exchange wallet module for the Nexus Interface built wit
 ### How to install module
 
 1. Download and install the [latest version of Nexus Wallet](https://github.com/Nexusoft/NexusInterface/releases/latest) if you haven't.
-2. Go to latest verified release of the DEX module (currently v0.2.1 - https://github.com/AkstonCap/DEX/releases/tag/v0.2.1)
-3. Download zip folder "dex_module@0.2.1.zip"
+2. Go to latest verified release of the DEX module (currently v0.2.2 - https://github.com/AkstonCap/DEX/releases/tag/v0.2.2)
+3. Download zip folder "dex_module@0.2.2.zip"
 4. Go to the Nexus Wallet -> Settings -> Modules
-5. Import "dex_module@0.2.1.zip" in the "Add module" box
+5. Import "dex_module@0.2.2.zip" in the "Add module" box
 6. Click "Install module" in pop-up.
 
 ### How to install unverified beta- or official releases of this module (not yet verified by Nexus DAO dev team)
