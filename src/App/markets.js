@@ -190,6 +190,7 @@ export default function Markets() {
       
           return {
             ticker: token.ticker,
+            address: token.token,
             volume: volume,
             lastPrice: lastPrice,
             mCap: supply?.currentsupply * lastPrice,
@@ -288,6 +289,12 @@ export default function Markets() {
       onClick={() => handleClick(item)}
       >
       <td><TickerText>{item.ticker}</TickerText></td>
+      <td>
+        {item.address
+          ? `${item.address.slice(0, 5)}...${item.address.slice(-5)}`
+          : ''
+        }
+      </td>
       <td>
         {/*`${parseFloat(item.lastPrice).toFixed(5)} NXS`*/}
         {formatNumberWithLeadingZeros(
@@ -388,7 +395,8 @@ export default function Markets() {
             <MarketsTableHeader>
               <tr>
                 <th>Token</th>
-                <th>Price</th>
+                <th>Address</th>
+                <th>Last price</th>
                 <th>Bid</th>
                 <th>Ask</th>
                 <th>1yr volume</th>
