@@ -1,6 +1,8 @@
+import market from 'reducers/ui/market';
 import * as TYPE from './types';
 
 export const setMarketPair = (
+  marketPair,
   baseToken, 
   quoteToken, 
   baseTokenMaxsupply, 
@@ -14,7 +16,7 @@ export const setMarketPair = (
 ) => ({
   type: TYPE.SET_MARKET_PAIR,
   payload: {
-    marketPair: `${baseToken}/${quoteToken}`,
+    marketPair,
     baseToken,
     quoteToken,
     baseTokenMaxsupply,
