@@ -1,4 +1,3 @@
-import market from 'reducers/ui/market';
 import * as TYPE from './types';
 
 export const setMarketPair = (
