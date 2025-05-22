@@ -379,7 +379,7 @@ export const WideMarketsTable = styled.table`
   margin-top: 8px;
 
   th:nth-of-type(1) {
-    width: 12%;
+    width: 8%;
   }
 
   th:nth-of-type(2) {
@@ -395,15 +395,19 @@ export const WideMarketsTable = styled.table`
   }
 
   th:nth-of-type(5) {
-    width: 18%;
+    width: 15%;
   }
 
   th:nth-of-type(6) {
-    width: 18%;
+    width: 15%;
   }
 
   th:nth-of-type(7) {
-    width: 18%;
+    width: 15%;
+  }
+
+  th:nth-of-type(8) {
+    width: 15%;
   }
 
   th {
@@ -422,4 +426,42 @@ export const WideMarketsTable = styled.table`
     color: white;
   }
 
+`;
+
+export const AssetWideMarketsTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+
+  th:nth-of-type(1) {
+    width: 20%;
+  }
+  th:nth-of-type(2) {
+    width: 20%;
+  }
+  th:nth-of-type(3) {
+    width: 15%;
+  }
+  th:nth-of-type(4) {
+    width: 15%;
+  }
+  th:nth-of-type(5) {
+    width: 30%;
+  }
+
+  th {
+    padding: 2px;
+    text-align: right;
+    padding-right: 5px;
+    font-size: 18px;
+    color: #6dcefe;
+  }
+
+  td {
+    padding: 2px;
+    text-align: right;
+    padding-right: 8px;
+    font-size: 12px;
+    color: white;
+  }
 `;
