@@ -12,6 +12,7 @@ export const refreshMarket = (baseToken, quoteToken) => async dispatch => {
         : { decimals: 8, currentsupply: 0, maxsupply: 0, address: '0' };
   
       dispatch(setMarketPair(
+        `${baseToken}/${quoteToken}`,
         baseToken,
         quoteToken, 
         baseTokenData.maxsupply,
