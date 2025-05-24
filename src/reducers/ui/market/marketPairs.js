@@ -1,6 +1,7 @@
 import * as TYPE from 'actions/types';
 
 const initialState = {
+  marketPair: 'DIST/NXS',
   baseToken: 'DIST',
   quoteToken: 'NXS',
   marketPair: 'DIST/NXS',
@@ -9,7 +10,7 @@ const initialState = {
   baseTokenCirculatingSupply: 0,
   quoteTokenCirculatingSupply: 0,
   baseTokenDecimals: 0,
-  quoteTokenDecimals: 8,
+  quoteTokenDecimals: 6,
   baseTokenAddress: '8DgWXw9dV9BgVNQpKwNZ3zJRbU8SKxjW4j1v9fn8Yma7HihMjeA',
   quoteTokenAddress: '0',
 };
