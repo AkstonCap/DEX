@@ -4,7 +4,6 @@ const initialState = {
   marketPair: 'DIST/NXS',
   baseToken: 'DIST',
   quoteToken: 'NXS',
-  marketPair: 'DIST/NXS',
   baseTokenMaxsupply: 1e7,
   quoteTokenMaxsupply: 0,
   baseTokenCirculatingSupply: 0,

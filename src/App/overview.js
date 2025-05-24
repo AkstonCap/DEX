@@ -81,6 +81,14 @@ export default function Overview() {
     },*/
   ];
 
+  // Helper to collapse long token names/addresses
+  function formatTokenName(token) {
+    if (typeof token === 'string' && token.length > 20) {
+      return token.slice(0, 4) + '...' + token.slice(-4);
+    }
+    return token;
+  }
+
   // Define updateData function at the component level
   const updateData = (executedOrders, orderBook) => {
     if (
@@ -152,13 +160,11 @@ export default function Overview() {
     <PageLayout>
       <TopRow>
         <div>
-          <FieldSet legend={`${marketPair} overview`}>
-            
+          <FieldSet legend={`${formatTokenName(baseToken)}/${formatTokenName(quoteToken)} overview`}>
             <Line>
               <div>
                 <Label>Last Price:</Label>
                 <Value>
-                  {/*parseFloat(lastPrice).toFixed(Math.min(4, quoteTokenDecimals))*/}
                   {formatNumberWithLeadingZeros(
                   parseFloat(lastPrice), 
                   3,
@@ -176,7 +182,7 @@ export default function Overview() {
                 </Value>
               </div>
               <div>
-                <Label>Volume ({baseToken})</Label>
+                <Label>Volume ({formatTokenName(baseToken)})</Label>
                 <Value>
                   {formatNumberWithLeadingZeros(
                   parseFloat(baseTokenVolume), 
@@ -201,7 +207,7 @@ export default function Overview() {
                 </Value>
               </div>
               <div>
-                <Label>Volume ({quoteToken})</Label>
+                <Label>Volume ({formatTokenName(quoteToken)})</Label>
                 <Value>
                   {formatNumberWithLeadingZeros(
                   parseFloat(quoteTokenVolume), 
@@ -223,17 +229,17 @@ export default function Overview() {
             <div className='mt3'>
               <Line>
                 <div>
-                  <Label>{baseToken} Mcap</Label>
+                  <Label>{formatTokenName(baseToken)} Mcap</Label>
                   <Value>
                     {formatNumberWithLeadingZeros(
                     parseFloat(mcap), 
                     3,
                     quoteTokenDecimals
-                    )} {quoteToken}
+                    )} {formatTokenName(quoteToken)}
                   </Value>
                 </div>
                 <div>
-                  <Label>Circulating Supply {baseToken}</Label>
+                  <Label>Circulating Supply {formatTokenName(baseToken)}</Label>
                   <Value>
                     {formatNumberWithLeadingZeros(
                     parseFloat(baseTokenCirculatingSupply), 
@@ -243,7 +249,7 @@ export default function Overview() {
                   </Value>
                 </div>
                 <div>
-                  <Label>Max Supply {baseToken}</Label>
+                  <Label>Max Supply {formatTokenName(baseToken)}</Label>
                   <Value>
                     {formatNumberWithLeadingZeros(
                     parseFloat(baseTokenMaxsupply), 

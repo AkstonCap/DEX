@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { FieldSet } from 'nexus-module';
 import { setOrder } from 'actions/actionCreators';
-import { OrderTable, OrderbookTableHeader, OrderbookTableRow } from './styles';
+import { OrderTable, OrderbookTableHeader, OrderbookTableRow, formatTokenName } from './styles';
 import { formatNumberWithLeadingZeros } from '../actions/formatNumber';
 
 
@@ -108,9 +108,9 @@ export default function OrderBookComp({ num }) {
             <OrderTable>
               <OrderbookTableHeader>
                 <tr>
-                  <th>Price [{quoteToken}]</th>
-                  <th>Amount [{baseToken}]</th>
-                  <th>Amount [{quoteToken}]</th>
+                  <th>Price [{formatTokenName(quoteToken)}]</th>
+                  <th>Amount [{formatTokenName(baseToken)}]</th>
+                  <th>Amount [{formatTokenName(quoteToken)}]</th>
                 </tr>
               </OrderbookTableHeader>
               <tbody>{renderTableAsks(orderBook.asks)}</tbody>

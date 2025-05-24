@@ -1,4 +1,4 @@
-/*import { 
+import { 
   PageLayout, 
   OrderbookTableHeader, 
   OrderbookTableRow, 
@@ -10,6 +10,7 @@
   SingleColRow,
   WideMarketsTable,
   MarketsTableHeader,
+  AssetWideMarketsTable,
 } from "components/styles";
 import styled from '@emotion/styled';
 import { 
@@ -20,6 +21,7 @@ import {
 } from 'nexus-module';
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { formatNumberWithLeadingZeros } from 'actions/formatNumber';
 
 const SearchField = styled(TextField)({
   maxWidth: 200,
@@ -60,8 +62,8 @@ export default function AssetMarkets() {
         return [];
         }
       );
-*/
-      /*
+
+      
       const globalNames = await apiCall(
         'register/list/names:global/register,address,name'
       ).catch((error) => {
@@ -78,9 +80,9 @@ export default function AssetMarkets() {
             address: asset.address
           };
         });
-      */
-/*
-      const assetDataPromises = assets?.map(//globalAssetList?.map(
+      
+      const assetDataPromises = assets?.map(
+        //globalAssetList?.map(
         async (asset) => {
         
           const [bidsVolume, asksVolume, lastExecuted, bidList, askList] = await Promise.all([
@@ -209,7 +211,7 @@ export default function AssetMarkets() {
     fetchAssets();
 
     // Set up 60 second interval
-    const intervalId = setInterval(fetchAssets, 300000);
+    const intervalId = setInterval(fetchAssets, 60000);
   
     // Cleanup on unmount
     return () => clearInterval(intervalId);
@@ -230,9 +232,9 @@ export default function AssetMarkets() {
       key={index}
       onClick={() => handleClick(item)}
       >
-      <td><TickerText>{item.address}</TickerText></td>
-      <td>{`${parseFloat(item.lastPrice).toFixed(4)} NXS`}</td>
-      <td>{`${parseFloat(item.volume).toFixed(3)} NXS`}</td>
+      <td><TickerText>{item.address ? `${item.address.slice(0, 4)}....${item.address.slice(-4)}` : ''}</TickerText></td>
+      <td>{formatNumberWithLeadingZeros(parseFloat(item.lastPrice), 3)} NXS</td>
+      <td>{formatNumberWithLeadingZeros(parseFloat(item.volume), 3)} NXS</td>
       </OrderbookTableRow>
     )); 
   };
@@ -247,17 +249,11 @@ export default function AssetMarkets() {
       key={index}
       onClick={() => handleClick(item)}
       >
-      <td><TickerText>{item.address}</TickerText></td>
-      <td>
-        {formatNumberWithLeadingZeros(
-          parseFloat(item.lastPrice), 
-          3
-          )
-        }
-      </td>
-      <td>{`${parseFloat(item.bidPrice).toFixed(3)} NXS`}</td>
-      <td>{`${parseFloat(item.askPrice).toFixed(3)} NXS`}</td>
-      <td>{`${parseFloat(item.volume).toFixed(3)} NXS`}</td>
+      <td><TickerText>{item.address ? `${item.address.slice(0, 4)}....${item.address.slice(-4)}` : ''}</TickerText></td>
+      <td>{formatNumberWithLeadingZeros(parseFloat(item.lastPrice), 3)} NXS</td>
+      <td>{formatNumberWithLeadingZeros(parseFloat(item.bid), 3)} NXS</td>
+      <td>{formatNumberWithLeadingZeros(parseFloat(item.ask), 3)} NXS</td>
+      <td>{formatNumberWithLeadingZeros(parseFloat(item.volume), 3)} NXS</td>
       </OrderbookTableRow>
     )); 
   };
@@ -265,7 +261,7 @@ export default function AssetMarkets() {
   return (
     <PageLayout>
       <SingleColRow> 
-          <FieldSet legend="Top 10 assets by Market Cap">
+          <FieldSet legend="Top 10 assets by Last price">
               <MarketsTable>
                 <OrderbookTableHeader>
                   <tr>
@@ -290,7 +286,7 @@ export default function AssetMarkets() {
       </SingleColRow>
       <div className="text-center">
         <FieldSet legend="Assets">
-          <WideMarketsTable>
+          <AssetWideMarketsTable>
             <MarketsTableHeader>
               <tr>
                 <th>Asset</th>
@@ -301,10 +297,9 @@ export default function AssetMarkets() {
               </tr>
             </MarketsTableHeader>
             <tbody>{renderMarketsWide(searchResults)}</tbody>
-          </WideMarketsTable>
+          </AssetWideMarketsTable>
         </FieldSet>
       </div>
     </PageLayout>
   );
 }
-*/

@@ -19,94 +19,87 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
   const [refreshing, setRefreshing] = useState(false);
   const dispatch = useDispatch();
   
+  // Helper to get token attributes by name or address
+  const getTokenAttributes = async (field, isGlobal) => {
+    if (field === 'NXS') {
+      return {
+        decimals: 6,
+        currentsupply: 0,
+        maxsupply: 0,
+        address: '0'
+      };
+    }
+    try {
+      if (isGlobal) {
+        return await apiCall('register/get/finance:token/decimals,currentsupply,maxsupply,address', { name: field });
+      } else {
+        return await apiCall('register/get/finance:token/decimals,currentsupply,maxsupply,address', { address: field });
+      }
+    } catch (error) {
+      dispatch(showErrorDialog({
+        message: `Cannot get token attributes for ${field}`,
+        note: error?.message || 'Unknown error',
+      }));
+      return null;
+    }
+  };
+
+  // Helper to check if token exists (global or non-global)
+  const checkToken = async (field) => {
+    if (field === 'NXS') return { exists: true, isGlobal: true };
+    try {
+      const globalCheck = await apiCall('register/get/finance:token', { name: field });
+      if (globalCheck.address) return { exists: true, isGlobal: true };
+    } catch {}
+    try {
+      const nonGlobalCheck = await apiCall('register/get/finance:token', { address: field });
+      if (nonGlobalCheck.address) return { exists: true, isGlobal: false };
+    } catch {}
+    return { exists: false, isGlobal: false };
+  };
+
   const refreshMarket = async () => {
     if (refreshing) return;
     setRefreshing(true);
     try {
       
-      let baseTokenAttributes;
-      let quoteTokenAttributes;
-      let baseTokenExist;
-      let quoteTokenExist;
-      
-      // Check token attributes if not NXS, and if existing with global name
-      if ( baseTokenField !== 'NXS' ) {
-        
-        baseTokenAttributes = await apiCall(
-          'register/get/finance:token/decimals,currentsupply,maxsupply,address', 
-          { name: baseTokenField }
-        ).catch((error) => {
-          baseTokenExist = false;
-          dispatch(showErrorDialog({
-            message: 'Cannot get base token attributes from apiCall',
-            note: error?.message || 'Unknown error',
-          }));
-        });
+      // Check base token
+      const baseStatus = await checkToken(baseTokenField);
+      // Check quote token
+      const quoteStatus = await checkToken(quoteTokenField);
 
-        if (baseTokenExist !== false) {
-          baseTokenExist = true;
-        } 
-
-      } else if (baseTokenField === 'NXS') {
-        baseTokenExist = true;
-        baseTokenAttributes = {
-          decimals: 8,
-          currentsupply: 0,
-          maxsupply: 0,
-          address: '0'
-        }
-      } else {
-        baseTokenExist = false;
+      if (!baseStatus.exists || !quoteStatus.exists) {
+        setRefreshing(false);
+        return;
       }
 
-      if ( quoteTokenField !== 'NXS' ) {
-        quoteTokenAttributes = await apiCall(
-          'register/get/finance:token/decimals,currentsupply,maxsupply,address', 
-          { name: quoteTokenField }
-        ).catch((error) => {
-          quoteTokenExist = false;
-          dispatch(showErrorDialog({
-            message: 'Cannot get quote token attributes from apiCall',
-            note: error?.message || 'Unknown error',
-          }));
-          }
-        );
+      // Get attributes
+      const baseTokenAttributes = await getTokenAttributes(baseTokenField, baseStatus.isGlobal);
+      const quoteTokenAttributes = await getTokenAttributes(quoteTokenField, quoteStatus.isGlobal);
 
-        if (quoteTokenExist !== false) {
-          quoteTokenExist = true;
-        }
-
-      } else if (quoteTokenField === 'NXS') {
-        quoteTokenExist = true;
-        quoteTokenAttributes = {
-          decimals: 8,
-          currentsupply: 0,
-          maxsupply: 0,
-          address: '0'
-        }
-      } else {
-        quoteTokenExist = false;
-      }
-
-      // Set the market pair if tokens exists
-      if (baseTokenExist === true && quoteTokenExist === true) {
-
-        dispatch(setMarketPair(
-          baseTokenField, 
-          quoteTokenField, 
-          baseTokenAttributes.maxsupply, 
-          quoteTokenAttributes.maxsupply, 
-          baseTokenAttributes.currentsupply,
-          quoteTokenAttributes.currentsupply,
-          baseTokenAttributes.decimals,
-          quoteTokenAttributes.decimals,
-          baseTokenAttributes.address,
-          quoteTokenAttributes.address
-        ));
-
-        await dispatch(fetchMarketData())
+      if (!baseTokenAttributes || !quoteTokenAttributes) {
+        setRefreshing(false);
+        return;
       }
       
+      // Set the market pair
+      const marketPair = `${baseTokenField}/${quoteTokenField}`;
+      dispatch(setMarketPair(
+        marketPair,
+        baseTokenField,
+        quoteTokenField,
+        baseTokenAttributes.maxsupply,
+        quoteTokenAttributes.maxsupply,
+        baseTokenAttributes.currentsupply,
+        quoteTokenAttributes.currentsupply,
+        baseTokenAttributes.decimals,
+        quoteTokenAttributes.decimals,
+        baseTokenAttributes.address,
+        quoteTokenAttributes.address
+      ));
+
+      await dispatch(fetchMarketData());
+
     } finally {
       setRefreshing(false);
     }

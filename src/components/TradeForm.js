@@ -17,6 +17,7 @@ import {
   MarketFillButton, 
   TradeFormContainer,
   SubmitButton,
+  formatTokenName,
 } from './styles';
 import { 
   createOrder, 
@@ -175,7 +176,7 @@ export default function TradeForm() {
             quoteTokenDecimals
             )
           }{' '} 
-          {quoteToken}
+          {formatTokenName(quoteToken)}
         </>
         //orderInQuestion.price + ' ' + quoteToken
       );
@@ -183,7 +184,7 @@ export default function TradeForm() {
       return (
         <TextField
           type="number"
-          step="0.0001"
+          step="0.00001"
           value={quoteAmount}
           onChange={(e) => {
             setQuoteAmount(e.target.value);
@@ -207,7 +208,7 @@ export default function TradeForm() {
             quoteTokenDecimals
             )
           }{' '} 
-          {quoteToken}
+          {formatTokenName(quoteToken)}
         </>
         //orderInQuestion.price + ' ' + quoteToken
       );
@@ -278,17 +279,17 @@ export default function TradeForm() {
           </FormField>
           <TradeFormContainer> 
             <FormField
-              label={('Price (' + quoteToken + ' per ' + baseToken + ')')}>
+              label={('Price (' + formatTokenName(quoteToken) + ' per ' + formatTokenName(baseToken) + ')')}>
               {renderPriceField()}
             </FormField>
             <FormField
               orderMethod={orderMethod}
-              label={('Amount ' + quoteToken)}>
+              label={('Amount ' + formatTokenName(quoteToken))}>
               {renderAmountField()}
             </FormField>
           </TradeFormContainer>
           <TradeFormContainer>
-            <FormField label={('Payment Account ' + payToken)}>
+            <FormField label={('Payment Account ' + formatTokenName(payToken))}>
               <Select
                 value={fromAccount}
                 onChange={(val) => setFromAccount(val)}
@@ -296,7 +297,7 @@ export default function TradeForm() {
               />
             </FormField>
 
-            <FormField label={('Receiving Account ' + receiveToken)}>
+            <FormField label={('Receiving Account ' + formatTokenName(receiveToken))}>
               <Select
                 value={toAccount}
                 onChange={(option) => setToAccount(option)}

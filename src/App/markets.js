@@ -79,7 +79,8 @@ export default function Markets() {
           const globalName = globalNames.find(name => name.register === token.token);
           return {
             name: globalName?.name || '',
-            ticker: token.ticker
+            ticker: token.ticker,
+            address: token.token,
           };
         });
     
@@ -190,6 +191,7 @@ export default function Markets() {
       
           return {
             ticker: token.ticker,
+            address: token.address,
             volume: volume,
             lastPrice: lastPrice,
             mCap: supply?.currentsupply * lastPrice,
@@ -234,7 +236,7 @@ export default function Markets() {
   const handleClick = (item) => {
     // set market pair as item.ticker + '/NXS'
     //dispatch(setMarketPair());
-    RefreshButton(item.ticker, 'NXS');
+    //RefreshButton(item.ticker, 'NXS');
   };
   
   const renderMarkets = (data) => {
@@ -249,7 +251,6 @@ export default function Markets() {
       >
       <td><TickerText>{item.ticker}</TickerText></td>
       <td>
-        {/*`${parseFloat(item.lastPrice).toFixed(4)} NXS`*/}
         {formatNumberWithLeadingZeros(
           parseFloat(item.lastPrice), 
           3
@@ -288,6 +289,12 @@ export default function Markets() {
       onClick={() => handleClick(item)}
       >
       <td><TickerText>{item.ticker}</TickerText></td>
+      <td>
+        {item.address
+          ? `${item.address.slice(0, 4)}...${item.address.slice(-4)}`
+          : ''
+        }
+      </td>
       <td>
         {/*`${parseFloat(item.lastPrice).toFixed(5)} NXS`*/}
         {formatNumberWithLeadingZeros(
@@ -388,7 +395,8 @@ export default function Markets() {
             <MarketsTableHeader>
               <tr>
                 <th>Token</th>
-                <th>Price</th>
+                <th>Register</th>
+                <th>Last price</th>
                 <th>Bid</th>
                 <th>Ask</th>
                 <th>1yr volume</th>
