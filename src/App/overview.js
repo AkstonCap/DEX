@@ -25,6 +25,7 @@ import PersonalTradeHistory from 'components/PersonalTradeHistory';
 //import 'components/layout.css';
 import PersonalOpenOrders from 'components/PersonalOpenOrders';
 import { formatNumberWithLeadingZeros } from 'actions/formatNumber';
+import HoldersList from 'components/HoldersList';
 
 export default function Overview() {
   const dispatch = useDispatch();
@@ -264,11 +265,12 @@ export default function Overview() {
         </div>
         <OrderBookComp num={6} />
       </TopRow>
-      <BottomRow>
+      <TopRow>
         <TradeHistory num={10} />
         <PersonalTradeHistory />
         <PersonalOpenOrders />
-      </BottomRow>
+        <HoldersList />
+      </TopRow>
     </PageLayout>
   );
 }
