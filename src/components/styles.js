@@ -22,7 +22,7 @@ export const PageLayout = styled.div`
 
 export const DualColRow = styled.div`
   display: grid;
-  grid-template-columns: 49% 49%;
+  grid-template-columns: 49.5% 49.5%;
   gap: 10px;
   overflow: auto;
 `;
@@ -171,19 +171,23 @@ export const MarketsTable = styled.table`
   margin-top: 8px;
 
   th:nth-of-type(1) {
-    width: 24%;
+    width: 15%;
   }
 
   th:nth-of-type(2) {
-    width: 24%;
+    width: 15%;
   }
 
   th:nth-of-type(3) {
-    width: 24%;
+    width: 23%;
   }
 
   th:nth-of-type(4) {
-    width: 24%;
+    width: 23%;
+  }
+
+  th:nth-of-type(5) {
+    width: 23%;
   }
 
   th {
@@ -379,23 +383,23 @@ export const WideMarketsTable = styled.table`
   margin-top: 8px;
 
   th:nth-of-type(1) {
-    width: 8%;
+    width: 9%;
   }
 
   th:nth-of-type(2) {
-    width: 12%;
+    width: 10%;
   }
 
   th:nth-of-type(3) {
-    width: 10%;
+    width: 11%;
   }
 
   th:nth-of-type(4) {
-    width: 10%;
+    width: 11%;
   }
 
   th:nth-of-type(5) {
-    width: 15%;
+    width: 11%;
   }
 
   th:nth-of-type(6) {
@@ -403,11 +407,11 @@ export const WideMarketsTable = styled.table`
   }
 
   th:nth-of-type(7) {
-    width: 15%;
+    width: 14%;
   }
 
   th:nth-of-type(8) {
-    width: 15%;
+    width: 17%;
   }
 
   th {
