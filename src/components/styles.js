@@ -465,3 +465,10 @@ export const AssetWideMarketsTable = styled.table`
     color: white;
   }
 `;
+
+export function formatTokenName(token) {
+    if (typeof token === 'string' && token.length > 20) {
+      return token.slice(0, 4) + '...' + token.slice(-4);
+    }
+    return token;
+}
