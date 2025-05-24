@@ -251,6 +251,12 @@ export default function Markets() {
       >
       <td><TickerText>{item.ticker}</TickerText></td>
       <td>
+        {item.address
+          ? `${item.address.slice(0, 3)}..${item.address.slice(-3)}`
+          : ''
+        }
+      </td>
+      <td>
         {formatNumberWithLeadingZeros(
           parseFloat(item.lastPrice), 
           3
@@ -291,7 +297,7 @@ export default function Markets() {
       <td><TickerText>{item.ticker}</TickerText></td>
       <td>
         {item.address
-          ? `${item.address.slice(0, 4)}...${item.address.slice(-4)}`
+          ? `${item.address.slice(0, 5)}...${item.address.slice(-5)}`
           : ''
         }
       </td>
@@ -355,8 +361,9 @@ export default function Markets() {
             <MarketsTable>
               <OrderbookTableHeader>
                 <tr>
-                  <th>Token</th>
-                  <th>Price</th>
+                  <th>Ticker</th>
+                  <th>Register</th>
+                  <th>Last Price</th>
                   <th>1yr volume</th>
                   <th>Market cap </th>
                 </tr>
@@ -368,8 +375,9 @@ export default function Markets() {
               <MarketsTable>
                 <OrderbookTableHeader>
                   <tr>
-                    <th>Token</th>
-                    <th>Price</th>
+                    <th>Ticker</th>
+                    <th>Register</th>
+                    <th>Last Price</th>
                     <th>1yr volume</th>
                     <th>Market Cap </th>
                   </tr>
@@ -394,7 +402,7 @@ export default function Markets() {
           <WideMarketsTable>
             <MarketsTableHeader>
               <tr>
-                <th>Token</th>
+                <th>Ticker</th>
                 <th>Register</th>
                 <th>Last price</th>
                 <th>Bid</th>
