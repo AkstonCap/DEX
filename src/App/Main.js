@@ -13,6 +13,7 @@ import Trade from './trade';
 import Chart from './chart';
 import MarketDepth from './marketDepth';
 import Markets from './markets';
+import Portfolio from './portfolio';
 
 import { switchTab, setMarketPair } from 'actions/actionCreators';
 import RefreshButton from './RefreshButton';
@@ -112,7 +113,7 @@ export default function Main() {
             active={activeTab === 'Overview'}
             onClick={() => handleSwitchTab('Overview')}
           >
-            Overview
+            Token Overview
           </HorizontalTab>
           <HorizontalTab
             active={activeTab === 'Trade'}
@@ -124,7 +125,7 @@ export default function Main() {
             active={activeTab === 'Chart'}
             onClick={() => handleSwitchTab('Chart')}
           >
-            History and Chart
+            History & Chart
           </HorizontalTab>
           <HorizontalTab
             active={activeTab === 'MarketDepth'}
@@ -138,6 +139,12 @@ export default function Main() {
           >
             Markets
           </HorizontalTab>
+          <HorizontalTab
+            active={activeTab === 'Portfolio'}
+            onClick={() => handleSwitchTab('Portfolio')}
+          >
+            Portfolio
+          </HorizontalTab>
         </HorizontalTab.TabBar>
       </div>
 
@@ -146,6 +153,7 @@ export default function Main() {
       <div>{activeTab === 'Chart' && <Chart />}</div>
       <div>{activeTab === 'MarketDepth' && <MarketDepth />}</div>
       <div>{activeTab === 'Markets' && <Markets />}</div>
+      <div>{activeTab === 'Portfolio' && <Portfolio />}</div>
     </Panel>
   );
 }
