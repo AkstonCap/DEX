@@ -1,6 +1,5 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { FieldSet, apiCall } from 'nexus-module';
-import { setOrder } from 'actions/actionCreators';
 import { OrderTable, OrderbookTableHeader, OrderbookTableRow, formatTokenName } from './styles';
 import { formatNumberWithLeadingZeros } from '../actions/formatNumber';
 import { useEffect, useState } from 'react';
