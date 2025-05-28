@@ -1,6 +1,6 @@
 {
   "name": "dex_module",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "DEX module",
   "devDependencies": {
     "@babel/core": "^7.24.9",
