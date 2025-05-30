@@ -5,6 +5,8 @@ import {
   BottomRow,
   TradeBottomRow, 
 } from 'components/styles';
+import { useDispatch } from 'react-redux';
+import { setMarketPair, switchTab } from 'actions/actionCreators';
 
 import { apiCall, FieldSet } from 'nexus-module';
 
@@ -14,6 +16,7 @@ import { formatNumberWithLeadingZeros } from 'actions/formatNumber';
 export default function Portfolio() {
   //const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
   const [tokenList, setTokenList] = useState([]);
+  const dispatch = useDispatch();
 
   // Fetch tokens and their NXS value
   const fetchTokens = async () => {
@@ -86,6 +89,54 @@ export default function Portfolio() {
     fetchTokens();
   }, []);
 
+  const handleTokenClick = async (token) => {
+    
+    if (token.ticker === 'NXS') {
+      return;
+    } else {
+
+      let global = false;
+
+      const globalCheck = await apiCall('register/get/finance:token', {
+          name: token.ticker
+          }
+        ).catch(
+          () => false
+      );
+      if (globalCheck && globalCheck?.ticker === token.ticker) {
+        global = true;
+      } else {
+        return;
+      }
+
+      const tokenData = await apiCall(
+        'register/get/finance:token/token,ticker,maxsupply,currentsupply,decimals',
+        {
+          address: token.address,
+        }
+      ).catch(() => ({
+        ticker: '', address: token.address, maxsupply: 0, currentsupply: 0, decimals: 0
+      }));
+    
+      dispatch(setMarketPair(
+        (global === true) 
+          ? token.ticker + '/NXS'
+          : token.address + '/NXS',
+        '',
+        'NXS',
+        tokenData.maxsupply,
+        0,
+        tokenData.currentsupply,
+        0,
+        tokenData.decimals,
+        6,
+        token.address,
+        '0'
+      ));
+      dispatch(switchTab('Overview'));
+    }
+  };
+
   // Calculate total NXS value
   const totalNxsValue = tokenList.reduce((sum, token) => sum + (token.nxsValue || 0), 0);
 
@@ -109,7 +160,11 @@ export default function Portfolio() {
                   .filter(token => token.ticker !== 'NXS')
                   .sort((a, b) => (b.nxsValue || 0) - (a.nxsValue || 0))
               ].map((token, idx) => (
-                <tr key={idx} style={{ borderBottom: '1px solid #232837' }}>
+                <tr
+                  key={idx}
+                  style={{ borderBottom: '1px solid #232837', cursor: 'pointer' }}
+                  onClick={() => handleTokenClick(token)}
+                >
                   <td style={
                     token.ticker === 'NXS'
                       ? {
