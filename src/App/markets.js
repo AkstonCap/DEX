@@ -28,6 +28,21 @@ const SearchField = styled(TextField)({
   maxWidth: 200,
 });
 
+const ResponsiveDualColRow = styled(DualColRow)`
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  @media (max-width: 1300px) {
+    flex-direction: column;
+    gap: 32px;
+    align-items: stretch;
+  }
+  & > * {
+    min-width: 340px;
+    flex: 1 1 0;
+  }
+`;
+
 export default function Markets() {
   
   const dispatch = useDispatch();
@@ -397,7 +412,7 @@ export default function Markets() {
 
   return (
     <PageLayout>
-      <DualColRow> 
+      <ResponsiveDualColRow> 
           <FieldSet legend="Top 10 by volume">
             <MarketsTable>
               <OrderbookTableHeader>
@@ -426,7 +441,7 @@ export default function Markets() {
                 <tbody>{renderMarkets(topMarketCapMarkets)}</tbody>
               </MarketsTable>
           </FieldSet>
-      </DualColRow>
+      </ResponsiveDualColRow>
       <SingleColRow>
         <SearchField
           label="Search"
