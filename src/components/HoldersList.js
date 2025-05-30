@@ -8,6 +8,7 @@ export default function HoldersList({ num }) {
   const dispatch = useDispatch();
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const baseTokenDecimals = useSelector((state) => state.ui.market.marketPairs.baseTokenDecimals);
+  const circulatingSupply = useSelector((state) => state.ui.market.marketPairs.baseTokenCirculatingSupply);
   const baseTokenAddress = useSelector((state) => state.ui.market.marketPairs.baseTokenAddress);
   const [holders, setHolders] = useState([]);
   const string = 'results.address=' + baseTokenAddress;
@@ -15,17 +16,29 @@ export default function HoldersList({ num }) {
   useEffect(() => {
     let isMounted = true;
     apiCall(
-      'register/list/finance:account/token,address,balance',
-      { where: string }
-    )
-      .then((data) => {
-        if (isMounted) setHolders(Array.isArray(data) ? data : []);
+      'register/list/finance:accounts/token,address,balance', 
+      { 
+        limit: 1000, 
+        sort: 'balance', 
+        order: 'desc', 
+        //string 
+      }
+    ).then((data) => {
+        const filteredData = data?.filter(item => item.token === baseTokenAddress);
+        // Calculate percentage of circulating supply
+        const withPercent = filteredData?.map(item => ({
+          ...item,
+          percentageCirculatingSupply: circulatingSupply
+            ? (parseFloat(item.balance) / parseFloat(circulatingSupply)) * 100
+            : 0
+        }));
+        if (isMounted) setHolders(Array.isArray(withPercent) ? withPercent : []);
       })
       .catch(() => {
         if (isMounted) setHolders([]);
       });
     return () => { isMounted = false; };
-  }, [baseTokenAddress, string]);
+  }, [baseTokenAddress, circulatingSupply]);
 
   const renderHolders = (data) => {
     if (!Array.isArray(data)) {
@@ -37,7 +50,7 @@ export default function HoldersList({ num }) {
         <td>{formatTokenName(item.address)}</td>
         <td>{formatNumberWithLeadingZeros(
           parseFloat(item.balance),
-          3,
+          3, 
           baseTokenDecimals
         )}</td>
         <td>{formatNumberWithLeadingZeros(
