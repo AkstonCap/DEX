@@ -15,34 +15,37 @@ export default function HoldersList({ num }) {
 
   useEffect(() => {
     let isMounted = true;
-    apiCall(
-      'register/list/finance:accounts/token,address,balance', 
-      { 
-        limit: 1000, 
-        sort: 'balance', 
-        order: 'desc', 
-        //string 
-      }
-    ).then((data) => {
-        const filteredData = data?.filter(item => item.token === baseTokenAddress);
-        // Calculate percentage of circulating supply
-        const withPercent = filteredData?.map(item => ({
-          ...item,
-          percentageCirculatingSupply: circulatingSupply
-            ? (parseFloat(item.balance) / parseFloat(circulatingSupply)) * 100
-            : 0
-        }));
-        if (isMounted) setHolders(Array.isArray(withPercent) ? withPercent : []);
-      })
-      .catch(() => {
-        if (isMounted) setHolders([]);
-      });
+    const fetchHolders = async () => {
+      await apiCall(
+        'register/list/finance:accounts/token,address,balance', 
+        { 
+          limit: 1000, 
+          sort: 'balance', 
+          order: 'desc', 
+        }
+      ).then((data) => {
+          const filteredData = data?.filter(item => 
+            item.token === baseTokenAddress && parseFloat(item.balance) > 0);
+          // Calculate percentage of circulating supply
+          const withPercent = filteredData?.map(item => ({
+            ...item,
+            percentageCirculatingSupply: circulatingSupply
+              ? (parseFloat(item.balance) / parseFloat(circulatingSupply)) * 100
+              : 0
+          }));
+          if (isMounted) setHolders(Array.isArray(withPercent) ? withPercent : []);
+        })
+        .catch(() => {
+          if (isMounted) setHolders([]);
+        });
+    };
+    fetchHolders();
     return () => { isMounted = false; };
   }, [baseTokenAddress, circulatingSupply]);
 
   const renderHolders = (data) => {
     if (!Array.isArray(data)) {
-      return null;
+      return 'No holders';
     }
     const len = data.length;
     return data.slice(0, Math.min(num, len)).map((item, index) => (
