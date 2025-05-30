@@ -69,8 +69,9 @@ export default function Portfolio() {
             nxsValue = 0;
           }
         } else {
-          const trust = await apiCall('finance/list/trust/balance/sum');
-          nxsValue = token.balance + trust.balance;
+          const trustBalance = await apiCall('finance/list/trust/balance/sum');
+          const trustStake = await apiCall('finance/list/trust/stake/sum');
+          nxsValue = token.balance + trustBalance.balance + trustStake.stake;
           lastPrice = 1;
         }
         return { ...token, nxsValue, lastPrice };
@@ -96,7 +97,7 @@ export default function Portfolio() {
             <thead>
               <tr style={{ background: '#232837', color: '#fff' }}>
                 <th style={{ padding: '10px 8px', textAlign: 'left' }}>Token</th>
-                <th style={{ padding: '10px 8px', textAlign: 'right' }}>Last Price</th>
+                <th style={{ padding: '10px 8px', textAlign: 'right' }}>Last Price [NXS]</th>
                 <th style={{ padding: '10px 8px', textAlign: 'right' }}>Balance</th>
                 <th style={{ padding: '10px 8px', textAlign: 'right' }}>Value [NXS]</th>
               </tr>
@@ -151,22 +152,26 @@ export default function Portfolio() {
             </tbody>
           </table>
         </FieldSet>
-        <div style={{
-          marginTop: '18px',
-          background: '#232837',
-          color: '#fff',
-          borderRadius: '8px',
-          padding: '18px 24px',
-          fontSize: '1.25rem',
-          fontWeight: 700,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-          textAlign: 'right',
-          maxWidth: 520,
-          marginLeft: 'auto',
-        }}>
-          Total Portfolio Value: <span style={{ color: '#00e6d8' }}>{totalNxsValue.toFixed(6)} NXS</span>
-        </div>
       </TopRow>
+      <div style={{
+        marginTop: '18px',
+        background: '#232837',
+        color: '#fff',
+        borderRadius: '8px',
+        padding: '18px 24px',
+        fontSize: '1.25rem',
+        fontWeight: 700,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+        textAlign: 'center',
+        minWidth: 500,
+        maxWidth: 700,
+        maxHeight: 100,
+        overflowY: 'auto',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+      }}>
+        Total Portfolio Value: <span style={{ color: '#00e6d8' }}>{totalNxsValue.toFixed(6)} NXS</span>
+      </div>
     </PageLayout>
   );
 }
