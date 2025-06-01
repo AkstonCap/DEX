@@ -5,6 +5,8 @@ import {
   BottomRow,
   TradeBottomRow, 
 } from 'components/styles';
+import { useDispatch } from 'react-redux';
+import { setMarketPair, switchTab } from 'actions/actionCreators';
 
 import { apiCall, FieldSet } from 'nexus-module';
 
@@ -14,6 +16,7 @@ import { formatNumberWithLeadingZeros } from 'actions/formatNumber';
 export default function Portfolio() {
   //const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
   const [tokenList, setTokenList] = useState([]);
+  const dispatch = useDispatch();
 
   // Fetch tokens and their NXS value
   const fetchTokens = async () => {
@@ -69,8 +72,9 @@ export default function Portfolio() {
             nxsValue = 0;
           }
         } else {
-          const trust = await apiCall('finance/list/trust/balance/sum');
-          nxsValue = token.balance + trust.balance;
+          const trustBalance = await apiCall('finance/list/trust/balance/sum');
+          const trustStake = await apiCall('finance/list/trust/stake/sum');
+          nxsValue = token.balance + trustBalance.balance + trustStake.stake;
           lastPrice = 1;
         }
         return { ...token, nxsValue, lastPrice };
@@ -85,6 +89,54 @@ export default function Portfolio() {
     fetchTokens();
   }, []);
 
+  const handleTokenClick = async (token) => {
+    
+    if (token.ticker === 'NXS') {
+      return;
+    } else {
+
+      let global = false;
+
+      const globalCheck = await apiCall('register/get/finance:token', {
+          name: token.ticker
+          }
+        ).catch(
+          () => false
+      );
+      if (globalCheck && globalCheck?.ticker === token.ticker) {
+        global = true;
+      } else {
+        return;
+      }
+
+      const tokenData = await apiCall(
+        'register/get/finance:token/token,ticker,maxsupply,currentsupply,decimals',
+        {
+          address: token.address,
+        }
+      ).catch(() => ({
+        ticker: '', address: token.address, maxsupply: 0, currentsupply: 0, decimals: 0
+      }));
+    
+      dispatch(setMarketPair(
+        (global === true) 
+          ? token.ticker + '/NXS'
+          : token.address + '/NXS',
+        '',
+        'NXS',
+        tokenData.maxsupply,
+        0,
+        tokenData.currentsupply,
+        0,
+        tokenData.decimals,
+        6,
+        token.address,
+        '0'
+      ));
+      dispatch(switchTab('Overview'));
+    }
+  };
+
   // Calculate total NXS value
   const totalNxsValue = tokenList.reduce((sum, token) => sum + (token.nxsValue || 0), 0);
 
@@ -96,7 +148,7 @@ export default function Portfolio() {
             <thead>
               <tr style={{ background: '#232837', color: '#fff' }}>
                 <th style={{ padding: '10px 8px', textAlign: 'left' }}>Token</th>
-                <th style={{ padding: '10px 8px', textAlign: 'right' }}>Last Price</th>
+                <th style={{ padding: '10px 8px', textAlign: 'right' }}>Last Price [NXS]</th>
                 <th style={{ padding: '10px 8px', textAlign: 'right' }}>Balance</th>
                 <th style={{ padding: '10px 8px', textAlign: 'right' }}>Value [NXS]</th>
               </tr>
@@ -108,7 +160,11 @@ export default function Portfolio() {
                   .filter(token => token.ticker !== 'NXS')
                   .sort((a, b) => (b.nxsValue || 0) - (a.nxsValue || 0))
               ].map((token, idx) => (
-                <tr key={idx} style={{ borderBottom: '1px solid #232837' }}>
+                <tr
+                  key={idx}
+                  style={{ borderBottom: '1px solid #232837', cursor: 'pointer' }}
+                  onClick={() => handleTokenClick(token)}
+                >
                   <td style={
                     token.ticker === 'NXS'
                       ? {
@@ -151,22 +207,26 @@ export default function Portfolio() {
             </tbody>
           </table>
         </FieldSet>
-        <div style={{
-          marginTop: '18px',
-          background: '#232837',
-          color: '#fff',
-          borderRadius: '8px',
-          padding: '18px 24px',
-          fontSize: '1.25rem',
-          fontWeight: 700,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-          textAlign: 'right',
-          maxWidth: 520,
-          marginLeft: 'auto',
-        }}>
-          Total Portfolio Value: <span style={{ color: '#00e6d8' }}>{totalNxsValue.toFixed(6)} NXS</span>
-        </div>
       </TopRow>
+      <div style={{
+        marginTop: '18px',
+        background: '#232837',
+        color: '#fff',
+        borderRadius: '8px',
+        padding: '18px 24px',
+        fontSize: '1.25rem',
+        fontWeight: 700,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+        textAlign: 'center',
+        minWidth: 500,
+        maxWidth: 700,
+        maxHeight: 100,
+        overflowY: 'auto',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+      }}>
+        Total Portfolio Value: <span style={{ color: '#00e6d8' }}>{totalNxsValue.toFixed(6)} NXS</span>
+      </div>
     </PageLayout>
   );
 }

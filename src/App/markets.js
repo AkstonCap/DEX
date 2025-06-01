@@ -20,13 +20,28 @@ import {
 } from 'nexus-module';
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import setMarketPair from "actions/actionCreators";
+import { setMarketPair, switchTab } from "actions/actionCreators";
 import RefreshButton from "./RefreshButton";
 import { formatNumberWithLeadingZeros } from 'actions/formatNumber';
 
 const SearchField = styled(TextField)({
   maxWidth: 200,
 });
+
+const ResponsiveDualColRow = styled(DualColRow)`
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  @media (max-width: 1300px) {
+    flex-direction: column;
+    gap: 32px;
+    align-items: stretch;
+  }
+  & > * {
+    min-width: 340px;
+    flex: 1 1 0;
+  }
+`;
 
 export default function Markets() {
   
@@ -233,7 +248,48 @@ export default function Markets() {
 
   }, []);
 
-  const handleClick = (item) => {
+  const handleClick = async (item) => {
+    
+    const tokenData = await apiCall(
+      'register/get/finance:token/token,ticker,maxsupply,currentsupply,decimals',
+      {
+        address: item.address,
+      }
+    ).catch((error) => {
+      return {ticker: '', address: item.address, maxsupply: 0, currentsupply: 0, decimals: 0};
+      }
+    );
+
+    if (item.ticker !== '') {
+      dispatch(setMarketPair(
+        item.ticker + '/NXS',
+        item.ticker,
+        'NXS',
+        tokenData.maxsupply,
+        0, // NXS has no max supply
+        tokenData.currentsupply,
+        0, 
+        tokenData.decimals,
+        6, // NXS has 6 decimals
+        item.address,
+        '0'));
+    } else {
+      dispatch(setMarketPair(
+        item.address + '/NXS',
+        '',
+        'NXS',
+        tokenData.maxsupply,
+        0, // NXS has no max supply
+        tokenData.currentsupply,
+        0, 
+        tokenData.decimals,
+        6, // NXS has 6 decimals
+        item.address,
+        '0'));
+    }
+
+    dispatch(switchTab('Overview'));
+    
     // set market pair as item.ticker + '/NXS'
     //dispatch(setMarketPair());
     //RefreshButton(item.ticker, 'NXS');
@@ -356,7 +412,7 @@ export default function Markets() {
 
   return (
     <PageLayout>
-      <DualColRow> 
+      <ResponsiveDualColRow> 
           <FieldSet legend="Top 10 by volume">
             <MarketsTable>
               <OrderbookTableHeader>
@@ -385,7 +441,7 @@ export default function Markets() {
                 <tbody>{renderMarkets(topMarketCapMarkets)}</tbody>
               </MarketsTable>
           </FieldSet>
-      </DualColRow>
+      </ResponsiveDualColRow>
       <SingleColRow>
         <SearchField
           label="Search"
