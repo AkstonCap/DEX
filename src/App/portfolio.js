@@ -110,20 +110,6 @@ export default function Portfolio() {
       return;
     } else {
 
-      /*let global = false;
-
-      const globalCheck = await apiCall('register/get/finance:token', {
-          name: token.ticker
-          }
-        ).catch(
-          () => false
-      );
-      if (globalCheck && globalCheck?.ticker === token.ticker) {
-        global = true;
-      } else {
-        return;
-      }*/
-
       const tokenData = await apiCall(
         'register/get/finance:token/token,ticker,maxsupply,currentsupply,decimals',
         {
