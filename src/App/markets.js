@@ -241,7 +241,7 @@ export default function Markets() {
     fetchTokens();
 
     // Set up 60 second interval
-    const intervalId = setInterval(fetchTokens, 300000);
+    const intervalId = setInterval(fetchTokens, 60000);
   
     // Cleanup on unmount
     return () => clearInterval(intervalId);
