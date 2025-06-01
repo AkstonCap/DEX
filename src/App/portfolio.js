@@ -26,9 +26,24 @@ export default function Portfolio() {
         setTokenList([]);
         return;
       }
+
+      // Check if each ticker is a global ticker
+      const accountsWithGlobalCheck = await Promise.all(accounts.map(async acc => {
+        if (!acc.ticker) return { ...acc, ticker: '' };
+        if (acc.ticker !== 'NXS') {
+          const res = await apiCall('register/get/finance:token', { name: acc.ticker }).catch(() => null);
+          if (res && res.address) {
+            return acc;
+          } else {
+            return { ...acc, ticker: '' };
+          }
+        }
+        return acc;
+      }));
+
       // Sum balances by token
       const tokenMap = {};
-      for (const acc of accounts) {
+      for (const acc of accountsWithGlobalCheck) {
         const key = acc.token;
         if (!tokenMap[key]) {
           tokenMap[key] = { ...acc, balance: parseFloat(acc.balance) };
@@ -91,11 +106,11 @@ export default function Portfolio() {
 
   const handleTokenClick = async (token) => {
     
-    if (token.ticker === 'NXS') {
+    if (token.ticker === 'NXS' || token.ticker === '') {
       return;
     } else {
 
-      let global = false;
+      /*let global = false;
 
       const globalCheck = await apiCall('register/get/finance:token', {
           name: token.ticker
@@ -107,7 +122,7 @@ export default function Portfolio() {
         global = true;
       } else {
         return;
-      }
+      }*/
 
       const tokenData = await apiCall(
         'register/get/finance:token/token,ticker,maxsupply,currentsupply,decimals',
@@ -119,10 +134,10 @@ export default function Portfolio() {
       }));
     
       dispatch(setMarketPair(
-        (global === true) 
+        (token.ticker !== '' && token.ticker !== 'NXS') 
           ? token.ticker + '/NXS'
           : token.address + '/NXS',
-        '',
+        token.ticker,
         'NXS',
         tokenData.maxsupply,
         0,
