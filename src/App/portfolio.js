@@ -51,11 +51,11 @@ export default function Portfolio() {
           tokenMap[key].balance += parseFloat(acc.balance);
         }
       }
-      // Fetch last NXS price for each token
+      // Fetch last NXS price for each token and calculate 24h change
       const tokens = await Promise.all(Object.values(tokenMap).map(async (token) => {
         let nxsValue = 0;
         let lastPrice = 0;
-        let decimals = 0;
+        let change24h = null;
         if (token.ticker !== 'NXS') {
           try {
             const market = `${token.token}/NXS`;
@@ -83,6 +83,37 @@ export default function Portfolio() {
             if (lastPrice > 0) {
               nxsValue = token.balance * lastPrice;
             }
+            // Fetch price 24h ago
+            const now = Math.floor(Date.now() / 1000);
+            const dayAgo = now - 24 * 60 * 60;
+            const executed24h = await apiCall('market/list/executed', {
+              market,
+              sort: 'timestamp',
+              order: 'desc',
+              limit: 50,
+              where: `results.timestamp<${dayAgo}`
+            }).catch(() => ({}));
+            let price24h = null;
+            if (executed24h && typeof executed24h === 'object') {
+              const bids24 = Array.isArray(executed24h.bids) ? executed24h.bids : [];
+              const asks24 = Array.isArray(executed24h.asks) ? executed24h.asks : [];
+              const all24 = [
+                ...bids24.map(e => ({ ...e, _type: 'bid' })),
+                ...asks24.map(e => ({ ...e, _type: 'ask' }))
+              ];
+              if (all24.length > 0) {
+                all24.sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
+                const latest24 = all24[0];
+                if (latest24 && latest24._type === 'bid') {
+                  price24h = (parseFloat(latest24.contract.amount) / parseFloat(latest24.order.amount)) / 1e6;
+                } else if (latest24 && latest24._type === 'ask') {
+                  price24h = (parseFloat(latest24.order.amount) / parseFloat(latest24.contract.amount)) / 1e6;
+                }
+              }
+            }
+            if (lastPrice && price24h) {
+              change24h = ((lastPrice - price24h) / price24h) * 100;
+            }
           } catch (e) {
             nxsValue = 0;
           }
@@ -91,8 +122,9 @@ export default function Portfolio() {
           const trustStake = await apiCall('finance/list/trust/stake/sum');
           nxsValue = token.balance + trustBalance.balance + trustStake.stake;
           lastPrice = 1;
+          change24h = null;
         }
-        return { ...token, nxsValue, lastPrice };
+        return { ...token, nxsValue, lastPrice, change24h };
       }));
       setTokenList(tokens);
     } catch (error) {
@@ -150,6 +182,7 @@ export default function Portfolio() {
               <tr style={{ background: '#232837', color: '#fff' }}>
                 <th style={{ padding: '10px 8px', textAlign: 'left' }}>Token</th>
                 <th style={{ padding: '10px 8px', textAlign: 'right' }}>Last Price [NXS]</th>
+                <th style={{ padding: '10px 8px', textAlign: 'right' }}>24h Change</th>
                 <th style={{ padding: '10px 8px', textAlign: 'right' }}>Balance</th>
                 <th style={{ padding: '10px 8px', textAlign: 'right' }}>Value [NXS]</th>
               </tr>
@@ -200,6 +233,13 @@ export default function Portfolio() {
                   </td>
                   <td style={{ padding: '8px 8px', textAlign: 'right' }}>
                     {token.ticker === 'NXS' ? '-' : (typeof token.lastPrice === 'number' && !isNaN(token.lastPrice) ? token.lastPrice.toFixed(6) : '-')}
+                  </td>
+                  <td style={{ padding: '8px 8px', textAlign: 'right', color: typeof token.change24h === 'number' && !isNaN(token.change24h)
+                    ? (token.change24h > 0 ? '#00e676' : token.change24h < 0 ? '#ff5252' : '#e0e0e0')
+                    : '#e0e0e0', fontWeight: 400 }}>
+                    {typeof token.change24h === 'number' && !isNaN(token.change24h)
+                      ? `${token.change24h > 0 ? '+' : ''}${token.change24h.toFixed(2)}%`
+                      : '-'}
                   </td>
                   <td style={{ padding: '8px 8px', textAlign: 'right' }}>{typeof token.balance === 'number' ? formatNumberWithLeadingZeros(token.balance, 3, 6) : token.balance}</td>
                   <td style={{ padding: '8px 8px', textAlign: 'right', fontWeight: 600 }}>{typeof token.nxsValue === 'number' && !isNaN(token.nxsValue) ? token.nxsValue.toFixed(6) : '-'}</td>
