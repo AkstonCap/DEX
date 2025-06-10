@@ -1,4 +1,4 @@
-import { render } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { listenToWalletData } from 'nexus-module';
 
@@ -8,9 +8,9 @@ import App from './App';
 const store = configureStore();
 listenToWalletData(store);
 
-render(
+const root = createRoot(document.getElementById('root'));
+root.render(
   <Provider store={store}>
     <App />
-  </Provider>,
-  document.getElementById('root')
+  </Provider>
 );

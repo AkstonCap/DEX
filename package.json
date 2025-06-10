@@ -1,34 +1,33 @@
 {
   "name": "dex_module",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "DEX module",
   "devDependencies": {
-    "@babel/core": "^7.24.9",
+    "@babel/core": "^7.27.4",
     "@babel/plugin-proposal-optional-chaining": "^7.21.0",
-    "@babel/plugin-transform-react-constant-elements": "^7.24.7",
-    "@babel/plugin-transform-react-inline-elements": "^7.24.7",
-    "@babel/preset-env": "^7.24.8",
-    "@babel/preset-react": "^7.24.7",
-    "@babel/register": "^7.24.6",
-    "babel-loader": "^8.3.0",
+    "@babel/plugin-transform-react-constant-elements": "^7.27.1",
+    "@babel/preset-env": "^7.27.2",
+    "@babel/preset-react": "^7.27.1",
+    "@babel/register": "^7.27.1",
+    "babel-loader": "^10.0.0",
     "babel-plugin-dev-expression": "^0.2.3",
-    "babel-plugin-module-resolver": "^4.1.0",
+    "babel-plugin-module-resolver": "^5.0.2",
     "babel-plugin-transform-react-pure-class-to-function": "^1.0.1",
     "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
     "cross-env": "^7.0.3",
-    "webpack": "^5.93.0",
-    "webpack-cli": "^4.10.0",
-    "webpack-dev-server": "^4.15.1"
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production webpack --config webpack.config.babel.js",
     "dev": "cross-env NODE_ENV=development webpack serve --config webpack-dev.config.babel.js"
   },
   "dependencies": {
-    "nexus-module": "^1.0.0-alpha.13",
+    "nexus-module": "^1.1.11",
     "redux-thunk": "^2.4.2",
-    "react-redux": "8.1.2",
-    "redux": "4.1.2",
+    "react-redux": "8.0.2",
+    "redux": "4.2.0",
     "highcharts": "^10.3.3",
     "lightweight-charts": "^3.8.0",
     "victory": "^36.9.2"
