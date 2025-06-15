@@ -1,8 +1,7 @@
-const browserslistQuery = require('nexus-module').browserslistQuery;
+const browserslistQuery = require('nexus-module/lib/browserslistQuery').default;
 
 const reactOptimizePreset = [
   '@babel/plugin-transform-react-constant-elements',
-  '@babel/plugin-transform-react-inline-elements',
   'babel-plugin-transform-react-remove-prop-types',
   'babel-plugin-transform-react-pure-class-to-function',
 ];
@@ -17,19 +16,8 @@ module.exports = function (api) {
 
   return {
     presets: [
-      [
-        '@babel/preset-env', 
-        { 
-          targets: browserslistQuery,
-          //targets: { electron: '22.3.25' }, 
-        }
-      ],
-      ['@babel/preset-react', 
-        { 
-          development, 
-          runtime: 'automatic' 
-        }
-      ],
+      ['@babel/preset-env', { targets: browserslistQuery }],
+      ['@babel/preset-react', { development, runtime: 'automatic' }],
     ],
     plugins: [
       [
