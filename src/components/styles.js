@@ -247,9 +247,10 @@ export function SummaryValue({ summary, prop, percentage }) {
 
 export const ChartPageLayout = styled.div`
   display: grid;
-  grid-template-columns: 47% 50%;
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(1000px, 1fr));
+  gap: 20px;
   overflow: auto;
+  padding: 10px;
 `;
 
 export const DepthPageLayout = styled.div`
