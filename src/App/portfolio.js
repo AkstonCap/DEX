@@ -123,6 +123,7 @@ export default function Portfolio() {
           nxsValue = token.balance + trustBalance.balance + trustStake.stake;
           lastPrice = 1;
           change24h = null;
+          token.balance = token.balance + trustBalance.balance + trustStake.stake;
         }
         return { ...token, nxsValue, lastPrice, change24h };
       }));
