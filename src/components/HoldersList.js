@@ -11,37 +11,42 @@ export default function HoldersList({ num }) {
   const circulatingSupply = useSelector((state) => state.ui.market.marketPairs.baseTokenCirculatingSupply);
   const baseTokenAddress = useSelector((state) => state.ui.market.marketPairs.baseTokenAddress);
   const [holders, setHolders] = useState([]);
-  const string = 'results.address=' + baseTokenAddress;
+  const string = 'results.token=' + baseTokenAddress;
 
   useEffect(() => {
     let isMounted = true;
     const fetchHolders = async () => {
       await apiCall(
-        'register/list/finance:accounts/token,address,balance', 
+        'register/list/finance:accounts', 
         { 
-          limit: 1000, 
-          sort: 'balance', 
-          order: 'desc', 
+          where: 'results.token=' + baseTokenAddress,
+          //limit: 1000, 
+          //sort: 'balance', 
+          //order: 'desc', 
         }
       ).then((data) => {
           const filteredData = data?.filter(item => 
             item.token === baseTokenAddress && parseFloat(item.balance) > 0);
+          const sortedData = filteredData?.sort((a, b) => 
+            parseFloat(b.balance) - parseFloat(a.balance));
           // Calculate percentage of circulating supply
-          const withPercent = filteredData?.map(item => ({
+          /*const withPercent = sortedData?.map(item => ({
             ...item,
             percentageCirculatingSupply: circulatingSupply
               ? (parseFloat(item.balance) / parseFloat(circulatingSupply)) * 100
               : 0
           }));
-          if (isMounted) setHolders(Array.isArray(withPercent) ? withPercent : []);
-        })
-        .catch(() => {
+          if (isMounted) setHolders(Array.isArray(withPercent) ? withPercent : []);*/
+          setHolders(sortedData);
+        }
+      ).catch(() => {
           if (isMounted) setHolders([]);
-        });
+        }
+      );
     };
     fetchHolders();
     return () => { isMounted = false; };
-  }, [baseTokenAddress, circulatingSupply]);
+  }, [baseToken, circulatingSupply]);
 
   const renderHolders = (data) => {
     if (!Array.isArray(data)) {
@@ -56,11 +61,8 @@ export default function HoldersList({ num }) {
           3, 
           baseTokenDecimals
         )}</td>
-        <td>{formatNumberWithLeadingZeros(
-          parseFloat(item.percentageCirculatingSupply),
-          3,
-          6
-        )}{' %'}</td>
+        <td>{circulatingSupply ? 
+          ((parseFloat(item.balance) / parseFloat(circulatingSupply)) * 100).toFixed(2) + '%' : 'N/A'}</td>
       </OrderbookTableRow>
     ));
   };
