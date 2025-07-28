@@ -23,8 +23,11 @@ function useCancelOrder( txid ) {
     if (canceling) return;
     setCanceling(true);
     try {
-      dispatch(cancelOrder(txid));
-      dispatch(fetchMarketData());
+      const result = await dispatch(cancelOrder(txid));
+      // Only refresh market data if cancellation was successful
+      if (result && result.success) {
+        dispatch(fetchMarketData());
+      }
     } finally {
       setCanceling(false);
     }
@@ -47,7 +50,7 @@ export default function DeleteButton({ txid }) {
         }}
       >
         <Icon
-          icon={{ url: 'icons/delete2.svg', id: 'icon' }}
+          icon={{ url: 'delete-simple.svg', id: 'icon' }}
         />
       </Button>
     </Tooltip.Trigger>

@@ -25,6 +25,7 @@ import {
   executeOrder,
 } from 'actions/placeOrder';
 import { setOrder } from 'actions/actionCreators';
+import { fetchMarketData } from 'actions/fetchMarketData';
 import { formatNumberWithLeadingZeros } from 'actions/formatNumber';
 
 export default function TradeForm() {
@@ -124,8 +125,10 @@ export default function TradeForm() {
         }
 
       } catch (error) {
-
-        dispatch(showErrorDialog('Error fetching account information:', error));
+        dispatch(showErrorDialog({
+          message: 'Error fetching account information',
+          note: error?.message || 'Unknown error occurred'
+        }));
       
       }
     }
@@ -148,20 +151,33 @@ export default function TradeForm() {
     display: `${acct.address.slice(0, 4)}...${acct.address.slice(-4)} - ${acct.balance} ${acct.ticker}`,
   }));
 
+  // decouple order action from data refresh to avoid middleware errors
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (orderMethod === 'execute') {
-      dispatch(executeOrder(orderInQuestion.txid, fromAccount, toAccount, quoteAmount));
-      dispatch(setOrder( '', 0, 0, '', '', 'execute' ));
-    } else if (orderMethod === 'bid' || orderMethod === 'ask') {
-      dispatch(createOrder(orderMethod, price, quoteAmount, fromAccount, toAccount));
-      dispatch(setOrder( '', 0, 0, orderMethod, '', orderMethod ));
-      setQuoteAmount(0);
-      setBaseAmount(0);
-      setPrice(0);
-      setFromAccount('');
-      setToAccount('');
-    }
+    const performSubmit = async () => {
+      let result;
+      if (orderMethod === 'execute') {
+        result = await dispatch(
+          executeOrder(orderInQuestion.txid, fromAccount, toAccount, quoteAmount)
+        );
+        dispatch(setOrder('', 0, 0, '', '', 'execute'));
+      } else if (orderMethod === 'bid' || orderMethod === 'ask') {
+        result = await dispatch(
+          createOrder(orderMethod, price, quoteAmount, fromAccount, toAccount)
+        );
+        dispatch(setOrder('', 0, 0, orderMethod, '', orderMethod));
+        setQuoteAmount(0);
+        setBaseAmount(0);
+        setPrice(0);
+        setFromAccount('');
+        setToAccount('');
+      }
+      // Refresh market data after successful operation
+      if (result && result.success) {
+        dispatch(fetchMarketData());
+      }
+    };
+    performSubmit();
   };
 
   function renderAmountField() {

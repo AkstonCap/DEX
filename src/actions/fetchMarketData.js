@@ -11,6 +11,7 @@ export const fetchMarketData = () => async (dispatch, getState) => {
     
     await dispatch(fetchOrderBook(marketPair));
     await dispatch(fetchExecuted());
+    return true; // Return success indicator
   
   } catch (error) {
     dispatch(
@@ -19,5 +20,6 @@ export const fetchMarketData = () => async (dispatch, getState) => {
         note: error?.message || 'Unknown error',
       })
     );
+    return null; // Return null for error
   }
 };

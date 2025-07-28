@@ -50,6 +50,7 @@ export const fetchExecuted = (
       }));
       const data={bids: [], asks: []};
       dispatch(setExecutedOrders(data));
+      return data; // Return default data
     });
 
     if ( data1.bids?.length !== 0) {
@@ -103,8 +104,9 @@ export const fetchExecuted = (
           message: 'Cannot get my trades from apiCall (fetchExecuted)',
           note: error?.message || 'Unknown error',
         }));
-        myTrades={executed: []};
-        dispatch(setMyTrades(myTrades));
+        const defaultTrades = {executed: []};
+        dispatch(setMyTrades(defaultTrades));
+        return defaultTrades; // Return default data
 
       });
     }
@@ -151,6 +153,7 @@ export const fetchExecuted = (
     }
 
     dispatch(setMyTrades(myTrades1));
+    return true; // Return success indicator
 
   } catch (error) {
     dispatch(showErrorDialog({
@@ -160,5 +163,6 @@ export const fetchExecuted = (
 
     dispatch(setExecutedOrders({ bids: [], asks: [] }));
     dispatch(setMyTrades({ executed: [] }));
+    return null; // Return null for error
   }
 };

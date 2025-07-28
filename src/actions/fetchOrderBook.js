@@ -91,6 +91,7 @@ export const fetchOrderBook = (
         });
 
         dispatch(setMyOrders(myOrders));
+        return true; // Return success indicator
         
     } catch (error) {
 
@@ -101,5 +102,6 @@ export const fetchOrderBook = (
 
         dispatch(setOrderBook({bids: [], asks: []}));
         dispatch(setMyOrders({bids: [], asks: []}));
+        return null; // Return null for error
     }
 }

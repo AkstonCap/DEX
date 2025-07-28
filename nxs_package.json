@@ -15,7 +15,8 @@
     "dist/distordia-large.svg",
     "dist/distordia-small.svg",
     "dist/trash1.svg",
-    "dist/icons/delete2.svg"
+    "dist/icons/delete2.svg",
+    "dist/delete-simple.svg"
 ],
   "author": {
     "name": "AkstonCap"
