@@ -28,7 +28,7 @@ const ChartWindow = () => {
       const now = Math.floor(Date.now() / 1000);
       const oneYearAgo = now - (365 * 24 * 60 * 60); // 1 year ago
       
-      const executed = await apiCall('market/list/executed', {
+      const executed = await apiCall('market/list/executed/timestamp,type,contract.amount,contract.ticker,order.amount,order.ticker', {
         market: marketPair,
         sort: 'timestamp',
         order: 'asc',
@@ -66,18 +66,17 @@ const ChartWindow = () => {
     const tradesWithPrice = historicalData.map(trade => {
       let price = 0;
       if (trade.order && trade.contract) {
-        // Convert amounts from divisible units ONLY for NXS tokens
-        // Other tokens are already in correct format
+
         let orderAmount = parseFloat(trade.order.amount);
         let contractAmount = parseFloat(trade.contract.amount);
-        
-        // Apply decimal conversion only for NXS tokens
-        if (quoteToken === 'NXS') {
-          orderAmount = orderAmount / Math.pow(10, quoteTokenDecimals || 6);
-        }
-        if (baseToken === 'NXS') {
-          contractAmount = contractAmount / Math.pow(10, baseTokenDecimals || 6);
-        }
+
+        // Convert amounts from divisible units ONLY for NXS tokens
+        // Other tokens are already in correct format
+        if (trade.order.ticker === 'NXS') {
+          trade.order.amount = orderAmount / 1e6;
+        } else if (trade.contract.ticker === 'NXS') {
+          trade.contract.amount = contractAmount / 1e6;
+        };
         
         if (orderAmount > 0 && contractAmount > 0) {
           // Always calculate price as: quote_token_amount / base_token_amount
@@ -85,20 +84,14 @@ const ChartWindow = () => {
           
           if (trade.type === 'bid') {
             // Bid: user is buying base token with quote token
-            // order.amount = quote token amount (what user pays)
-            // contract.amount = base token amount (what user gets)
-            price = orderAmount / contractAmount;
+            // contract.amount = quote token amount (what user pays)
+            // order.amount = base token amount (what user gets)
+            price = trade.contract.amount / trade.order.amount;
           } else if (trade.type === 'ask') {
             // Ask: user is selling base token for quote token
-            // order.amount = base token amount (what user sells)
-            // contract.amount = quote token amount (what user gets)
-            price = contractAmount / orderAmount;
-          } else {
-            // Fallback: assume order.amount is always the "paying" amount
-            // and contract.amount is the "receiving" amount
-            // We need to figure out which is quote and which is base
-            // For now, assume the first amount is quote, second is base
-            price = orderAmount / contractAmount;
+            // contract.amount = base token amount (what user sells)
+            // order.amount = quote token amount (what user gets)
+            price = trade.order.amount / trade.contract.amount;
           }
         }
       }
@@ -108,12 +101,8 @@ const ChartWindow = () => {
         price: price > 0 ? price : 0, // Using our calculated price, ignoring trade.price due to blockchain bug
         // Volume in quote token (convert only if NXS)
         volume: trade.type === 'bid' 
-          ? (quoteToken === 'NXS' 
-              ? parseFloat(trade.order?.amount || 0) / Math.pow(10, quoteTokenDecimals || 6)
-              : parseFloat(trade.order?.amount || 0))
-          : (baseToken === 'NXS' 
-              ? parseFloat(trade.contract?.amount || 0) / Math.pow(10, baseTokenDecimals || 6)
-              : parseFloat(trade.contract?.amount || 0))
+          ? (parseFloat(trade.contract?.amount || 0))
+          : (parseFloat(trade.order?.amount || 0))
       };
     }).filter(trade => trade.price > 0);
 
