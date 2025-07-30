@@ -1,5 +1,5 @@
 //import { listMarket } from 'actions/listMarket';
-import { setOrderBook, setMyOrders } from './actionCreators';
+import { setOrderBook, setMyOrders, removeUnconfirmedOrder, removeCancellingOrder } from './actionCreators';
 import { 
     showErrorDialog, 
     apiCall 
@@ -91,6 +91,28 @@ export const fetchOrderBook = (
         });
 
         dispatch(setMyOrders(myOrders));
+        
+        // Remove any orders that are now confirmed from unconfirmed orders
+        const currentState = getState();
+        const unconfirmedOrders = currentState.ui.market.myUnconfirmedOrders?.unconfirmedOrders || [];
+        const cancellingOrders = currentState.ui.market.myCancellingOrders?.cancellingOrders || [];
+        
+        myOrders.orders.forEach(confirmedOrder => {
+            const wasUnconfirmed = unconfirmedOrders.find(unconfirmed => unconfirmed.txid === confirmedOrder.txid);
+            if (wasUnconfirmed) {
+                dispatch(removeUnconfirmedOrder(confirmedOrder.txid));
+            }
+        });
+        
+        // Remove any orders that were being cancelled but are no longer in the order book
+        cancellingOrders.forEach(cancellingOrder => {
+            const stillExists = myOrders.orders.find(order => order.txid === cancellingOrder.txid);
+            if (!stillExists) {
+                // Order was successfully cancelled, remove from cancelling orders
+                dispatch(removeCancellingOrder(cancellingOrder.txid));
+            }
+        });
+        
         return true; // Return success indicator
         
     } catch (error) {
