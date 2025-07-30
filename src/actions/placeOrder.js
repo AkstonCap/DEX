@@ -3,6 +3,7 @@ import { apiCall,
     showSuccessDialog,
     secureApiCall
 } from 'nexus-module';
+import { addUnconfirmedOrder, removeUnconfirmedOrder, addCancellingOrder } from './actionCreators';
 // import fetchMarketData separately in components to avoid nested dispatch issues
 
 // create order
@@ -155,6 +156,40 @@ export const createOrder = (
         const result = await secureApiCall('market/create/' + orderType, params);
         
         if (result.success) {
+            // Add to unconfirmed orders immediately with proper structure to match confirmed orders
+            const unconfirmedOrder = {
+                txid: result.txid,
+                address: result.address,
+                type: orderType,
+                price: parseFloat(price),
+                timestamp: Date.now() / 1000
+            };
+            
+            if (orderType === 'bid') {
+                // For bid: contract = what you're buying (base), order = what you're paying (quote)
+                unconfirmedOrder.contract = {
+                    amount: parseFloat(baseAmount),
+                    ticker: baseToken
+                };
+                unconfirmedOrder.order = {
+                    amount: parseFloat(quoteAmount),
+                    ticker: quoteToken
+                };
+            } else { // ask
+                // For ask: contract = what you're selling (base), order = what you want (quote)
+                unconfirmedOrder.contract = {
+                    amount: parseFloat(baseAmount),
+                    ticker: baseToken
+                };
+                unconfirmedOrder.order = {
+                    amount: parseFloat(quoteAmount),
+                    ticker: quoteToken
+                };
+            }
+            
+            console.log('Dispatching addUnconfirmedOrder with:', unconfirmedOrder);
+            dispatch(addUnconfirmedOrder(unconfirmedOrder));
+            
             dispatch(showSuccessDialog({
                 message: 'Order placed successfully',
                 note: `Transaction ID: ${result.txid}\nOrder address: ${result.address}`
@@ -381,9 +416,13 @@ export const cancelOrder = (
         }
         
         if (result.success) {
+            // Mark the order as being cancelled
+            console.log('Dispatching addCancellingOrder with txid:', txid, 'cancellationTxid:', result.txid);
+            dispatch(addCancellingOrder(txid, result.txid));
+            
             dispatch(showSuccessDialog({
-                message: 'Order cancelled successfully',
-                note: `Transaction ID: ${result.txid}\nOrder address: ${result.address}`
+                message: 'Order cancellation submitted',
+                note: `Cancellation ID: ${result.txid}\nOrder ${txid} is being cancelled`
             }));
             // Note: fetchMarketData will be called separately to avoid nested dispatch issues
             return result;
