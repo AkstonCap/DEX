@@ -71,15 +71,31 @@ export const setTimeSpan = (timeSpan) => ({
   payload: timeSpan,
 });
 
-export const setUnconfirmedOrders = (txid, price, amount, type, marketPair) => ({
+export const setUnconfirmedOrders = (unconfirmedOrders) => ({
   type: TYPE.SET_MY_UNCONFIRMEDORDERS,
   payload: {
-    txid,
-    price,
-    amount,
-    type,
-    marketPair,
+    unconfirmedOrders,
   },
+});
+
+export const addUnconfirmedOrder = (order) => ({
+  type: TYPE.ADD_UNCONFIRMED_ORDER,
+  payload: order,
+});
+
+export const removeUnconfirmedOrder = (txid) => ({
+  type: TYPE.REMOVE_UNCONFIRMED_ORDER,
+  payload: { txid },
+});
+
+export const addCancellingOrder = (txid, cancellationTxid) => ({
+  type: TYPE.ADD_CANCELLING_ORDER,
+  payload: { txid, cancellationTxid },
+});
+
+export const removeCancellingOrder = (txid) => ({
+  type: TYPE.REMOVE_CANCELLING_ORDER,
+  payload: { txid },
 });
 
 /*export const removeUnconfirmedOrder = (txid) => ({
