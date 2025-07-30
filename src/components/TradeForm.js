@@ -152,32 +152,31 @@ export default function TradeForm() {
   }));
 
   // decouple order action from data refresh to avoid middleware errors
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const performSubmit = async () => {
-      let result;
-      if (orderMethod === 'execute') {
-        result = await dispatch(
-          executeOrder(orderInQuestion.txid, fromAccount, toAccount, quoteAmount)
-        );
-        dispatch(setOrder('', 0, 0, '', '', 'execute'));
-      } else if (orderMethod === 'bid' || orderMethod === 'ask') {
-        result = await dispatch(
-          createOrder(orderMethod, price, quoteAmount, fromAccount, toAccount)
-        );
-        dispatch(setOrder('', 0, 0, orderMethod, '', orderMethod));
-        setQuoteAmount(0);
-        setBaseAmount(0);
-        setPrice(0);
-        setFromAccount('');
-        setToAccount('');
-      }
-      // Refresh market data after successful operation
-      if (result && result.success) {
+    let result;
+    if (orderMethod === 'execute') {
+      result = await dispatch(
+        executeOrder(orderInQuestion.txid, fromAccount, toAccount, quoteAmount)
+      );
+      dispatch(setOrder('', 0, 0, '', '', 'execute'));
+    } else if (orderMethod === 'bid' || orderMethod === 'ask') {
+      result = await dispatch(
+        createOrder(orderMethod, price, quoteAmount, fromAccount, toAccount)
+      );
+      dispatch(setOrder('', 0, 0, orderMethod, '', orderMethod));
+      setQuoteAmount(0);
+      setBaseAmount(0);
+      setPrice(0);
+      setFromAccount('');
+      setToAccount('');
+    }
+    // Refresh market data after successful operation with a small delay
+    /*if (result && result.success) {
+      setTimeout(() => {
         dispatch(fetchMarketData());
-      }
-    };
-    performSubmit();
+      }, 100);
+    }*/
   };
 
   function renderAmountField() {
