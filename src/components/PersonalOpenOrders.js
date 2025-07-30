@@ -12,7 +12,8 @@ export default function PersonalOpenOrders() {
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
   const myOrders = useSelector((state) => state.ui.market.myOrders.orders);
-  const myUnconfirmedOrders = useSelector((state) => state.ui.market.myOrders.unconfirmedOrders);
+  const myUnconfirmedOrders = useSelector((state) => state.ui.market.myUnconfirmedOrders?.unconfirmedOrders || []);
+  const myCancellingOrders = useSelector((state) => state.ui.market.myCancellingOrders?.cancellingOrders || []);
   const quoteTokenDecimals = useSelector((state) => state.ui.market.marketPairs.quoteTokenDecimals);
   const baseTokenDecimals = useSelector((state) => state.ui.market.marketPairs.baseTokenDecimals);
 
@@ -24,14 +25,14 @@ export default function PersonalOpenOrders() {
   }
 
   // If no orders, display “No orders” row
-  if (!myOrders || myOrders?.length === 0 ) {
+  if ((!myOrders || myOrders?.length === 0) && (!myUnconfirmedOrders || myUnconfirmedOrders?.length === 0)) {
     return (
       <div>
         <FieldSet legend="My Open Orders">
           <table>
             <tbody>
               <tr>
-                <td colSpan="3">No orders</td>
+                <td colSpan="5">No orders</td>
               </tr>
             </tbody>
           </table>
@@ -40,8 +41,26 @@ export default function PersonalOpenOrders() {
     );
   } else {
 
+    // Combine confirmed and unconfirmed orders with safety checks
+    const allOrders = [
+      ...((myOrders || []).map(order => {
+        // Check if this order is being cancelled
+        const isBeingCancelled = (myCancellingOrders || []).some(cancelling => cancelling.txid === order.txid);
+        return { 
+          ...order, 
+          isUnconfirmed: false,
+          isBeingCancelled: isBeingCancelled
+        };
+      })),
+      ...((myUnconfirmedOrders || []).map(order => ({ 
+        ...order, 
+        isUnconfirmed: true,
+        isBeingCancelled: false
+      })))
+    ];
+
     // Merge and sort
-    const sortedOrders = myOrders.sort(
+    const sortedOrders = allOrders.sort(
       (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
     );
 
@@ -63,36 +82,75 @@ export default function PersonalOpenOrders() {
         quoteTokenDecimals
       );
 
-      return (
-        <MyOrdersTableRow key={index} orderType={order.type}>
-          <td>
-            {formatNumberWithLeadingZeros(
-              parseFloat(order.price), 
-              3,
-              quoteTokenDecimals
-              )
-            }
-          </td>
-          <td>
-            {formatNumberWithLeadingZeros(
-              parseFloat(order.contract.amount), 
-              3,
-              contractDecimals
-              )
-            } {order.contract.ticker}
-          </td>
-          <td>
-            {formatNumberWithLeadingZeros(
-              parseFloat(order.order.amount), 
-              3,
-              orderDecimals
-              )
-            } {order.order.ticker}
-          </td>
-          <td>{new Date(order.timestamp * 1000).toLocaleString()}</td>
-          <td><DeleteButton txid={order.txid} /></td>
-        </MyOrdersTableRow>
-      );
+      if (order.isUnconfirmed || order.isBeingCancelled) {
+        return (
+          <MyUnconfirmedOrdersTableRow key={index} orderType={order.type}>
+            <td>
+              {formatNumberWithLeadingZeros(
+                parseFloat(order.price), 
+                3,
+                quoteTokenDecimals
+                )
+              }
+            </td>
+            <td>
+              {formatNumberWithLeadingZeros(
+                parseFloat(order.contract.amount), 
+                3,
+                contractDecimals
+                )
+              } {order.contract.ticker}
+            </td>
+            <td>
+              {formatNumberWithLeadingZeros(
+                parseFloat(order.order.amount), 
+                3,
+                orderDecimals
+                )
+              } {order.order.ticker}
+            </td>
+            <td>
+              {new Date(order.timestamp * 1000).toLocaleString()}
+              <br />
+              <span style={{fontSize: '10px', color: '#888'}}>
+                {order.isBeingCancelled ? '⏳ Cancelling...' : '⏳ Pending confirmation'}
+              </span>
+            </td>
+            <td><DeleteButton txid={order.txid} /></td>
+          </MyUnconfirmedOrdersTableRow>
+        );
+      } else {
+        return (
+          <MyOrdersTableRow key={index} orderType={order.type}>
+            <td>
+              {formatNumberWithLeadingZeros(
+                parseFloat(order.price), 
+                3,
+                quoteTokenDecimals
+                )
+              }
+            </td>
+            <td>
+              {formatNumberWithLeadingZeros(
+                parseFloat(order.contract.amount), 
+                3,
+                contractDecimals
+                )
+              } {order.contract.ticker}
+            </td>
+            <td>
+              {formatNumberWithLeadingZeros(
+                parseFloat(order.order.amount), 
+                3,
+                orderDecimals
+                )
+              } {order.order.ticker}
+            </td>
+            <td>{new Date(order.timestamp * 1000).toLocaleString()}</td>
+            <td><DeleteButton txid={order.txid} /></td>
+          </MyOrdersTableRow>
+        );
+      }
     });
 
     return (
