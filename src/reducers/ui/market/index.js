@@ -7,6 +7,7 @@ import orderInQuestion from './orderInQuestion';
 import myTrades from './myTrades';
 import myOrders from './myOrders';
 import myUnconfirmedOrders from './myUnconfirmedOrders';
+import myCancellingOrders from './myCancellingOrders';
 
 export default combineReducers({
   marketPairs,
@@ -16,4 +17,5 @@ export default combineReducers({
   myTrades,
   myOrders,
   myUnconfirmedOrders,
+  myCancellingOrders,
 });
