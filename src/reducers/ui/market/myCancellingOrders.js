@@ -7,7 +7,7 @@ const initialState = {
 export default (state = initialState, action) => {
     switch (action.type) {
         case TYPE.ADD_CANCELLING_ORDER:
-            console.log('ADD_CANCELLING_ORDER reducer called with state:', state, 'payload:', action.payload);
+            //console.log('ADD_CANCELLING_ORDER reducer called with state:', state, 'payload:', action.payload);
             return {
                 cancellingOrders: [...(state.cancellingOrders || []), {
                     txid: action.payload.txid,
@@ -17,7 +17,7 @@ export default (state = initialState, action) => {
             };
         
         case TYPE.REMOVE_CANCELLING_ORDER:
-            console.log('REMOVE_CANCELLING_ORDER reducer called with state:', state, 'payload:', action.payload);
+            //console.log('REMOVE_CANCELLING_ORDER reducer called with state:', state, 'payload:', action.payload);
             return {
                 cancellingOrders: (state.cancellingOrders || []).filter(order => order.txid !== action.payload.txid)
             };
