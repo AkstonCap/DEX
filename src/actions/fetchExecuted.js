@@ -1,6 +1,7 @@
 import { 
   setExecutedOrders,
   setMyTrades,
+  removeUnconfirmedTrade,
 } from './actionCreators';
 import { 
   showErrorDialog, 
@@ -153,6 +154,23 @@ export const fetchExecuted = (
     }
 
     dispatch(setMyTrades(myTrades1));
+    
+    // Remove any unconfirmed trades that now appear in confirmed trade history
+    const currentState = getState();
+    const unconfirmedTrades = currentState.ui.market.myUnconfirmedTrades?.unconfirmedTrades || [];
+    
+    unconfirmedTrades.forEach(unconfirmedTrade => {
+      const isConfirmed = myTrades1.executed.find(trade => 
+        trade.txid === unconfirmedTrade.txid ||
+        (trade.timestamp === unconfirmedTrade.timestamp && 
+         trade.amount === unconfirmedTrade.amount &&
+         trade.total === unconfirmedTrade.total)
+      );
+      if (isConfirmed) {
+        dispatch(removeUnconfirmedTrade(unconfirmedTrade.txid || `${unconfirmedTrade.timestamp}-${unconfirmedTrade.amount}`));
+      }
+    });
+    
     return true; // Return success indicator
 
   } catch (error) {
