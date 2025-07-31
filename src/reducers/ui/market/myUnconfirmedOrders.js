@@ -12,13 +12,12 @@ export default (state = initialState, action) => {
             };
         
         case TYPE.ADD_UNCONFIRMED_ORDER:
-            //console.log('ADD_UNCONFIRMED_ORDER reducer called with state:', state, 'payload:', action.payload);
             return {
                 unconfirmedOrders: [...(state.unconfirmedOrders || []), action.payload]
             };
         
         case TYPE.REMOVE_UNCONFIRMED_ORDER:
-            //console.log('REMOVE_UNCONFIRMED_ORDER reducer called with state:', state, 'payload:', action.payload);
+            console.log('REMOVE_UNCONFIRMED_ORDER reducer called with state:', state, 'payload:', action.payload);
             return {
                 unconfirmedOrders: (state.unconfirmedOrders || []).filter(order => order.txid !== action.payload.txid)
             };
