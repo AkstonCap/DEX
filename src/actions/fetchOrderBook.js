@@ -1,5 +1,5 @@
 //import { listMarket } from 'actions/listMarket';
-import { setOrderBook, setMyOrders, removeUnconfirmedOrder, removeCancellingOrder } from './actionCreators';
+import { setOrderBook, setMyOrders, removeUnconfirmedOrder, removeCancellingOrder, removeUnconfirmedTrade } from './actionCreators';
 import { 
     showErrorDialog, 
     apiCall 
@@ -96,11 +96,21 @@ export const fetchOrderBook = (
         const currentState = getState();
         const unconfirmedOrders = currentState.ui.market.myUnconfirmedOrders?.unconfirmedOrders || [];
         const cancellingOrders = currentState.ui.market.myCancellingOrders?.cancellingOrders || [];
+        const unconfirmedTrades = currentState.ui.market.myUnconfirmedTrades?.unconfirmedTrades || [];
+        const myTrades = currentState.ui.market.myTrades?.trades || [];
         
         myOrders.orders.forEach(confirmedOrder => {
             const wasUnconfirmed = unconfirmedOrders.find(unconfirmed => unconfirmed.txid === confirmedOrder.txid);
             if (wasUnconfirmed) {
                 dispatch(removeUnconfirmedOrder(confirmedOrder.txid));
+            }
+        });
+        
+        // Also check trade history - if an unconfirmed order appears in trades, it was executed
+        unconfirmedOrders.forEach(unconfirmedOrder => {
+            const wasExecuted = myTrades.find(trade => trade.txid === unconfirmedOrder.txid);
+            if (wasExecuted) {
+                dispatch(removeUnconfirmedOrder(unconfirmedOrder.txid));
             }
         });
         
@@ -110,6 +120,19 @@ export const fetchOrderBook = (
             if (!stillExists) {
                 // Order was successfully cancelled, remove from cancelling orders
                 dispatch(removeCancellingOrder(cancellingOrder.txid));
+            }
+        });
+        
+        // Remove any unconfirmed trades that now appear in confirmed trade history
+        unconfirmedTrades.forEach(unconfirmedTrade => {
+            const isConfirmed = myTrades.find(trade => 
+                trade.txid === unconfirmedTrade.txid ||
+                (trade.timestamp === unconfirmedTrade.timestamp && 
+                 trade.amount === unconfirmedTrade.amount &&
+                 trade.total === unconfirmedTrade.total)
+            );
+            if (isConfirmed) {
+                dispatch(removeUnconfirmedTrade(unconfirmedTrade.txid || `${unconfirmedTrade.timestamp}-${unconfirmedTrade.amount}`));
             }
         });
         
