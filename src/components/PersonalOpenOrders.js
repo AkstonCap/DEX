@@ -11,6 +11,7 @@ import { formatNumberWithLeadingZeros } from '../actions/formatNumber';
 export default function PersonalOpenOrders() {
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
+  const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
   const myOrders = useSelector((state) => state.ui.market.myOrders.orders);
   const myUnconfirmedOrders = useSelector((state) => state.ui.market.myUnconfirmedOrders?.unconfirmedOrders || []);
   const myCancellingOrders = useSelector((state) => state.ui.market.myCancellingOrders?.cancellingOrders || []);
@@ -24,8 +25,14 @@ export default function PersonalOpenOrders() {
     return 3; // default/fallback
   }
 
-  // If no orders, display “No orders” row
-  if ((!myOrders || myOrders?.length === 0) && (!myUnconfirmedOrders || myUnconfirmedOrders?.length === 0)) {
+  // Filter unconfirmed orders to only show ones for the current market pair
+  const filteredUnconfirmedOrders = myUnconfirmedOrders.filter(order => {
+    return (order.contract?.ticker === baseToken && order.order?.ticker === quoteToken) ||
+           (order.contract?.ticker === quoteToken && order.order?.ticker === baseToken);
+  });
+
+  // If no orders, display "No orders" row
+  if ((!myOrders || myOrders?.length === 0) && (!filteredUnconfirmedOrders || filteredUnconfirmedOrders?.length === 0)) {
     return (
       <div>
         <FieldSet legend="My Open Orders">
@@ -52,7 +59,7 @@ export default function PersonalOpenOrders() {
           isBeingCancelled: isBeingCancelled
         };
       })),
-      ...((myUnconfirmedOrders || []).map(order => ({ 
+      ...(filteredUnconfirmedOrders.map(order => ({ 
         ...order, 
         isUnconfirmed: true,
         isBeingCancelled: false
