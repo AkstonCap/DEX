@@ -16,6 +16,7 @@ import { formatNumberWithLeadingZeros } from 'actions/formatNumber';
 export default function Portfolio() {
   //const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
   const [tokenList, setTokenList] = useState([]);
+  const [hideZeroBalances, setHideZeroBalances] = useState(false);
   const dispatch = useDispatch();
 
   // Fetch tokens and their NXS value
@@ -174,10 +175,38 @@ export default function Portfolio() {
   // Calculate total NXS value
   const totalNxsValue = tokenList.reduce((sum, token) => sum + (token.nxsValue || 0), 0);
 
+  // Filter tokens based on hideZeroBalances checkbox
+  const filteredTokenList = hideZeroBalances 
+    ? tokenList.filter(token => token.balance > 0)  
+    : tokenList;
+
   return (
     <PageLayout>
       <TopRow>
         <FieldSet legend="My Holdings">
+          <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input 
+              type="checkbox" 
+              id="hideZeroBalances"
+              checked={hideZeroBalances}
+              onChange={(e) => setHideZeroBalances(e.target.checked)}
+              style={{ 
+                accentColor: '#00e6d8',
+                transform: 'scale(1.2)',
+              }}
+            />
+            <label 
+              htmlFor="hideZeroBalances" 
+              style={{ 
+                color: '#e0e0e0', 
+                fontSize: '0.95rem', 
+                cursor: 'pointer',
+                userSelect: 'none'
+              }}
+            >
+              Hide zero balances
+            </label>
+          </div>
           <table style={{ width: '100%', borderCollapse: 'collapse', background: '#181c24', color: '#e0e0e0', borderRadius: '8px', overflow: 'hidden', fontSize: '1rem' }}>
             <thead>
               <tr style={{ background: '#232837', color: '#fff' }}>
@@ -190,8 +219,8 @@ export default function Portfolio() {
             </thead>
             <tbody>
               {[
-                ...tokenList.filter(token => token.ticker === 'NXS'),
-                ...tokenList
+                ...filteredTokenList.filter(token => token.ticker === 'NXS'),
+                ...filteredTokenList
                   .filter(token => token.ticker !== 'NXS')
                   .sort((a, b) => (b.nxsValue || 0) - (a.nxsValue || 0))
               ].map((token, idx) => (
