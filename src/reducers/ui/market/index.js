@@ -8,6 +8,7 @@ import myTrades from './myTrades';
 import myOrders from './myOrders';
 import myUnconfirmedOrders from './myUnconfirmedOrders';
 import myCancellingOrders from './myCancellingOrders';
+import myUnconfirmedTrades from './myUnconfirmedTrades';
 
 export default combineReducers({
   marketPairs,
@@ -18,4 +19,5 @@ export default combineReducers({
   myOrders,
   myUnconfirmedOrders,
   myCancellingOrders,
+  myUnconfirmedTrades,
 });
