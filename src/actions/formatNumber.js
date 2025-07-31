@@ -30,7 +30,7 @@ export function formatNumberWithLeadingZeros(number, decimals, tokenDecimals=6) 
   return (
     <>
       0.0<sub>{leadingZeros}</sub>
-      {digits.slice(0)}
+      {digits.slice(0, Math.max(1, tokenDecimals - leadingZeros))}
     </>
   );
 }
