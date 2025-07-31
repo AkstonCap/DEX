@@ -11,6 +11,7 @@ const ChartWindow = () => {
   const [volumeSeries, setVolumeSeries] = useState(null);
   const [historicalData, setHistoricalData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isLogarithmic, setIsLogarithmic] = useState(false);
   
   // Get data from Redux store
   const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
@@ -255,10 +256,18 @@ const ChartWindow = () => {
         borderColor: '#374151',
         textColor: '#9ca3af',
         entireTextOnly: true,
+        mode: 0, // Start with linear mode, will be updated by separate useEffect
         scaleMargins: {
           top: 0.1,
           bottom: 0.1,
         },
+        minimumWidth: 80,
+        autoScale: true,
+        invertScale: false,
+        alignLabels: true,
+        borderVisible: true,
+        drawTicks: true,
+        visible: true,
       },
       timeScale: {
         borderColor: '#374151',
@@ -356,6 +365,18 @@ const ChartWindow = () => {
     };
   }, [chartContainer, marketPair]);
 
+  // Update logarithmic mode separately to avoid recreating the chart
+  useEffect(() => {
+    if (!chart) return;
+    
+    const rightPriceScale = chart.priceScale('right');
+    if (rightPriceScale) {
+      rightPriceScale.applyOptions({
+        mode: isLogarithmic ? 1 : 0, // 0 = normal, 1 = logarithmic
+      });
+    }
+  }, [chart, isLogarithmic]);
+
   // Update chart data
   useEffect(() => {
     if (!candlestickSeries || !volumeSeries) return;
@@ -376,6 +397,10 @@ const ChartWindow = () => {
       }
     }
   }, [candlestickSeries, volumeSeries, chartData, chart]);
+
+  const toggleScaleMode = () => {
+    setIsLogarithmic(prev => !prev);
+  };
 
   const formatTokenName = (token) => {
     if (typeof token === 'string' && token.length > 20) {
@@ -414,7 +439,7 @@ const ChartWindow = () => {
                 fontWeight: '600',
                 fontFamily: 'monospace'
               }}>
-                {hasData ? formatNumberWithLeadingZeros(latestPrice, 6, quoteTokenDecimals) : '---'} 
+                {hasData ? formatNumberWithLeadingZeros(latestPrice, 3, quoteTokenDecimals) : '---'} 
                 <span style={{ fontSize: '14px', marginLeft: '4px' }}>{formatTokenName(quoteToken)}</span>
               </span>
             </div>
@@ -422,7 +447,7 @@ const ChartWindow = () => {
               <span style={{ color: '#9ca3af', fontSize: '12px', fontWeight: '500' }}>24H VOLUME</span>
               <span style={{ color: '#d1d5db', fontSize: '16px', fontWeight: '500' }}>
                 {last24hVolume > 0 ? 
-                  formatNumberWithLeadingZeros(last24hVolume, 2, quoteTokenDecimals) : '0'
+                  formatNumberWithLeadingZeros(last24hVolume, 3, quoteTokenDecimals) : '0'
                 } {formatTokenName(quoteToken)}
               </span>
             </div>
@@ -439,26 +464,62 @@ const ChartWindow = () => {
               </span>
             </div>
           </div>
-          {loading && (
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              color: '#3b82f6',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}>
-              <div style={{
-                width: '16px',
-                height: '16px',
-                border: '2px solid #1f2937',
-                borderTop: '2px solid #3b82f6',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite'
-              }} />
-              Loading chart data...
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', backgroundColor: '#374151', borderRadius: '6px', padding: '2px' }}>
+              <button
+                onClick={toggleScaleMode}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  backgroundColor: !isLogarithmic ? '#3b82f6' : 'transparent',
+                  color: !isLogarithmic ? '#ffffff' : '#9ca3af',
+                }}
+              >
+                Linear
+              </button>
+              <button
+                onClick={toggleScaleMode}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  backgroundColor: isLogarithmic ? '#3b82f6' : 'transparent',
+                  color: isLogarithmic ? '#ffffff' : '#9ca3af',
+                }}
+              >
+                Log
+              </button>
             </div>
-          )}
+            {loading && (
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px',
+                color: '#3b82f6',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}>
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid #1f2937',
+                  borderTop: '2px solid #3b82f6',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }} />
+                Loading chart data...
+              </div>
+            )}
+          </div>
         </div>
         
         <div 
