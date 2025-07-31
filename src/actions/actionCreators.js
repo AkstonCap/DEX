@@ -98,6 +98,23 @@ export const removeCancellingOrder = (txid) => ({
   payload: { txid },
 });
 
+export const setUnconfirmedTrades = (unconfirmedTrades) => ({
+  type: TYPE.SET_MY_UNCONFIRMEDTRADES,
+  payload: {
+    unconfirmedTrades,
+  },
+});
+
+export const addUnconfirmedTrade = (trade) => ({
+  type: TYPE.ADD_UNCONFIRMED_TRADE,
+  payload: trade,
+});
+
+export const removeUnconfirmedTrade = (txid) => ({
+  type: TYPE.REMOVE_UNCONFIRMED_TRADE,
+  payload: { txid },
+});
+
 /*export const removeUnconfirmedOrder = (txid) => ({
   type: TYPE.REMOVE_UNCONFIRMED_ORDER,
   payload: txid,
