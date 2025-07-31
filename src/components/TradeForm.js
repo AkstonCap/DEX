@@ -199,7 +199,7 @@ export default function TradeForm() {
       return (
         <TextField
           type="number"
-          step="0.00001"
+          step={Math.pow(10, -quoteTokenDecimals).toString()}
           value={quoteAmount}
           onChange={(e) => {
             setQuoteAmount(e.target.value);
@@ -233,7 +233,7 @@ export default function TradeForm() {
       return (
         <TextField
           type="number"
-          step="0.0001"
+          step={Math.pow(10, -quoteTokenDecimals).toString()}
           value={price}
           onChange={(e) => setPrice(e.target.value)}
         />
