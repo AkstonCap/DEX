@@ -4,78 +4,135 @@ import { OrderTable, OrderbookTableHeader, OrderbookTableRow, formatTokenName } 
 import { formatNumberWithLeadingZeros } from '../actions/formatNumber';
 import { useEffect, useState } from 'react';
 
-export default function HoldersList({ num }) {
+export default function HoldersList({ num = 10 }) {
   const dispatch = useDispatch();
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const baseTokenDecimals = useSelector((state) => state.ui.market.marketPairs.baseTokenDecimals);
   const circulatingSupply = useSelector((state) => state.ui.market.marketPairs.baseTokenCirculatingSupply);
   const baseTokenAddress = useSelector((state) => state.ui.market.marketPairs.baseTokenAddress);
   const [holders, setHolders] = useState([]);
-  const string = 'results.token=' + baseTokenAddress;
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
+    
     const fetchHolders = async () => {
-      await apiCall(
-        'register/list/finance:accounts', 
-        { 
-          where: 'results.token=' + baseTokenAddress,
-          //limit: 1000, 
-          //sort: 'balance', 
-          //order: 'desc', 
+      if (!baseTokenAddress) {
+        console.log('HoldersList: No baseTokenAddress available');
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+      
+      try {
+        console.log('HoldersList: Fetching holders for token:', baseTokenAddress);
+        
+        const data = await apiCall(
+          'register/list/finance:accounts', 
+          { 
+            where: `results.token=${baseTokenAddress}`,
+            limit: 1000,
+            sort: 'balance', 
+            order: 'desc', 
+          }
+        );
+
+        console.log('HoldersList: Raw API response:', data);
+
+        if (data && Array.isArray(data)) {
+          const filteredData = data.filter(item => 
+            item.token === baseTokenAddress && parseFloat(item.balance || 0) > 0);
+          
+          const sortedData = filteredData.sort((a, b) => 
+            parseFloat(b.balance || 0) - parseFloat(a.balance || 0));
+
+          console.log('HoldersList: Processed holders:', sortedData.length, 'items');
+          
+          if (isMounted) {
+            setHolders(sortedData || []);
+          }
+        } else {
+          console.log('HoldersList: No valid data received');
+          if (isMounted) {
+            setHolders([]);
+          }
         }
-      ).then((data) => {
-          const filteredData = data?.filter(item => 
-            item.token === baseTokenAddress && parseFloat(item.balance) > 0);
-          const sortedData = filteredData?.sort((a, b) => 
-            parseFloat(b.balance) - parseFloat(a.balance));
-          // Calculate percentage of circulating supply
-          /*const withPercent = sortedData?.map(item => ({
-            ...item,
-            percentageCirculatingSupply: circulatingSupply
-              ? (parseFloat(item.balance) / parseFloat(circulatingSupply)) * 100
-              : 0
-          }));
-          if (isMounted) setHolders(Array.isArray(withPercent) ? withPercent : []);*/
-          setHolders(sortedData);
+      } catch (error) {
+        console.error('HoldersList: Error fetching holders:', error);
+        if (isMounted) {
+          setHolders([]);
+          setError('Failed to load holders list');
         }
-      ).catch(() => {
-          if (isMounted) setHolders([]);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
         }
-      );
+      }
     };
+
     fetchHolders();
     return () => { isMounted = false; };
-  }, [baseToken, circulatingSupply]);
+  }, [baseTokenAddress, baseToken]);
 
   const renderHolders = (data) => {
-    if (!Array.isArray(data)) {
-      return 'No holders';
+    if (loading) {
+      return (
+        <OrderbookTableRow>
+          <td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
+            Loading holders...
+          </td>
+        </OrderbookTableRow>
+      );
     }
+
+    if (error) {
+      return (
+        <OrderbookTableRow>
+          <td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: '#ef4444' }}>
+            {error}
+          </td>
+        </OrderbookTableRow>
+      );
+    }
+
+    if (!Array.isArray(data) || data.length === 0) {
+      return (
+        <OrderbookTableRow>
+          <td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
+            No holders found
+          </td>
+        </OrderbookTableRow>
+      );
+    }
+
     const len = data.length;
     return data.slice(0, Math.min(num, len)).map((item, index) => (
-      <OrderbookTableRow key={index}>
-        <td>{formatTokenName(item.address)}</td>
+      <OrderbookTableRow key={item.address || index} style={{ color: '#fbbf24' }}>
+        <td>{item.owner ? formatTokenName(item.owner) : 'Unknown'}</td>
+        <td>{formatTokenName(item.address || 'Unknown')}</td>
         <td>{formatNumberWithLeadingZeros(
-          parseFloat(item.balance),
+          parseFloat(item.balance || 0),
           3, 
           baseTokenDecimals
         )}</td>
         <td>{circulatingSupply ? 
-          ((parseFloat(item.balance) / parseFloat(circulatingSupply)) * 100).toFixed(2) + '%' : 'N/A'}</td>
+          ((parseFloat(item.balance || 0) / parseFloat(circulatingSupply)) * 100).toFixed(2) + '%' : 'N/A'}</td>
       </OrderbookTableRow>
     ));
   };
 
   return (
     <div>
-      <FieldSet legend="Holders List">
+      <FieldSet legend={`Holders List (${baseToken || 'Unknown Token'})`}>
         <OrderTable>
           <thead>
             <tr>
-              <th>Account</th>
-              <th>Amount</th>
-              <th>Percentage</th>
+              <th style={{ width: '25%' }}>Owner</th>
+              <th style={{ width: '25%' }}>Account</th>
+              <th style={{ width: '35%' }}>Amount</th>
+              <th style={{ width: '15%' }}>Percentage</th>
             </tr>
           </thead>
           <tbody>
