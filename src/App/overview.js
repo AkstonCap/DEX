@@ -269,7 +269,7 @@ export default function Overview() {
         <TradeHistory num={10} />
         <PersonalTradeHistory />
         <PersonalOpenOrders />
-        <HoldersList />
+        <HoldersList num={10} />
       </TopRow>
     </PageLayout>
   );
