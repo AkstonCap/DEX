@@ -33,7 +33,7 @@ export default function HoldersList({ num = 10 }) {
           'register/list/finance:accounts', 
           { 
             where: `results.token=${baseTokenAddress}`,
-            limit: 1000,
+            limit: 100,
             sort: 'balance', 
             order: 'desc', 
           }
@@ -131,8 +131,8 @@ export default function HoldersList({ num = 10 }) {
             <tr>
               <th style={{ width: '25%' }}>Owner</th>
               <th style={{ width: '25%' }}>Account</th>
-              <th style={{ width: '35%' }}>Amount</th>
-              <th style={{ width: '15%' }}>Percentage</th>
+              <th style={{ width: '30%' }}>Amount</th>
+              <th style={{ width: '20%' }}>Percentage</th>
             </tr>
           </thead>
           <tbody>
