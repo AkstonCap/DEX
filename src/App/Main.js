@@ -14,6 +14,7 @@ import Chart from './chart';
 import MarketDepth from './marketDepth';
 import Markets from './markets';
 import Portfolio from './portfolio';
+import StablecoinSwap from './stablecoinSwap';
 
 import { switchTab, setMarketPair } from 'actions/actionCreators';
 import RefreshButton from './RefreshButton';
@@ -145,6 +146,12 @@ export default function Main() {
           >
             Portfolio
           </HorizontalTab>
+          <HorizontalTab
+            active={activeTab === 'StablecoinSwap'}
+            onClick={() => handleSwitchTab('StablecoinSwap')}
+          >
+            Stablecoin Swap
+          </HorizontalTab>
         </HorizontalTab.TabBar>
       </div>
 
@@ -154,6 +161,7 @@ export default function Main() {
       <div>{activeTab === 'MarketDepth' && <MarketDepth />}</div>
       <div>{activeTab === 'Markets' && <Markets />}</div>
       <div>{activeTab === 'Portfolio' && <Portfolio />}</div>
+      <div>{activeTab === 'StablecoinSwap' && <StablecoinSwap />}</div>
     </Panel>
   );
 }
