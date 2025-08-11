@@ -75,7 +75,7 @@ The module furthermore consists of these tabs:
 - Wide-table layout with responsive column sizing and shortened addresses
 - Auto-refresh interval for asset lists (default ~60 seconds)
 
-6. Stablecoin Swap
+### Stablecoin Swap
 
 Swap between USDC on Solana and USDD on Nexus, directly from the module:
 
