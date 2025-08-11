@@ -158,6 +158,20 @@ const SOLANA_LIQUIDITY_POOL_ADDRESS = "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosg
 const SOLANA_RPC_URL = (typeof process !== 'undefined' && process.env && process.env.SOLANA_RPC_URL) || 'https://api.mainnet-beta.solana.com';
 const USDC_MINT_MAINNET = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 
+// Fees and limits
+const MIN_SWAP_AMOUNT = 0.2; // both directions
+const FLAT_FEE_USDC = 0.1; // flat fee in USDC
+const PCT_FEE = 0.001; // 0.1%
+
+const computeFees = (amt) => {
+  const amount = Number(amt) || 0;
+  const flat = FLAT_FEE_USDC;
+  const pct = amount * PCT_FEE;
+  const total = flat + pct;
+  const expectedReceive = Math.max(0, amount - total);
+  return { flat, pct, total, expectedReceive };
+};
+
 export default function StablecoinSwap() {
   const [swapDirection, setSwapDirection] = useState('toUSDD'); // 'toUSDD' or 'toUSDC'
   const [amount, setAmount] = useState('');
@@ -207,36 +221,29 @@ export default function StablecoinSwap() {
   };
 
   const handleSwap = async () => {
-    if (!amount || parseFloat(amount) <= 0) {
-      setNotification({
-        type: 'error',
-        message: 'Please enter a valid amount'
-      });
+    const amt = parseFloat(amount);
+    if (!amt || amt <= 0) {
+      setNotification({ type: 'error', message: 'Please enter a valid amount' });
+      return;
+    }
+    if (amt < MIN_SWAP_AMOUNT) {
+      setNotification({ type: 'error', message: `Minimum swap amount is ${MIN_SWAP_AMOUNT}` });
       return;
     }
 
-  if (swapDirection === 'toUSDD') {
+    if (swapDirection === 'toUSDD') {
       if (!usddAccount) {
-        setNotification({
-          type: 'error',
-          message: 'Please select a USDD receiving account'
-        });
+        setNotification({ type: 'error', message: 'Please select a USDD receiving account' });
         return;
       }
       await handleUSDCtoUSDD();
     } else {
       if (!usddAccount) {
-        setNotification({
-          type: 'error',
-          message: 'Please select a USDD account to send from'
-        });
+        setNotification({ type: 'error', message: 'Please select a USDD account to send from' });
         return;
       }
       if (!solanaWallet) {
-        setNotification({
-          type: 'error',
-          message: 'Please enter your Solana wallet address to receive USDC'
-        });
+        setNotification({ type: 'error', message: 'Please enter your Solana wallet address to receive USDC' });
         return;
       }
       await handleUSDDtoUSDC();
@@ -245,21 +252,13 @@ export default function StablecoinSwap() {
 
   const handleUSDCtoUSDD = async () => {
     setIsLoading(true);
-    setTransactionStatus({
-      status: 'pending',
-      message: 'Initiating USDC to USDD swap...',
-      step: 1,
-      totalSteps: 3
-    });
+    setTransactionStatus({ status: 'pending', message: 'Initiating USDC to USDD swap...', step: 1, totalSteps: 3 });
 
     try {
       // Step 1: Validate accounts and prepare transaction
-      setTransactionStatus({
-        status: 'pending',
-        message: 'Preparing transaction...',
-        step: 1,
-        totalSteps: 3
-      });
+      setTransactionStatus({ status: 'pending', message: 'Preparing transaction...', step: 1, totalSteps: 3 });
+
+      const { expectedReceive } = computeFees(amount);
 
       // Step 2: Display Solana transaction instructions
       setTransactionStatus({
@@ -270,10 +269,9 @@ export default function StablecoinSwap() {
         solanaAddress: SOLANA_LIQUIDITY_POOL_ADDRESS,
         memo: `nexus: ${usddAccount}`,
         amount: amount,
-        token: 'USDC'
+        token: 'USDC',
+        expectedAfterFees: expectedReceive,
       });
-
-      // User will create the Solana USDC transaction outside; they should paste the signature below
 
     } catch (error) {
       console.error('Swap error:', error);
@@ -414,10 +412,11 @@ export default function StablecoinSwap() {
 
       // Valid tx → proceed to monitor Nexus incoming USDD
       const expected = Number(transfer.amountUi || 0);
-      setExpectedUsdd(expected);
+      const { expectedReceive } = computeFees(expected);
+      setExpectedUsdd(expectedReceive);
       setTransactionStatus({
         status: 'monitoring',
-        message: `Solana tx confirmed. Expecting ~${expected} USDD to ${memoAccount || usddAccount}. Monitoring Nexus...`,
+        message: `Solana tx confirmed. Expecting ~${expectedReceive} USDD to ${memoAccount || usddAccount} after fees. Monitoring Nexus...`,
         step: 3,
         totalSteps: 3,
         solanaTxHash: txid,
@@ -427,7 +426,7 @@ export default function StablecoinSwap() {
       const baseline = await getNexusAccountBalance(memoAccount || usddAccount);
       if (baseline != null) setNexusBaselineBalance(baseline);
 
-      return { found: true, failed: false, expected, memoAccount: memoAccount || usddAccount };
+      return { found: true, failed: false, expected: expectedReceive, memoAccount: memoAccount || usddAccount };
     } catch (e) {
       setTransactionStatus({ status: 'error', message: `Solana query failed: ${e.message}` });
       setNotification({ type: 'error', message: `Solana query failed: ${e.message}` });
@@ -456,35 +455,21 @@ export default function StablecoinSwap() {
   const startNexusPolling = (address, expected) => {
     if (!address || !expected) return;
     if (nexusPollId) clearInterval(nexusPollId);
-
     const id = setInterval(async () => {
       try {
         const bal = await getNexusAccountBalance(address);
         if (bal == null) return;
-
         let base = nexusBaselineBalance;
-        if (base == null) {
-          // set first observed balance as baseline
-          setNexusBaselineBalance(bal);
-          return; // wait for next tick to compute delta
-        }
-
+        if (base == null) { setNexusBaselineBalance(bal); return; }
         const delta = Number(bal) - Number(base);
         if (delta >= Number(expected) * 0.95) {
           clearInterval(id);
           setNexusPollId(null);
-          setTransactionStatus(prev => ({
-            ...(prev || {}),
-            status: 'completed',
-            message: `USDD credited on Nexus. Amount ~${delta} to ${address}.`,
-          }));
+          setTransactionStatus(prev => ({ ...(prev || {}), status: 'completed', message: `USDD credited on Nexus. Amount ~${delta} to ${address}.` }));
           setNotification({ type: 'success', message: 'USDD received on Nexus' });
         }
-      } catch (e) {
-        // keep polling on transient errors
-      }
+      } catch {}
     }, 7000);
-
     setNexusPollId(id);
   };
 
@@ -626,14 +611,17 @@ export default function StablecoinSwap() {
 
   const handleUSDDtoUSDC = async () => {
     setIsLoading(true);
-    setTransactionStatus({
-      status: 'pending',
-      message: 'Initiating USDD to USDC swap...',
-      step: 1,
-      totalSteps: 3
-    });
+    setTransactionStatus({ status: 'pending', message: 'Initiating USDD to USDC swap...', step: 1, totalSteps: 3 });
 
     try {
+      // Validate minimum amount
+      const amt = parseFloat(amount);
+      if (amt < MIN_SWAP_AMOUNT) {
+        setTransactionStatus({ status: 'error', message: `Minimum swap amount is ${MIN_SWAP_AMOUNT}` });
+        setNotification({ type: 'error', message: `Minimum swap amount is ${MIN_SWAP_AMOUNT}` });
+        return;
+      }
+
       // Validate recipient USDC ATA existence on Solana before debiting
       setTransactionStatus({
         status: 'pending',
@@ -784,7 +772,38 @@ export default function StablecoinSwap() {
               step="0.01"
               min="0"
             />
+            {Number(amount) > 0 && Number(amount) < MIN_SWAP_AMOUNT && (
+              <div style={{ color: '#fca5a5', fontSize: 12, marginTop: 6 }}>
+                Minimum swap amount is {MIN_SWAP_AMOUNT}
+              </div>
+            )}
           </InputGroup>
+
+          {/* Fees and estimate */}
+          <div style={{
+            background: '#111827',
+            border: '1px solid #374151',
+            borderRadius: 8,
+            padding: 12,
+            fontSize: 14,
+            color: '#d1d5db',
+            marginBottom: 12
+          }}>
+            {(() => {
+              const amt = Number(amount) || 0;
+              const { flat, pct, total, expectedReceive } = computeFees(amt);
+              const outToken = swapDirection === 'toUSDD' ? 'USDD' : 'USDC';
+              const inToken = swapDirection === 'toUSDD' ? 'USDC' : 'USDD';
+              return (
+                <div>
+                  <div style={{ marginBottom: 4 }}><strong>Minimum:</strong> {MIN_SWAP_AMOUNT} {inToken}</div>
+                  <div style={{ marginBottom: 4 }}><strong>Fees:</strong> {FLAT_FEE_USDC} USDC flat + {(PCT_FEE * 100).toFixed(1)}% of amount ({pct.toFixed(6)} {inToken})</div>
+                  <div style={{ marginBottom: 4 }}><strong>Total fees (approx):</strong> {total.toFixed(6)} {inToken}</div>
+                  <div><strong>Estimated received:</strong> {expectedReceive.toFixed(6)} {outToken}</div>
+                </div>
+              );
+            })()}
+          </div>
 
           {/** Wallet connection UI removed for toUSDD; transaction is created externally */}
 
@@ -822,6 +841,7 @@ export default function StablecoinSwap() {
                   <div><strong>Send to:</strong> <span style={{ fontFamily: 'monospace' }}>{SOLANA_LIQUIDITY_POOL_ADDRESS}</span></div>
                   <div><strong>Memo (exact):</strong> <span style={{ fontFamily: 'monospace' }}>{`nexus: ${usddAccount || '<select a USDD account>'}`}</span></div>
                   <div><strong>Amount:</strong> {amount || '0'}</div>
+                  <div><strong>Estimated received:</strong> {computeFees(amount).expectedReceive.toFixed(6)} USDD</div>
                 </div>
               </InputGroup>
 
@@ -862,7 +882,7 @@ export default function StablecoinSwap() {
 
           <Button
             onClick={handleSwap}
-            disabled={isLoading || !amount || 
+            disabled={isLoading || !amount || Number(amount) < MIN_SWAP_AMOUNT ||
               (swapDirection === 'toUSDD' ? (!usddAccount) : (!solanaWallet || !usddAccount))}
             style={{
               width: '100%',
@@ -972,7 +992,9 @@ export default function StablecoinSwap() {
           <div style={{ fontSize: '14px', color: '#9ca3af', lineHeight: '1.5' }}>
             <p><strong>USDC → USDD:</strong> From your Solana wallet, send USDC to our Solana liquidity pool with your Nexus account address as memo (format: <code>nexus: &lt;USDD_account&gt;</code>). USDD will be automatically sent to your specified Nexus account.</p>
             <p><strong>USDD → USDC:</strong> Send USDD from your Nexus account to our bridge. USDC will be automatically sent to your specified Solana wallet address.</p>
-            <p><strong>Exchange Rate:</strong> 1:1 ratio (minus network fees)</p>
+            <p><strong>Minimum amount:</strong> {MIN_SWAP_AMOUNT} (both directions).</p>
+            <p><strong>Fees:</strong> {FLAT_FEE_USDC} USDC flat + {(PCT_FEE * 100).toFixed(1)}% of amount. Estimated received is calculated as amount minus total fees.</p>
+            <p><strong>Exchange Rate:</strong> 1:1 ratio (minus fees and network costs)</p>
             <p><strong>Requirements:</strong> A Solana wallet capable of sending USDC with a memo field.</p>
           </div>
         </div>
