@@ -6,6 +6,7 @@ import {
   Button,
   Select,
   apiCall,
+  secureApiCall,
 } from 'nexus-module';
 
 const Container = styled.div`
@@ -151,88 +152,11 @@ const CustomNotification = ({ type, children, onClose }) => (
   </NotificationContainer>
 );
 
-const WalletContainer = styled.div`
-  background: #111827;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 16px;
-  border: 1px solid #374151;
-`;
+// Wallet UI removed; swaps are initiated externally and tracked here by tx id
 
-const WalletStatus = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-`;
-
-const WalletInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-`;
-
-const WalletIndicator = styled.div`
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: ${props => props.connected ? '#059669' : '#dc2626'};
-`;
-
-const WalletAddress = styled.div`
-  font-family: monospace;
-  font-size: 12px;
-  color: #9ca3af;
-  word-break: break-all;
-`;
-
-const WalletButton = styled.button`
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: 1px solid #374151;
-  background: ${props => props.variant === 'disconnect' ? '#7f1d1d' : '#1e40af'};
-  color: white;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: ${props => props.variant === 'disconnect' ? '#991b1b' : '#1e3a8a'};
-  }
-
-  &:disabled {
-    background: #6b7280;
-    cursor: not-allowed;
-  }
-`;
-
-const WalletInstallPrompt = styled.div`
-  background: #1e3a8a;
-  border: 1px solid #3b82f6;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 16px;
-  color: #dbeafe;
-`;
-
-const WalletLink = styled.a`
-  color: #60a5fa;
-  text-decoration: none;
-  font-weight: 500;
-  
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const WalletGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 12px;
-`;
-
-const SOLANA_LIQUIDITY_POOL_ADDRESS = "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"; // Example address
+const SOLANA_LIQUIDITY_POOL_ADDRESS = "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"; // Service receiving account
+const SOLANA_RPC_URL = (typeof process !== 'undefined' && process.env && process.env.SOLANA_RPC_URL) || 'https://api.mainnet-beta.solana.com';
+const USDC_MINT_MAINNET = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 
 export default function StablecoinSwap() {
   const [swapDirection, setSwapDirection] = useState('toUSDD'); // 'toUSDD' or 'toUSDC'
@@ -243,87 +167,22 @@ export default function StablecoinSwap() {
   const [isLoading, setIsLoading] = useState(false);
   const [transactionStatus, setTransactionStatus] = useState(null);
   const [notification, setNotification] = useState(null);
-  const [solanaWalletConnected, setSolanaWalletConnected] = useState(false);
-  const [solanaProvider, setSolanaProvider] = useState(null);
+  // Solana wallet connection removed
+  const [solanaTxId, setSolanaTxId] = useState('');
+  const [solanaPollId, setSolanaPollId] = useState(null);
+  const [nexusPollId, setNexusPollId] = useState(null);
+  const [nexusBaselineBalance, setNexusBaselineBalance] = useState(null);
+  const [expectedUsdd, setExpectedUsdd] = useState(null);
+  // USDD -> USDC tracking
+  const [nexusDebitTxId, setNexusDebitTxId] = useState(null);
+  const [nexusDebitPollId, setNexusDebitPollId] = useState(null);
+  const [solanaCreditPollId, setSolanaCreditPollId] = useState(null);
+  const [recipientOwnerForCredit, setRecipientOwnerForCredit] = useState(null);
 
   // Fetch Nexus accounts on component mount
   useEffect(() => {
     fetchNexusAccounts();
-    checkSolanaWallet();
   }, []);
-
-  // Check for Solana wallet on page load
-  const checkSolanaWallet = () => {
-    if (typeof window !== 'undefined') {
-      let provider = null;
-      
-      // Check for Phantom wallet
-      if (window.solana && window.solana.isPhantom) {
-        provider = window.solana;
-      }
-      // Check for Solflare wallet
-      else if (window.solflare && window.solflare.isSolflare) {
-        provider = window.solflare;
-      }
-      
-      if (provider) {
-        setSolanaProvider(provider);
-        // Check if already connected
-        if (provider.isConnected) {
-          setSolanaWalletConnected(true);
-          setSolanaWallet(provider.publicKey?.toString() || '');
-        }
-      }
-    }
-  };
-
-  const connectSolanaWallet = async () => {
-    try {
-      if (!solanaProvider) {
-        setNotification({
-          type: 'error',
-          message: 'No Solana wallet found. Please install Phantom or Solflare wallet extension.'
-        });
-        return;
-      }
-
-      const response = await solanaProvider.connect();
-      if (response.publicKey) {
-        setSolanaWalletConnected(true);
-        setSolanaWallet(response.publicKey.toString());
-        
-        const walletName = solanaProvider.isPhantom ? 'Phantom' : 
-                          solanaProvider.isSolflare ? 'Solflare' : 'Solana';
-        
-        setNotification({
-          type: 'success',
-          message: `${walletName} wallet connected successfully!`
-        });
-      }
-    } catch (error) {
-      console.error('Error connecting Solana wallet:', error);
-      setNotification({
-        type: 'error',
-        message: 'Failed to connect Solana wallet: ' + error.message
-      });
-    }
-  };
-
-  const disconnectSolanaWallet = async () => {
-    try {
-      if (solanaProvider) {
-        await solanaProvider.disconnect();
-      }
-      setSolanaWalletConnected(false);
-      setSolanaWallet('');
-      setNotification({
-        type: 'info',
-        message: 'Solana wallet disconnected'
-      });
-    } catch (error) {
-      console.error('Error disconnecting Solana wallet:', error);
-    }
-  };
 
   const fetchNexusAccounts = async () => {
     try {
@@ -356,14 +215,7 @@ export default function StablecoinSwap() {
       return;
     }
 
-    if (swapDirection === 'toUSDD') {
-      if (!solanaWalletConnected) {
-        setNotification({
-          type: 'error',
-          message: 'Please connect your Solana wallet first'
-        });
-        return;
-      }
+  if (swapDirection === 'toUSDD') {
       if (!usddAccount) {
         setNotification({
           type: 'error',
@@ -412,39 +264,16 @@ export default function StablecoinSwap() {
       // Step 2: Display Solana transaction instructions
       setTransactionStatus({
         status: 'waiting',
-        message: `Please send ${amount} USDC to the liquidity pool address below with the memo containing your USDD account address:`,
+        message: `Please send ${amount} USDC to the service with memo in the exact format: nexus: <USDD_account>`,
         step: 2,
         totalSteps: 3,
         solanaAddress: SOLANA_LIQUIDITY_POOL_ADDRESS,
-        memo: usddAccount,
+        memo: `nexus: ${usddAccount}`,
         amount: amount,
         token: 'USDC'
       });
 
-      // Step 3: Monitor for USDD receipt (this would typically involve polling)
-      // For now, we'll simulate this process
-      setTimeout(() => {
-        setTransactionStatus({
-          status: 'monitoring',
-          message: 'Monitoring for USDD receipt...',
-          step: 3,
-          totalSteps: 3
-        });
-        
-        // Simulate completion after another delay
-        setTimeout(() => {
-          setTransactionStatus({
-            status: 'completed',
-            message: `Successfully swapped ${amount} USDC to USDD!`,
-            step: 3,
-            totalSteps: 3
-          });
-          setNotification({
-            type: 'success',
-            message: `Swap completed! ${amount} USDD received in account ${usddAccount}`
-          });
-        }, 5000);
-      }, 2000);
+      // User will create the Solana USDC transaction outside; they should paste the signature below
 
     } catch (error) {
       console.error('Swap error:', error);
@@ -461,6 +290,340 @@ export default function StablecoinSwap() {
     }
   };
 
+  // --- Solana helpers ---
+  const solanaRpc = async (method, params) => {
+    const res = await fetch(SOLANA_RPC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+    });
+    if (!res.ok) throw new Error(`RPC ${method} failed: ${res.status}`);
+    const json = await res.json();
+    if (json.error) throw new Error(json.error.message || 'RPC error');
+    return json.result;
+  };
+
+  const getParsedAccountInfo = async (address) => {
+    try {
+      return await solanaRpc('getAccountInfo', [address, { encoding: 'jsonParsed', commitment: 'confirmed' }]);
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const ensureUsdcAtaExists = async (address) => {
+    if (!address) return { ok: false };
+
+    // Case 1: Address might be a token account. If so, verify it's USDC and initialized.
+    const acct = await getParsedAccountInfo(address);
+    const parsed = acct?.value?.data?.parsed;
+    if (parsed?.type === 'account') {
+      const info = parsed?.info;
+      if (info?.mint === USDC_MINT_MAINNET && info?.state === 'initialized') {
+        // Use the owner of this token account for payout monitoring
+        return { ok: true, owner: info.owner };
+      }
+    }
+
+    // Case 2: Treat address as an owner; ensure at least one USDC token account exists
+    try {
+      const resp = await solanaRpc('getTokenAccountsByOwner', [address, { mint: USDC_MINT_MAINNET }, { encoding: 'jsonParsed', commitment: 'confirmed' }]);
+      const hasAny = Array.isArray(resp?.value) && resp.value.length > 0;
+      if (hasAny) return { ok: true, owner: address };
+    } catch {}
+
+    return { ok: false };
+  };
+
+  const decodeMemoFromTx = (tx) => {
+    try {
+      const instructions = tx?.transaction?.message?.instructions || [];
+      // jsonParsed returns program as 'spl-memo'
+      const memoIx = instructions.find(ix => ix.program === 'spl-memo');
+      if (memoIx && typeof memoIx.parsed === 'string') return memoIx.parsed;
+      // Fallback: raw base64 data
+      const memoIx2 = instructions.find(ix => ix.programId === 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
+      if (memoIx2 && memoIx2.data) {
+        try { return atob(memoIx2.data); } catch {}
+      }
+    } catch {}
+    return null;
+  };
+
+  const extractUsdcTransfer = (tx) => {
+    try {
+      const instructions = tx?.transaction?.message?.instructions || [];
+      // Find a spl-token transfer to the service address with USDC mint
+      for (const ix of instructions) {
+        if (ix.program === 'spl-token' && ix.parsed && (ix.parsed.type === 'transferChecked' || ix.parsed.type === 'transfer')) {
+          const info = ix.parsed.info || {};
+          const dest = info.destination || info.dest || info.account || '';
+          const mint = info.mint || '';
+          const amountUi = info.tokenAmount?.uiAmount ?? (info.amount && info.decimals != null ? Number(info.amount) / Math.pow(10, info.decimals) : undefined);
+          if (dest === SOLANA_LIQUIDITY_POOL_ADDRESS && mint === USDC_MINT_MAINNET) {
+            return { amountUi: Number(amountUi) || 0, mint, dest };
+          }
+        }
+      }
+    } catch {}
+    return null;
+  };
+
+  const checkSolanaTxOnce = async (txid) => {
+    if (!txid) {
+      setNotification({ type: 'error', message: 'Please paste the Solana USDC transaction signature' });
+      return { found: false };
+    }
+    setIsLoading(true);
+    try {
+      const tx = await solanaRpc('getTransaction', [txid, { encoding: 'jsonParsed', maxSupportedTransactionVersion: 0, commitment: 'confirmed' }]);
+      if (!tx) {
+        setTransactionStatus(prev => ({
+          ...(prev || {}),
+          status: 'monitoring',
+          message: 'Transaction not found or not yet confirmed. Waiting...',
+          step: 2,
+          totalSteps: 3,
+          solanaTxHash: txid,
+        }));
+        return { found: false };
+      }
+      if (tx?.meta?.err) {
+        setTransactionStatus({ status: 'error', message: 'Solana transaction failed', solanaTxHash: txid });
+        return { found: true, failed: true };
+      }
+      const memo = decodeMemoFromTx(tx);
+      const transfer = extractUsdcTransfer(tx);
+      if (!transfer) {
+        setTransactionStatus({ status: 'error', message: 'No USDC transfer to the service address found in this transaction', solanaTxHash: txid });
+        return { found: true, failed: true };
+      }
+      const memoOk = typeof memo === 'string' && memo.toLowerCase().startsWith('nexus: ');
+      const memoAccount = memoOk ? memo.slice(7).trim() : '';
+      if (!memoOk) {
+        setTransactionStatus({ status: 'refunded', message: 'Invalid memo format. Expected: "nexus: <USDD_account>"', solanaTxHash: txid });
+        setNotification({ type: 'error', message: 'Invalid memo format. Service will refund.' });
+        return { found: true, failed: true };
+      }
+      // If user selected an account, require it matches the memo
+      if (usddAccount && memoAccount && memoAccount !== usddAccount) {
+        setTransactionStatus({ status: 'refunded', message: 'Memo account does not match selected USDD account. Service will refund.', solanaTxHash: txid });
+        setNotification({ type: 'error', message: 'Memo account mismatch. Refund expected.' });
+        return { found: true, failed: true };
+      }
+
+      // Valid tx → proceed to monitor Nexus incoming USDD
+      const expected = Number(transfer.amountUi || 0);
+      setExpectedUsdd(expected);
+      setTransactionStatus({
+        status: 'monitoring',
+        message: `Solana tx confirmed. Expecting ~${expected} USDD to ${memoAccount || usddAccount}. Monitoring Nexus...`,
+        step: 3,
+        totalSteps: 3,
+        solanaTxHash: txid,
+      });
+
+      // capture current balance as baseline
+      const baseline = await getNexusAccountBalance(memoAccount || usddAccount);
+      if (baseline != null) setNexusBaselineBalance(baseline);
+
+      return { found: true, failed: false, expected, memoAccount: memoAccount || usddAccount };
+    } catch (e) {
+      setTransactionStatus({ status: 'error', message: `Solana query failed: ${e.message}` });
+      setNotification({ type: 'error', message: `Solana query failed: ${e.message}` });
+      return { found: false };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const startSolanaPolling = (txid) => {
+    if (solanaPollId) clearInterval(solanaPollId);
+    const id = setInterval(async () => {
+      const res = await checkSolanaTxOnce(txid);
+      if (res.found && !res.failed) {
+        clearInterval(id);
+        setSolanaPollId(null);
+        startNexusPolling(res.memoAccount || usddAccount, res.expected);
+      } else if (res.found && res.failed) {
+        clearInterval(id);
+        setSolanaPollId(null);
+      }
+    }, 8000);
+    setSolanaPollId(id);
+  };
+
+  const startNexusPolling = (address, expected) => {
+    if (!address || !expected) return;
+    if (nexusPollId) clearInterval(nexusPollId);
+
+    const id = setInterval(async () => {
+      try {
+        const bal = await getNexusAccountBalance(address);
+        if (bal == null) return;
+
+        let base = nexusBaselineBalance;
+        if (base == null) {
+          // set first observed balance as baseline
+          setNexusBaselineBalance(bal);
+          return; // wait for next tick to compute delta
+        }
+
+        const delta = Number(bal) - Number(base);
+        if (delta >= Number(expected) * 0.95) {
+          clearInterval(id);
+          setNexusPollId(null);
+          setTransactionStatus(prev => ({
+            ...(prev || {}),
+            status: 'completed',
+            message: `USDD credited on Nexus. Amount ~${delta} to ${address}.`,
+          }));
+          setNotification({ type: 'success', message: 'USDD received on Nexus' });
+        }
+      } catch (e) {
+        // keep polling on transient errors
+      }
+    }, 7000);
+
+    setNexusPollId(id);
+  };
+
+  // --- Nexus helpers ---
+  const getNexusAccountBalance = async (address) => {
+    try {
+      // Try a direct get
+      const acc = await apiCall('finance/get/account', { address });
+      if (acc && typeof acc.balance === 'number') return acc.balance;
+    } catch {}
+    try {
+      // Fallback to list and find
+      const all = await apiCall('finance/list/account');
+      const found = Array.isArray(all) ? all.find(a => a.address === address) : null;
+      if (found && typeof found.balance === 'number') return found.balance;
+    } catch {}
+    return null;
+  };
+
+  const getNexusTransactionStatus = async (txid) => {
+    try {
+      const tx = await apiCall('finance/get/transaction', { txid });
+      return tx;
+    } catch {}
+    try {
+      const tx = await apiCall('ledger/get/transaction', { txid });
+      return tx;
+    } catch {}
+    return null;
+  };
+
+  const nexusTxIsConfirmed = (tx) => {
+    if (!tx) return false;
+    if (tx.confirmations != null) return tx.confirmations > 0;
+    if (tx.status && typeof tx.status === 'string') return tx.status.toLowerCase() === 'confirmed';
+    if (tx.timestamp) return true;
+    return false;
+  };
+
+  const startNexusDebitPolling = (txid, expectedAmount, ownerForCredit) => {
+    if (!txid) return;
+    if (nexusDebitPollId) clearInterval(nexusDebitPollId);
+    const id = setInterval(async () => {
+      try {
+        const tx = await getNexusTransactionStatus(txid);
+        if (nexusTxIsConfirmed(tx)) {
+          clearInterval(id);
+          setNexusDebitPollId(null);
+          setTransactionStatus(prev => ({
+            ...(prev || {}),
+            status: 'monitoring',
+            message: 'USDD debit confirmed. Monitoring Solana for USDC credit...',
+            step: 3,
+            totalSteps: 3,
+          }));
+          startSolanaCreditPolling(txid, ownerForCredit || solanaWallet, expectedAmount);
+        }
+      } catch (e) {
+        // keep polling on errors
+      }
+    }, 8000);
+    setNexusDebitPollId(id);
+  };
+
+  const getOwnerUsdcDelta = (tx, owner) => {
+    try {
+      const pre = tx?.meta?.preTokenBalances || [];
+      const post = tx?.meta?.postTokenBalances || [];
+      let preAmt = 0;
+      let postAmt = 0;
+      for (const b of pre) {
+        if (b.mint === USDC_MINT_MAINNET && b.owner === owner) {
+          preAmt += Number(b.uiTokenAmount?.uiAmount || 0);
+        }
+      }
+      for (const b of post) {
+        if (b.mint === USDC_MINT_MAINNET && b.owner === owner) {
+          postAmt += Number(b.uiTokenAmount?.uiAmount || 0);
+        }
+      }
+      const delta = postAmt - preAmt;
+      return delta;
+    } catch {
+      return 0;
+    }
+  };
+
+  const startSolanaCreditPolling = (expectedMemo, recipientOwner, expectedAmount) => {
+    if (!recipientOwner || !expectedMemo) return;
+    if (solanaCreditPollId) clearInterval(solanaCreditPollId);
+    const id = setInterval(async () => {
+      try {
+        const sigs = await solanaRpc('getSignaturesForAddress', [SOLANA_LIQUIDITY_POOL_ADDRESS, { limit: 30 }]);
+        if (!Array.isArray(sigs)) return;
+        for (const s of sigs) {
+          const tx = await solanaRpc('getTransaction', [s.signature, { encoding: 'jsonParsed', maxSupportedTransactionVersion: 0, commitment: 'confirmed' }]);
+          if (!tx || tx?.meta?.err) continue;
+          const memo = decodeMemoFromTx(tx) || '';
+          if (!memo) continue;
+          const memoMatch = memo.includes(expectedMemo);
+          if (!memoMatch) continue;
+          const delta = getOwnerUsdcDelta(tx, recipientOwner);
+          if (delta >= expectedAmount * 0.95) {
+            clearInterval(id);
+            setSolanaCreditPollId(null);
+            setTransactionStatus(prev => ({
+              ...(prev || {}),
+              status: 'completed',
+              message: `USDC transfer detected on Solana. Amount ~${delta} to ${recipientOwner}.`,
+              solanaTxHash: s.signature,
+            }));
+            setNotification({ type: 'success', message: 'USDC received on Solana' });
+            break;
+          }
+        }
+      } catch (e) {
+        // non-fatal during polling
+      }
+    }, 10000);
+    setSolanaCreditPollId(id);
+  };
+
+  useEffect(() => {
+    // stop polling when finished
+    if (transactionStatus && ['completed', 'error', 'refunded'].includes(transactionStatus.status)) {
+      if (solanaPollId) clearInterval(solanaPollId);
+      if (nexusPollId) clearInterval(nexusPollId);
+      if (nexusDebitPollId) clearInterval(nexusDebitPollId);
+      if (solanaCreditPollId) clearInterval(solanaCreditPollId);
+    }
+    return () => {
+      // cleanup on unmount
+      if (solanaPollId) clearInterval(solanaPollId);
+      if (nexusPollId) clearInterval(nexusPollId);
+      if (nexusDebitPollId) clearInterval(nexusDebitPollId);
+      if (solanaCreditPollId) clearInterval(solanaCreditPollId);
+    };
+  }, [transactionStatus]);
+
   const handleUSDDtoUSDC = async () => {
     setIsLoading(true);
     setTransactionStatus({
@@ -471,60 +634,53 @@ export default function StablecoinSwap() {
     });
 
     try {
-      // Step 1: Send USDD to the bridge account
+      // Validate recipient USDC ATA existence on Solana before debiting
       setTransactionStatus({
         status: 'pending',
-        message: 'Sending USDD to bridge account...',
+        message: 'Validating recipient USDC token account (ATA) on Solana...',
         step: 1,
         totalSteps: 3
       });
 
-      // This would involve calling the Nexus API to send USDD
-      const bridgeAccount = "NxSwapBridge1234567890"; // Example bridge account
-      
-      // Simulate the USDD transaction
-      const usddTxResult = await secureApiCall('tokens/transfer', {
-        from: usddAccount,
-        to: bridgeAccount,
-        amount: parseFloat(amount),
-        reference: `SOLANA_BRIDGE:${solanaWallet}`,
-        expires: 300 // 1 minute expiration
-      });
+      const validation = await ensureUsdcAtaExists(solanaWallet);
+      if (!validation.ok) {
+        setTransactionStatus({
+          status: 'error',
+          message: 'No USDC associated token account (ATA) found for this address on Solana. Please create your USDC token account in your wallet before proceeding.'
+        });
+        setNotification({ type: 'error', message: 'USDC ATA not found for this address on Solana.' });
+        return;
+      }
+      setRecipientOwnerForCredit(validation.owner);
 
+      // Step 1: Debit USDD with a reference that includes the Solana USDC receiving address
       setTransactionStatus({
         status: 'pending',
-        message: 'USDD sent to bridge. Processing Solana transaction...',
-        step: 2,
-        totalSteps: 3,
-        nexusTxHash: usddTxResult.txid
+        message: 'Submitting USDD debit transaction...',
+        step: 1,
+        totalSteps: 3
       });
 
-      // Step 2: Bridge processes and sends USDC
-      setTimeout(() => {
-        setTransactionStatus({
-          status: 'monitoring',
-          message: 'Monitoring USDC transfer to your Solana wallet...',
-          step: 3,
-          totalSteps: 3,
-          nexusTxHash: usddTxResult.txid
-        });
+      const debitPayload = {
+        address: usddAccount,
+        amount: parseFloat(amount),
+        reference: `USDC_SOL:${solanaWallet}`,
+      };
 
-        // Simulate completion
-        setTimeout(() => {
-          setTransactionStatus({
-            status: 'completed',
-            message: `Successfully swapped ${amount} USDD to USDC!`,
-            step: 3,
-            totalSteps: 3,
-            nexusTxHash: usddTxResult.txid,
-            solanaTxHash: "5J7X8K9..." // Simulated Solana tx hash
-          });
-          setNotification({
-            type: 'success',
-            message: `Swap completed! ${amount} USDC sent to ${solanaWallet}`
-          });
-        }, 5000);
-      }, 3000);
+      const debitResult = await secureApiCall('finance/debit/account', debitPayload);
+
+      const txid = debitResult?.txid || debitResult?.hash || debitResult?.tx || null;
+      setNexusDebitTxId(txid);
+      setTransactionStatus({
+        status: 'pending',
+        message: 'USDD debit submitted. Waiting for confirmation on Nexus...',
+        step: 2,
+        totalSteps: 3,
+        nexusTxHash: txid,
+      });
+
+      if (txid) startNexusDebitPolling(txid, parseFloat(amount), validation.owner);
+      setNotification({ type: 'success', message: 'USDD debit submitted. Monitoring status...' });
 
     } catch (error) {
       console.error('Swap error:', error);
@@ -630,68 +786,7 @@ export default function StablecoinSwap() {
             />
           </InputGroup>
 
-          {swapDirection === 'toUSDD' && (
-            <>
-              {!solanaProvider ? (
-                <WalletInstallPrompt>
-                  <div style={{ fontWeight: '600', marginBottom: '8px' }}>
-                    No Solana wallet detected
-                  </div>
-                  <div style={{ marginBottom: '12px' }}>
-                    Please install a Solana wallet extension to continue:
-                  </div>
-                  <WalletGrid>
-                    <div>
-                      <WalletLink href="https://phantom.app/" target="_blank" rel="noopener noreferrer">
-                        📱 Install Phantom
-                      </WalletLink>
-                    </div>
-                    <div>
-                      <WalletLink href="https://solflare.com/" target="_blank" rel="noopener noreferrer">
-                        🔥 Install Solflare
-                      </WalletLink>
-                    </div>
-                  </WalletGrid>
-                  <div style={{ fontSize: '12px', marginTop: '12px', opacity: 0.8 }}>
-                    After installation, refresh this page to connect your wallet.
-                  </div>
-                </WalletInstallPrompt>
-              ) : (
-                <WalletContainer>
-                  <Label>Solana Wallet Connection</Label>
-                  <WalletStatus>
-                    <WalletInfo>
-                      <WalletIndicator connected={solanaWalletConnected} />
-                      <div>
-                        <div style={{ fontWeight: '500', color: '#f3f4f6' }}>
-                          {solanaWalletConnected ? 'Wallet Connected' : 'Wallet Not Connected'}
-                        </div>
-                        {solanaWalletConnected && solanaWallet && (
-                          <WalletAddress>{solanaWallet}</WalletAddress>
-                        )}
-                      </div>
-                    </WalletInfo>
-                    {solanaWalletConnected ? (
-                      <WalletButton 
-                        variant="disconnect"
-                        onClick={disconnectSolanaWallet}
-                        disabled={isLoading}
-                      >
-                        Disconnect
-                      </WalletButton>
-                    ) : (
-                      <WalletButton 
-                        onClick={connectSolanaWallet}
-                        disabled={isLoading}
-                      >
-                        Connect Wallet
-                      </WalletButton>
-                    )}
-                  </WalletStatus>
-                </WalletContainer>
-              )}
-            </>
-          )}
+          {/** Wallet connection UI removed for toUSDD; transaction is created externally */}
 
           <InputGroup>
             <Label>
@@ -710,6 +805,50 @@ export default function StablecoinSwap() {
             </Select>
           </InputGroup>
 
+          {swapDirection === 'toUSDD' && (
+            <>
+              <InputGroup>
+                <Label>How to send USDC to the swap service</Label>
+                <div style={{
+                  background: '#111827',
+                  border: '1px solid #374151',
+                  borderRadius: 8,
+                  padding: 12,
+                  fontSize: 14,
+                  color: '#d1d5db'
+                }}>
+                  <div><strong>Network:</strong> Solana</div>
+                  <div><strong>Token:</strong> USDC</div>
+                  <div><strong>Send to:</strong> <span style={{ fontFamily: 'monospace' }}>{SOLANA_LIQUIDITY_POOL_ADDRESS}</span></div>
+                  <div><strong>Memo (exact):</strong> <span style={{ fontFamily: 'monospace' }}>{`nexus: ${usddAccount || '<select a USDD account>'}`}</span></div>
+                  <div><strong>Amount:</strong> {amount || '0'}</div>
+                </div>
+              </InputGroup>
+
+              <InputGroup>
+                <Label>Paste Solana USDC Transaction Signature</Label>
+                <TextField
+                  placeholder="Enter Solana tx signature (base58)"
+                  value={solanaTxId}
+                  onChange={(e) => setSolanaTxId(e.target.value)}
+                />
+                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                  <Button
+                    onClick={async () => { await checkSolanaTxOnce(solanaTxId); startSolanaPolling(solanaTxId); }}
+                    disabled={isLoading || !solanaTxId}
+                  >
+                    Check Status
+                  </Button>
+                  {solanaPollId && (
+                    <Button onClick={() => { clearInterval(solanaPollId); setSolanaPollId(null); }}>
+                      Stop Auto-Refresh
+                    </Button>
+                  )}
+                </div>
+              </InputGroup>
+            </>
+          )}
+
           {swapDirection === 'toUSDC' && (
             <InputGroup>
               <Label>Solana Wallet Address (USDC Recipient)</Label>
@@ -724,7 +863,7 @@ export default function StablecoinSwap() {
           <Button
             onClick={handleSwap}
             disabled={isLoading || !amount || 
-              (swapDirection === 'toUSDD' ? (!solanaWalletConnected || !usddAccount) : (!solanaWallet || !usddAccount))}
+              (swapDirection === 'toUSDD' ? (!usddAccount) : (!solanaWallet || !usddAccount))}
             style={{
               width: '100%',
               padding: '12px',
@@ -789,6 +928,13 @@ export default function StablecoinSwap() {
               </div>
             )}
 
+            {transactionStatus.refundTxHash && (
+              <div>
+                <strong>Refund Transaction (Solana):</strong>
+                <TransactionHash>{transactionStatus.refundTxHash}</TransactionHash>
+              </div>
+            )}
+
             {transactionStatus.solanaTxHash && (
               <div>
                 <strong>Solana Transaction:</strong>
@@ -824,10 +970,10 @@ export default function StablecoinSwap() {
         }}>
           <h4 style={{ margin: '0 0 12px 0', color: '#f3f4f6' }}>How it works:</h4>
           <div style={{ fontSize: '14px', color: '#9ca3af', lineHeight: '1.5' }}>
-            <p><strong>USDC → USDD:</strong> Connect your Phantom wallet, then send USDC to our Solana liquidity pool with your Nexus account address as memo. USDD will be automatically sent to your specified Nexus account.</p>
+            <p><strong>USDC → USDD:</strong> From your Solana wallet, send USDC to our Solana liquidity pool with your Nexus account address as memo (format: <code>nexus: &lt;USDD_account&gt;</code>). USDD will be automatically sent to your specified Nexus account.</p>
             <p><strong>USDD → USDC:</strong> Send USDD from your Nexus account to our bridge. USDC will be automatically sent to your specified Solana wallet address.</p>
             <p><strong>Exchange Rate:</strong> 1:1 ratio (minus network fees)</p>
-            <p><strong>Requirements:</strong> Phantom or Solflare wallet extension for Solana transactions</p>
+            <p><strong>Requirements:</strong> A Solana wallet capable of sending USDC with a memo field.</p>
           </div>
         </div>
       </FieldSet>
