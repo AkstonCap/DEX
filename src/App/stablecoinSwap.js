@@ -154,9 +154,10 @@ const CustomNotification = ({ type, children, onClose }) => (
 
 // Solana wallet UI not imported; swaps are initiated externally and tracked here by tx id
 
-const SOLANA_LIQUIDITY_POOL_ADDRESS = "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"; // Service receiving account
+const SOLANA_LIQUIDITY_POOL_ADDRESS = "DGnz69jptDqMLYhsWV2GrkPGcfkt445sXChn2ayohahH"; // Service receiving account
 const SOLANA_RPC_URL = (typeof process !== 'undefined' && process.env && process.env.SOLANA_RPC_URL) || 'https://api.mainnet-beta.solana.com';
 const USDC_MINT_MAINNET = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+const SOLANA_SOL_VAULT_ACCOUNT = "3jinM2kkqNdWtd3et4acw3wBqAKo8PNLB4kkRdHEXchD";
 
 // Fees and limits
 const MIN_SWAP_AMOUNT = 0.2; // Minimum swap amount in both directions
@@ -164,7 +165,7 @@ const FLAT_FEE_USDC = 0.1; // Flat fee in USDC
 const PCT_FEE = 0.001; // Percentage fee (0.1%)
 
 // Swap service status config (set via env or update constant)
-const SWAP_STATUS_ASSET_ADDRESS = '<SET_SWAP_STATUS_ASSET_ADDRESS>'; // !!
+const SWAP_STATUS_ASSET_ADDRESS = '88hxLXn6GML3NCYast1F1UuFHWEpec49X6LsgW6Vg136KSws6Vo'; // !!
 // Reserves config
 const USDC_VAULT_TOKEN_ACCOUNT = ""; // input account from swapService
 
