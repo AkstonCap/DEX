@@ -152,7 +152,7 @@ const CustomNotification = ({ type, children, onClose }) => (
   </NotificationContainer>
 );
 
-// Wallet UI removed; swaps are initiated externally and tracked here by tx id
+// Solana wallet UI not imported; swaps are initiated externally and tracked here by tx id
 
 const SOLANA_LIQUIDITY_POOL_ADDRESS = "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"; // Service receiving account
 const SOLANA_RPC_URL = (typeof process !== 'undefined' && process.env && process.env.SOLANA_RPC_URL) || 'https://api.mainnet-beta.solana.com';
@@ -164,7 +164,9 @@ const FLAT_FEE_USDC = 0.1; // Flat fee in USDC
 const PCT_FEE = 0.001; // Percentage fee (0.1%)
 
 // Swap service status config (set via env or update constant)
-const SWAP_STATUS_ASSET_ADDRESS = (typeof process !== 'undefined' && process.env && process.env.SWAP_STATUS_ASSET_ADDRESS) || '<SET_SWAP_STATUS_ASSET_ADDRESS>';
+const SWAP_STATUS_ASSET_ADDRESS = '<SET_SWAP_STATUS_ASSET_ADDRESS>'; // !!
+// Reserves config
+const USDC_VAULT_TOKEN_ACCOUNT = ""; // input account from swapService
 
 const ServiceStatusBar = styled.div`
   display: flex;
@@ -218,6 +220,11 @@ export default function StablecoinSwap() {
   // Service status
   const [serviceStatus, setServiceStatus] = useState({ status: 'unknown', lastPoll: null, ageSec: null });
   const [serviceStatusPollId, setServiceStatusPollId] = useState(null);
+  // Backing stats
+  const [usdcVaultBalance, setUsdcVaultBalance] = useState(null);
+  const [usddSupply, setUsddSupply] = useState(null);
+  const [backingRatio, setBackingRatio] = useState(null);
+  const [backingPollId, setBackingPollId] = useState(null);
 
   // Fetch Nexus accounts on component mount
   useEffect(() => {
@@ -245,22 +252,16 @@ export default function StablecoinSwap() {
   const readSwapStatusAsset = async () => {
     const address = SWAP_STATUS_ASSET_ADDRESS;
     if (!address || address.startsWith('<SET_')) return null;
-    // Try multiple endpoints for resilience
-    const endpoints = ['register/get/asset', 'register/get/assets', 'register/get/assets:asset'];
-    for (const ep of endpoints) {
-      try {
-        const res = await apiCall(ep, { address });
-        if (res) return res;
-      } catch {}
-    }
+    try {
+      const res = await apiCall('register/get/assets:asset', { address: SWAP_STATUS_ASSET_ADDRESS });
+      if (res?.last_poll_timestamp) return res.last_poll_timestamp;
+    } catch {}
     return null;
   };
 
   const updateServiceStatus = async () => {
     try {
-      const asset = await readSwapStatusAsset();
-      const attrs = asset?.data?.attributes || asset?.attributes || asset?.register?.data?.attributes || asset?.register?.attributes || asset?.data || asset;
-      const last = attrs?.last_poll_timstamp ?? attrs?.last_poll_timestamp ?? attrs?.LAST_POLL_TIMSTAMP;
+      const last = await readSwapStatusAsset();
       const lastDate = parseTimestamp(last);
       if (!lastDate) {
         setServiceStatus({ status: 'unknown', lastPoll: null, ageSec: null });
@@ -288,6 +289,62 @@ export default function StablecoinSwap() {
   useEffect(() => {
     startServiceStatusPolling();
     return () => { if (serviceStatusPollId) clearInterval(serviceStatusPollId); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  
+  // --- Backing stats helpers ---
+  const getSolanaTokenAccountBalance = async (tokenAccount) => {
+    if (!tokenAccount) return null;
+    try {
+      const res = await solanaRpc('getTokenAccountBalance', [tokenAccount, { commitment: 'confirmed' }]);
+      const ui = res?.value?.uiAmount;
+      if (typeof ui === 'number') return ui;
+    } catch {}
+    // Fallback to parsed account info
+    try {
+      const acct = await getParsedAccountInfo(tokenAccount);
+      const ui = acct?.value?.data?.parsed?.info?.tokenAmount?.uiAmount;
+      if (typeof ui === 'number') return ui;
+    } catch {}
+    return null;
+  };
+
+  const readUsddSupply = async () => {
+    // Try finance/get/token by ticker
+    try {
+      const t = await apiCall('register/get/finance:token/currentsupply', { name: 'USDD' });
+      const s = t?.currentsupply;
+      if (s != null) return Number(s);
+    } catch {}
+    // Try asset by address if configured
+    return null;
+  };
+
+  const updateBackingStats = async () => {
+    try {
+      const [bal, sup] = await Promise.all([
+        getSolanaTokenAccountBalance(USDC_VAULT_TOKEN_ACCOUNT),
+        readUsddSupply(),
+      ]);
+      setUsdcVaultBalance(bal);
+      setUsddSupply(sup);
+      if (bal != null && sup != null && sup > 0) setBackingRatio(bal / sup);
+      else setBackingRatio(null);
+    } catch {
+      // non-fatal
+    }
+  };
+
+  const startBackingStatsPolling = () => {
+    if (backingPollId) clearInterval(backingPollId);
+    updateBackingStats();
+    const id = setInterval(updateBackingStats, 60000);
+    setBackingPollId(id);
+  };
+
+  useEffect(() => {
+    startBackingStatsPolling();
+    return () => { if (backingPollId) clearInterval(backingPollId); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -700,6 +757,7 @@ export default function StablecoinSwap() {
       if (nexusDebitPollId) clearInterval(nexusDebitPollId);
       if (solanaCreditPollId) clearInterval(solanaCreditPollId);
       if (serviceStatusPollId) clearInterval(serviceStatusPollId);
+      if (backingPollId) clearInterval(backingPollId);
     };
   }, [transactionStatus]);
 
@@ -808,15 +866,27 @@ export default function StablecoinSwap() {
             );
           })()}
         </ServiceStatusBar>
-
-        {notification && (
-          <CustomNotification
-            type={notification.type}
-            onClose={() => setNotification(null)}
-          >
-            {notification.message}
-          </CustomNotification>
+        {serviceStatus.status === 'offline' && (
+          <div style={{
+            background: '#7f1d1d',
+            border: '1px solid #dc2626',
+            color: '#fecaca',
+            borderRadius: 8,
+            padding: '10px 12px',
+            marginBottom: 12,
+          }}>
+            The swap service is currently offline and will not process swaps until it is online again. Please try again later.
+          </div>
         )}
+
+         {notification && (
+           <CustomNotification
+             type={notification.type}
+             onClose={() => setNotification(null)}
+           >
+             {notification.message}
+           </CustomNotification>
+         )}
 
         <SwapContainer>
           <SwapDirection>
@@ -1113,7 +1183,40 @@ export default function StablecoinSwap() {
             <p><strong>Requirements:</strong> A Solana wallet capable of sending USDC with a memo field.</p>
           </div>
         </div>
-      </FieldSet>
-    </Container>
-  );
-}
+        
+        {/* Reserves and Backing */}
+        <div style={{
+          marginTop: '12px',
+          padding: '16px',
+          background: '#111827',
+          borderRadius: 8,
+          border: '1px solid #374151',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr',
+          gap: 12,
+        }}>
+          <div>
+            <div style={{ color: '#9ca3af', fontSize: 12 }}>USDD Supply</div>
+            <div style={{ color: '#e5e7eb', fontWeight: 600 }}>{usddSupply != null ? usddSupply.toLocaleString(undefined, { maximumFractionDigits: 6 }) : 'N/A'}</div>
+          </div>
+          <div>
+            <div style={{ color: '#9ca3af', fontSize: 12 }}>USDC Vault Balance</div>
+            <div style={{ color: '#e5e7eb', fontWeight: 600 }}>{usdcVaultBalance != null ? usdcVaultBalance.toLocaleString(undefined, { maximumFractionDigits: 6 }) : 'N/A'}</div>
+          </div>
+          <div>
+            <div style={{ color: '#9ca3af', fontSize: 12 }}>Backing Ratio (USDC / USDD)</div>
+            {(() => {
+              if (backingRatio == null) return <div style={{ color: '#e5e7eb' }}>N/A</div>;
+              const ratioTxt = backingRatio.toFixed(6);
+              let color = '#e5e7eb';
+              if (backingRatio >= 0.995) color = '#10b981';
+              else if (backingRatio >= 0.95) color = '#f59e0b';
+              else color = '#ef4444';
+              return <div style={{ color, fontWeight: 700 }}>{ratioTxt}x</div>;
+            })()}
+          </div>
+        </div>
+       </FieldSet>
+     </Container>
+   );
+ }
