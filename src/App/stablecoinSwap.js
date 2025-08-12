@@ -159,9 +159,32 @@ const SOLANA_RPC_URL = (typeof process !== 'undefined' && process.env && process
 const USDC_MINT_MAINNET = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 
 // Fees and limits
-const MIN_SWAP_AMOUNT = 0.2; // both directions
-const FLAT_FEE_USDC = 0.1; // flat fee in USDC
-const PCT_FEE = 0.001; // 0.1%
+const MIN_SWAP_AMOUNT = 0.2; // Minimum swap amount in both directions
+const FLAT_FEE_USDC = 0.1; // Flat fee in USDC
+const PCT_FEE = 0.001; // Percentage fee (0.1%)
+
+// Swap service status config (set via env or update constant)
+const SWAP_STATUS_ASSET_ADDRESS = (typeof process !== 'undefined' && process.env && process.env.SWAP_STATUS_ASSET_ADDRESS) || '<SET_SWAP_STATUS_ASSET_ADDRESS>';
+
+const ServiceStatusBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+`;
+
+const LightDot = styled.span`
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: ${props => props.color || '#6b7280'};
+  box-shadow: 0 0 6px ${props => props.color || '#6b7280'}88;
+`;
 
 const computeFees = (amt) => {
   const amount = Number(amt) || 0;
@@ -192,10 +215,80 @@ export default function StablecoinSwap() {
   const [nexusDebitPollId, setNexusDebitPollId] = useState(null);
   const [solanaCreditPollId, setSolanaCreditPollId] = useState(null);
   const [recipientOwnerForCredit, setRecipientOwnerForCredit] = useState(null);
+  // Service status
+  const [serviceStatus, setServiceStatus] = useState({ status: 'unknown', lastPoll: null, ageSec: null });
+  const [serviceStatusPollId, setServiceStatusPollId] = useState(null);
 
   // Fetch Nexus accounts on component mount
   useEffect(() => {
     fetchNexusAccounts();
+  }, []);
+
+  // --- Swap service status helpers ---
+  const parseTimestamp = (val) => {
+    if (val == null) return null;
+    if (typeof val === 'number') {
+      if (val > 1e12) return new Date(val); // ms epoch
+      if (val > 1e9) return new Date(val * 1000); // s epoch
+    }
+    if (typeof val === 'string') {
+      const num = Number(val);
+      if (!Number.isNaN(num)) {
+        return parseTimestamp(num);
+      }
+      const d = new Date(val);
+      if (!isNaN(d.getTime())) return d;
+    }
+    return null;
+  };
+
+  const readSwapStatusAsset = async () => {
+    const address = SWAP_STATUS_ASSET_ADDRESS;
+    if (!address || address.startsWith('<SET_')) return null;
+    // Try multiple endpoints for resilience
+    const endpoints = ['register/get/asset', 'register/get/assets', 'register/get/assets:asset'];
+    for (const ep of endpoints) {
+      try {
+        const res = await apiCall(ep, { address });
+        if (res) return res;
+      } catch {}
+    }
+    return null;
+  };
+
+  const updateServiceStatus = async () => {
+    try {
+      const asset = await readSwapStatusAsset();
+      const attrs = asset?.data?.attributes || asset?.attributes || asset?.register?.data?.attributes || asset?.register?.attributes || asset?.data || asset;
+      const last = attrs?.last_poll_timstamp ?? attrs?.last_poll_timestamp ?? attrs?.LAST_POLL_TIMSTAMP;
+      const lastDate = parseTimestamp(last);
+      if (!lastDate) {
+        setServiceStatus({ status: 'unknown', lastPoll: null, ageSec: null });
+        return;
+      }
+      const ageSec = Math.max(0, (Date.now() - lastDate.getTime()) / 1000);
+      let status = 'offline';
+      if (ageSec < 120) status = 'online';
+      else if (ageSec <= 300) status = 'delayed';
+      else status = 'offline';
+      setServiceStatus({ status, lastPoll: lastDate, ageSec });
+    } catch (e) {
+      setServiceStatus({ status: 'unknown', lastPoll: null, ageSec: null });
+    }
+  };
+
+  const startServiceStatusPolling = () => {
+    if (serviceStatusPollId) clearInterval(serviceStatusPollId);
+    // initial fetch
+    updateServiceStatus();
+    const id = setInterval(updateServiceStatus, 30000);
+    setServiceStatusPollId(id);
+  };
+
+  useEffect(() => {
+    startServiceStatusPolling();
+    return () => { if (serviceStatusPollId) clearInterval(serviceStatusPollId); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchNexusAccounts = async () => {
@@ -606,6 +699,7 @@ export default function StablecoinSwap() {
       if (nexusPollId) clearInterval(nexusPollId);
       if (nexusDebitPollId) clearInterval(nexusDebitPollId);
       if (solanaCreditPollId) clearInterval(solanaCreditPollId);
+      if (serviceStatusPollId) clearInterval(serviceStatusPollId);
     };
   }, [transactionStatus]);
 
@@ -694,7 +788,27 @@ export default function StablecoinSwap() {
   return (
     <Container>
       <FieldSet legend="Stablecoin Cross-Chain Swap">
-        
+        {/* Service status traffic light */}
+        <ServiceStatusBar>
+          {(() => {
+            let color = '#6b7280';
+            let label = 'Unknown';
+            if (serviceStatus.status === 'online') { color = '#059669'; label = 'Online'; }
+            else if (serviceStatus.status === 'delayed') { color = '#f59e0b'; label = 'Delayed'; }
+            else if (serviceStatus.status === 'offline') { color = '#ef4444'; label = 'Offline'; }
+            const ageTxt = serviceStatus.ageSec != null ? ` (last ${Math.floor(serviceStatus.ageSec)}s ago)` : '';
+            return (
+              <>
+                <LightDot color={color} />
+                <div style={{ color: '#e5e7eb', fontWeight: 600 }}>Swap Service: {label}{ageTxt}</div>
+                {(!SWAP_STATUS_ASSET_ADDRESS || SWAP_STATUS_ASSET_ADDRESS.startsWith('<SET_')) && (
+                  <div style={{ color: '#9ca3af', fontSize: 12, marginLeft: 8 }}>(status asset not configured)</div>
+                )}
+              </>
+            );
+          })()}
+        </ServiceStatusBar>
+
         {notification && (
           <CustomNotification
             type={notification.type}
@@ -880,24 +994,25 @@ export default function StablecoinSwap() {
             </InputGroup>
           )}
 
-          <Button
-            onClick={handleSwap}
-            disabled={isLoading || !amount || Number(amount) < MIN_SWAP_AMOUNT ||
-              (swapDirection === 'toUSDD' ? (!usddAccount) : (!solanaWallet || !usddAccount))}
-            style={{
-              width: '100%',
-              padding: '12px',
-              marginTop: '16px',
-              background: isLoading ? '#6b7280' : '#3b82f6',
-              border: 'none',
-              borderRadius: '8px',
-              color: 'white',
-              fontWeight: '600',
-              cursor: isLoading ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {isLoading ? 'Processing...' : `Swap ${amount || '0'} ${swapDirection === 'toUSDD' ? 'USDC → USDD' : 'USDD → USDC'}`}
-          </Button>
+          {swapDirection === 'toUSDC' && (
+            <Button
+              onClick={handleSwap}
+              disabled={isLoading || !amount || Number(amount) < MIN_SWAP_AMOUNT || (!solanaWallet || !usddAccount)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                marginTop: '16px',
+                background: isLoading ? '#6b7280' : '#3b82f6',
+                border: 'none',
+                borderRadius: '8px',
+                color: 'white',
+                fontWeight: '600',
+                cursor: isLoading ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {isLoading ? 'Processing...' : `Swap ${amount || '0'} USDD → USDC`}
+            </Button>
+          )}
         </SwapContainer>
 
         {transactionStatus && (
