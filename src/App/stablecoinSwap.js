@@ -165,9 +165,9 @@ const FLAT_FEE_USDC = 0.1; // Flat fee in USDC
 const PCT_FEE = 0.001; // Percentage fee (0.1%)
 
 // Swap service status config (set via env or update constant)
-const SWAP_STATUS_ASSET_ADDRESS = '88hxLXn6GML3NCYast1F1UuFHWEpec49X6LsgW6Vg136KSws6Vo'; // !!
+const SWAP_STATUS_ASSET_ADDRESS = '87hRmgz3ZFME2ie8wmzsVb7inSVbwXyuWesaAiXyZ4v2SwXT3ss'; // !!
 // Reserves config
-const USDC_VAULT_TOKEN_ACCOUNT = ""; // input account from swapService
+const USDC_VAULT_TOKEN_ACCOUNT = "DGnz69jptDqMLYhsWV2GrkPGcfkt445sXChn2ayohahH"; // input account from swapService
 
 const ServiceStatusBar = styled.div`
   display: flex;
