@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
+import { Connection, PublicKey } from '@solana/web3.js';
+import { getAccount } from '@solana/spl-token';
 import {
   FieldSet,
   TextField,
@@ -294,19 +296,58 @@ export default function StablecoinSwap() {
   }, []);
   
   // --- Backing stats helpers ---
-  const getSolanaTokenAccountBalance = async (tokenAccount) => {
-    if (!tokenAccount) return null;
+  const getSolanaTokenAccountBalance = async (addressOrOwner) => {
+    if (!addressOrOwner) return null;
+    const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
+
+    // 1) Try as a token account address
     try {
-      const res = await solanaRpc('getTokenAccountBalance', [tokenAccount, { commitment: 'confirmed' }]);
+      const ui = await connection.getTokenAccountBalance(new PublicKey(addressOrOwner), 'confirmed');
+      if (typeof ui?.value?.uiAmount === 'number') return ui.value.uiAmount;
+    } catch {}
+
+    // 2) Try as an owner: sum all USDC token accounts for this owner
+    try {
+      const ownerPk = new PublicKey(addressOrOwner);
+      const usdcMintPk = new PublicKey(USDC_MINT_MAINNET);
+      const resp = await connection.getParsedTokenAccountsByOwner(ownerPk, { mint: usdcMintPk }, 'confirmed');
+      if (Array.isArray(resp?.value) && resp.value.length > 0) {
+        let total = 0;
+        for (const { account } of resp.value) {
+          const uiAmt = account?.data?.parsed?.info?.tokenAmount?.uiAmount;
+          if (typeof uiAmt === 'number') total += uiAmt;
+        }
+        return total;
+      }
+    } catch {}
+
+    // 3) Fallbacks using RPC helpers
+    try {
+      const res = await solanaRpc('getTokenAccountBalance', [addressOrOwner, { commitment: 'confirmed' }]);
       const ui = res?.value?.uiAmount;
       if (typeof ui === 'number') return ui;
     } catch {}
-    // Fallback to parsed account info
+
     try {
-      const acct = await getParsedAccountInfo(tokenAccount);
+      const acct = await getParsedAccountInfo(addressOrOwner);
       const ui = acct?.value?.data?.parsed?.info?.tokenAmount?.uiAmount;
       if (typeof ui === 'number') return ui;
     } catch {}
+
+    // 4) Last resort: owner via RPC
+    try {
+      const resp = await solanaRpc('getTokenAccountsByOwner', [addressOrOwner, { mint: USDC_MINT_MAINNET }, { encoding: 'jsonParsed', commitment: 'confirmed' }]);
+      const list = Array.isArray(resp?.value) ? resp.value : [];
+      if (list.length > 0) {
+        let total = 0;
+        for (const it of list) {
+          const ui = it?.account?.data?.parsed?.info?.tokenAmount?.uiAmount;
+          if (typeof ui === 'number') total += ui;
+        }
+        return total;
+      }
+    } catch {}
+
     return null;
   };
 
@@ -352,14 +393,15 @@ export default function StablecoinSwap() {
   const fetchNexusAccounts = async () => {
     try {
       const accounts = await apiCall('finance/list/account', {
-        //where: 'results.ticker=USDD'
+        where: 'results.ticker=USDD'
       });
-      const filteredAccounts = accounts.filter(account => account.ticker === 'USDD');
-      if (filteredAccounts && Array.isArray(filteredAccounts)) {
-        setNexusAccounts(filteredAccounts);
+      //const filteredAccounts = accounts.filter(account => account.ticker === 'USDD');
+      //if (filteredAccounts && Array.isArray(filteredAccounts)) {
+      if (accounts && Array.isArray(accounts)) {  
+        setNexusAccounts(accounts);
         // Set the first account as default for USDD account
-        if (filteredAccounts.length > 0 && !usddAccount) {
-          setUsddAccount(filteredAccounts[0].address);
+        if (accounts.length > 0 && !usddAccount) {
+          setUsddAccount(accounts[0].address);
         }
       }
     } catch (error) {
@@ -463,25 +505,63 @@ export default function StablecoinSwap() {
   const ensureUsdcAtaExists = async (address) => {
     if (!address) return { ok: false };
 
-    // Case 1: Address might be a token account. If so, verify it's USDC and initialized.
-    const acct = await getParsedAccountInfo(address);
-    const parsed = acct?.value?.data?.parsed;
-    if (parsed?.type === 'account') {
-      const info = parsed?.info;
-      if (info?.mint === USDC_MINT_MAINNET && info?.state === 'initialized') {
-        // Use the owner of this token account for payout monitoring
-        return { ok: true, owner: info.owner };
-      }
-    }
-
-    // Case 2: Treat address as an owner; ensure at least one USDC token account exists
     try {
-      const resp = await solanaRpc('getTokenAccountsByOwner', [address, { mint: USDC_MINT_MAINNET }, { encoding: 'jsonParsed', commitment: 'confirmed' }]);
-      const hasAny = Array.isArray(resp?.value) && resp.value.length > 0;
-      if (hasAny) return { ok: true, owner: address };
-    } catch {}
+      const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
 
-    return { ok: false };
+      // Case 1: Address might be a token account. Check if it's a valid USDC token account.
+      try {
+        const tokenAccountPubkey = new PublicKey(address);
+        const accountInfo = await getAccount(connection, tokenAccountPubkey);
+        
+        // Check if it's a USDC token account
+        if (accountInfo.mint.toString() === USDC_MINT_MAINNET && accountInfo.state === 1) { // 1 = initialized
+          return { ok: true, owner: accountInfo.owner.toString() };
+        }
+      } catch (error) {
+        // Not a valid token account, continue to case 2
+      }
+
+      // Case 2: Treat address as an owner; check for USDC token accounts
+      try {
+        const ownerPubkey = new PublicKey(address);
+        const usdcMintPubkey = new PublicKey(USDC_MINT_MAINNET);
+        
+        const tokenAccounts = await connection.getTokenAccountsByOwner(
+          ownerPubkey,
+          { mint: usdcMintPubkey },
+          'confirmed'
+        );
+        
+        if (tokenAccounts.value.length > 0) {
+          return { ok: true, owner: address };
+        }
+      } catch (error) {
+        console.error('Error checking token accounts:', error);
+      }
+
+      // Fallback to RPC calls if library methods fail
+      const acct = await getParsedAccountInfo(address);
+      const parsed = acct?.value?.data?.parsed;
+      if (parsed?.type === 'account') {
+        const info = parsed?.info;
+        if (info?.mint === USDC_MINT_MAINNET && info?.state === 'initialized') {
+          return { ok: true, owner: info.owner };
+        }
+      }
+
+      // Final fallback: RPC call for token accounts by owner
+      try {
+        const resp = await solanaRpc('getTokenAccountsByOwner', [address, { mint: USDC_MINT_MAINNET }, { encoding: 'jsonParsed', commitment: 'confirmed' }]);
+        const hasAny = Array.isArray(resp?.value) && resp.value.length > 0;
+        if (hasAny) return { ok: true, owner: address };
+      } catch {}
+
+      return { ok: false };
+      
+    } catch (error) {
+      console.error('Error in ensureUsdcAtaExists:', error);
+      return { ok: false };
+    }
   };
 
   const decodeMemoFromTx = (tx) => {
@@ -983,8 +1063,8 @@ export default function StablecoinSwap() {
                 <div>
                   <div style={{ marginBottom: 4 }}><strong>Minimum:</strong> {MIN_SWAP_AMOUNT} {inToken}</div>
                   <div style={{ marginBottom: 4 }}><strong>Fees:</strong> {FLAT_FEE_USDC} USDC flat + {(PCT_FEE * 100).toFixed(1)}% of amount ({pct.toFixed(6)} {inToken})</div>
-                  <div style={{ marginBottom: 4 }}><strong>Total fees (approx):</strong> {total.toFixed(6)} {inToken}</div>
-                  <div><strong>Estimated received:</strong> {expectedReceive.toFixed(6)} {outToken}</div>
+                  <div style={{ marginBottom: 4 }}><strong>Total fees:</strong> {total.toFixed(6)} {inToken}</div>
+                  <div><strong>Received (after subtracted fees):</strong> {expectedReceive.toFixed(6)} {outToken}</div>
                 </div>
               );
             })()}
@@ -1023,10 +1103,22 @@ export default function StablecoinSwap() {
                 }}>
                   <div><strong>Network:</strong> Solana</div>
                   <div><strong>Token:</strong> USDC</div>
-                  <div><strong>Send to:</strong> <span style={{ fontFamily: 'monospace' }}>{SOLANA_LIQUIDITY_POOL_ADDRESS}</span></div>
-                  <div><strong>Memo (exact):</strong> <span style={{ fontFamily: 'monospace' }}>{`nexus: ${usddAccount || '<select a USDD account>'}`}</span></div>
+                  <div>
+                    <strong>Send to:</strong>
+                    <span style={{ fontFamily: 'monospace', marginLeft: 4 }}>{SOLANA_LIQUIDITY_POOL_ADDRESS}</span>
+                    {' '}
+                    <a
+                      href={`https://explorer.solana.com/address/${SOLANA_LIQUIDITY_POOL_ADDRESS}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ marginLeft: 8, color: '#60a5fa', textDecoration: 'none' }}
+                    >
+                      View on Explorer
+                    </a>
+                  </div>
+                  <div><strong>Memo (exact):</strong> <span style={{ fontFamily: 'monospace' }}>{`nexus:${usddAccount || '<select a USDD account>'}`}</span></div>
                   <div><strong>Amount:</strong> {amount || '0'}</div>
-                  <div><strong>Estimated received:</strong> {computeFees(amount).expectedReceive.toFixed(6)} USDD</div>
+                  <div><strong>Received in USDD (fees subtracted):</strong> {computeFees(amount).expectedReceive.toFixed(6)} USDD</div>
                 </div>
               </InputGroup>
 
