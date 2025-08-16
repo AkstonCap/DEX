@@ -168,6 +168,7 @@ const PCT_FEE = 0.001; // Percentage fee (0.1%)
 
 // Swap service status config (set via env or update constant)
 const SWAP_STATUS_ASSET_ADDRESS = '87hRmgz3ZFME2ie8wmzsVb7inSVbwXyuWesaAiXyZ4v2SwXT3ss'; // !!
+const SWAP_STATUS_ASSET_NAME = 'AkstonCap:swapServiceHeartbeat_2';
 // Reserves config
 const USDC_VAULT_TOKEN_ACCOUNT = "DGnz69jptDqMLYhsWV2GrkPGcfkt445sXChn2ayohahH"; // input account from swapService
 
@@ -253,10 +254,11 @@ export default function StablecoinSwap() {
   };
 
   const readSwapStatusAsset = async () => {
-    const address = SWAP_STATUS_ASSET_ADDRESS;
-    if (!address || address.startsWith('<SET_')) return null;
+    //const address = SWAP_STATUS_ASSET_ADDRESS;
+    const name = SWAP_STATUS_ASSET_NAME;
+    if (!name || name.startsWith('<SET_')) return null;
     try {
-      const res = await apiCall('register/get/assets:asset', { address: SWAP_STATUS_ASSET_ADDRESS });
+      const res = await apiCall('register/get/assets:asset', { name: SWAP_STATUS_ASSET_NAME });
       if (res?.last_poll_timestamp) return res.last_poll_timestamp;
     } catch {}
     return null;
