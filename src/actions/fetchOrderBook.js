@@ -11,10 +11,10 @@ export const fetchOrderBook = (
     getState
 ) => {
     try {
-        //const pair = inputMarket;
         const state = getState();
         const marketPair = state.ui.market.marketPairs.marketPair;
         const baseToken = state.ui.market.marketPairs.baseToken;
+        const quoteToken = state.ui.market.marketPairs.quoteToken;
 
         const data1 = await apiCall(
             'market/list/order/txid,owner,price,type,contract.amount,contract.ticker,order.amount,order.ticker',
@@ -60,11 +60,18 @@ export const fetchOrderBook = (
 
         dispatch(setOrderBook(data1));
 
+        let baseTokenPrelim = baseToken;
+        if (baseToken === 'NXS' && quoteToken !== 'NXS') {
+            baseTokenPrelim = quoteToken;
+        } else if (baseToken === 'NXS' && quoteToken === 'NXS') {
+            baseTokenPrelim = "DIST";
+        }
+
         const myOrders = await apiCall(
             'market/user/order',
             {
                 //market: pair,
-                token: baseToken,
+                token: baseTokenPrelim,
             }
         ).catch((error1) => {
             dispatch(showErrorDialog({
