@@ -462,7 +462,7 @@ export default function StablecoinSwap() {
         step: 2,
         totalSteps: 3,
         solanaAddress: SOLANA_LIQUIDITY_POOL_ADDRESS,
-        memo: `nexus: ${usddAccount}`,
+        memo: `nexus:${usddAccount}`,
         amount: amount,
         token: 'USDC',
         expectedAfterFees: expectedReceive,
