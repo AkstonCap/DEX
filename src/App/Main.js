@@ -68,8 +68,8 @@ export default function Main() {
     // Fetch data immediately
     fetchData();
   
-    // Set interval to fetch data every 5 seconds
-    const intervalId = setInterval(fetchData, 5000);
+    // Set interval to fetch data every 15 seconds
+    const intervalId = setInterval(fetchData, 15000);
   
     // Cleanup interval on unmount
     return () => clearInterval(intervalId);
@@ -146,12 +146,14 @@ export default function Main() {
           >
             Portfolio
           </HorizontalTab>
+          {/* Stablecoin Swap tab hidden until ready for release
           <HorizontalTab
             active={activeTab === 'StablecoinSwap'}
             onClick={() => handleSwitchTab('StablecoinSwap')}
           >
             Stablecoin Swap
           </HorizontalTab>
+          */}
         </HorizontalTab.TabBar>
       </div>
 
@@ -161,7 +163,9 @@ export default function Main() {
       <div>{activeTab === 'MarketDepth' && <MarketDepth />}</div>
       <div>{activeTab === 'Markets' && <Markets />}</div>
       <div>{activeTab === 'Portfolio' && <Portfolio />}</div>
+      {/* Stablecoin Swap component hidden until ready for release
       <div>{activeTab === 'StablecoinSwap' && <StablecoinSwap />}</div>
+      */}
     </Panel>
   );
 }

@@ -155,13 +155,13 @@ export const MyOrdersTable = styled.table`
 
 export const MyOrdersTableRow = styled.tr`
   cursor: pointer;
-  color: ${(props) => (props.orderType === 'ask' ? '#7cfc00' : 'red')};
+  color: ${(props) => (props.orderType === 'bid' ? '#7cfc00' : 'red')};
   padding-right: 8px;
 `;
 
 export const MyUnconfirmedOrdersTableRow = styled.tr`
   cursor: pointer;
-  color: ${(props) => (props.orderType === 'ask' ? '#90EE90' : '#CD5C5C')};
+  color: ${(props) => (props.orderType === 'bid' ? '#90EE90' : '#CD5C5C')};
   opacity: 0.6;
   background-color: rgba(128, 128, 128, 0.1);
   padding-right: 8px;

@@ -11,6 +11,9 @@ export default function PersonalTradeHistory() {
   const quoteTokenDecimals = useSelector((state) => state.ui.market.marketPairs.quoteTokenDecimals);
   const baseTokenDecimals = useSelector((state) => state.ui.market.marketPairs.baseTokenDecimals);
 
+  // Check if there's an error loading trades
+  const hasError = myTrades?.error;
+
   // Helper function to get decimals for a given ticker
   function decimalsForTicker(ticker, baseToken, quoteToken, baseTokenDecimals, quoteTokenDecimals) {
     if (ticker === baseToken) return baseTokenDecimals;
@@ -23,6 +26,25 @@ export default function PersonalTradeHistory() {
     return (trade.contract?.ticker === baseToken && trade.order?.ticker === quoteToken) ||
            (trade.contract?.ticker === quoteToken && trade.order?.ticker === baseToken);
   });
+
+  // If there's an error loading trades, display error message
+  if (hasError) {
+    return (
+      <div>
+        <FieldSet legend="My Trades">
+          <table>
+            <tbody>
+              <tr>
+                <td colSpan="3" style={{color: '#ff6b6b', fontStyle: 'italic'}}>
+                  Unable to load trade history: {myTrades.error}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </FieldSet>
+      </div>
+    );
+  }
 
   // If no trades, display a single table row saying "No trades"
   if ((!myTrades || myTrades.executed?.length === 0) && (!filteredUnconfirmedTrades || filteredUnconfirmedTrades?.length === 0)) {

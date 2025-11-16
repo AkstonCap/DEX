@@ -172,17 +172,21 @@ export const createOrder = (
             };
             
             if (orderType === 'bid') {
-                // For bid: contract = what you're buying (base), order = what you're paying (quote)
+                // For bid: buying BASE with QUOTE
+                // contract = what you're SENDING (quote token)
+                // order = what you want to RECEIVE (base token)
                 unconfirmedOrder.contract = {
-                    amount: parseFloat(baseAmount),
-                    ticker: baseToken
-                };
-                unconfirmedOrder.order = {
                     amount: parseFloat(quoteAmount),
                     ticker: quoteToken
                 };
+                unconfirmedOrder.order = {
+                    amount: parseFloat(baseAmount),
+                    ticker: baseToken
+                };
             } else { // ask
-                // For ask: contract = what you're selling (base), order = what you want (quote)
+                // For ask: selling BASE for QUOTE
+                // contract = what you're SENDING (base token)
+                // order = what you want to RECEIVE (quote token)
                 unconfirmedOrder.contract = {
                     amount: parseFloat(baseAmount),
                     ticker: baseToken

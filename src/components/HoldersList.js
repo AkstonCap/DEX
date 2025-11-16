@@ -10,6 +10,7 @@ export default function HoldersList({ num = 10 }) {
   const baseTokenDecimals = useSelector((state) => state.ui.market.marketPairs.baseTokenDecimals);
   const circulatingSupply = useSelector((state) => state.ui.market.marketPairs.baseTokenCirculatingSupply);
   const baseTokenAddress = useSelector((state) => state.ui.market.marketPairs.baseTokenAddress);
+  const orderBook = useSelector((state) => state.ui.market.orderBook);
   const [holders, setHolders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -45,10 +46,44 @@ export default function HoldersList({ num = 10 }) {
           const filteredData = data.filter(item => 
             item.token === baseTokenAddress && parseFloat(item.balance || 0) > 0);
           
-          const sortedData = filteredData.sort((a, b) => 
+          // Calculate locked amounts from order book
+          const lockedByOwner = {};
+          
+          // Process bids - for bids, the ORDER contains base token (what you want to receive)
+          // So we DON'T count bids as locked base tokens
+          
+          // Process asks - for asks, the CONTRACT contains base token (what you're selling)
+          // These ARE locked base tokens
+          if (orderBook?.asks && Array.isArray(orderBook.asks)) {
+            orderBook.asks.forEach(order => {
+              if (order.owner && order.contract?.ticker === baseToken && order.contract?.amount) {
+                const owner = order.owner;
+                const amount = parseFloat(order.contract.amount) || 0;
+                lockedByOwner[owner] = (lockedByOwner[owner] || 0) + amount;
+              }
+            });
+          }
+          
+          // Note: Bids don't lock base tokens - they lock quote tokens
+          // So we only count asks for base token holdings
+          
+          console.log('HoldersList: Locked amounts by owner:', lockedByOwner);
+          
+          // Add locked amounts to holder balances
+          const enrichedData = filteredData.map(holder => {
+            const locked = lockedByOwner[holder.owner] || 0;
+            const totalBalance = parseFloat(holder.balance || 0) + locked;
+            return {
+              ...holder,
+              lockedAmount: locked,
+              balance: totalBalance.toString()
+            };
+          });
+          
+          const sortedData = enrichedData.sort((a, b) => 
             parseFloat(b.balance || 0) - parseFloat(a.balance || 0));
 
-          console.log('HoldersList: Processed holders:', sortedData.length, 'items');
+          console.log('HoldersList: Processed holders with locked amounts:', sortedData.length, 'items');
           
           if (isMounted) {
             setHolders(sortedData || []);
@@ -74,7 +109,7 @@ export default function HoldersList({ num = 10 }) {
 
     fetchHolders();
     return () => { isMounted = false; };
-  }, [baseTokenAddress, baseToken]);
+  }, [baseTokenAddress, baseToken, orderBook]);
 
   const renderHolders = (data) => {
     if (loading) {
@@ -108,19 +143,28 @@ export default function HoldersList({ num = 10 }) {
     }
 
     const len = data.length;
-    return data.slice(0, Math.min(num, len)).map((item, index) => (
-      <OrderbookTableRow key={item.address || index} style={{ color: '#fbbf24' }}>
-        <td>{item.owner ? formatTokenName(item.owner) : 'Unknown'}</td>
-        <td>{formatTokenName(item.address || 'Unknown')}</td>
-        <td>{formatNumberWithLeadingZeros(
-          parseFloat(item.balance || 0),
-          3, 
-          baseTokenDecimals
-        )}</td>
-        <td>{circulatingSupply ? 
-          ((parseFloat(item.balance || 0) / parseFloat(circulatingSupply)) * 100).toFixed(2) + '%' : 'N/A'}</td>
-      </OrderbookTableRow>
-    ));
+    return data.slice(0, Math.min(num, len)).map((item, index) => {
+      const totalBalance = parseFloat(item.balance || 0);
+      const lockedAmount = parseFloat(item.lockedAmount || 0);
+      const freeBalance = totalBalance - lockedAmount;
+      
+      return (
+        <OrderbookTableRow key={item.address || index} style={{ color: '#fbbf24' }}>
+          <td>{item.owner ? formatTokenName(item.owner) : 'Unknown'}</td>
+          <td>{formatTokenName(item.address || 'Unknown')}</td>
+          <td>
+            {formatNumberWithLeadingZeros(totalBalance, 3, baseTokenDecimals)}
+            {lockedAmount > 0 && (
+              <span style={{ fontSize: '0.85em', color: '#9ca3af', marginLeft: '4px' }}>
+                ({formatNumberWithLeadingZeros(lockedAmount, 3, baseTokenDecimals)} locked)
+              </span>
+            )}
+          </td>
+          <td>{circulatingSupply ? 
+            ((totalBalance / parseFloat(circulatingSupply)) * 100).toFixed(2) + '%' : 'N/A'}</td>
+        </OrderbookTableRow>
+      );
+    });
   };
 
   return (

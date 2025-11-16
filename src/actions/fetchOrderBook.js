@@ -17,7 +17,7 @@ export const fetchOrderBook = (
         const quoteToken = state.ui.market.marketPairs.quoteToken;
 
         const data1 = await apiCall(
-            'market/list/order/txid,owner,price,type,contract.amount,contract.ticker,order.amount,order.ticker',
+            'market/list/order/txid,owner,price,type,timestamp,contract.amount,contract.ticker,order.amount,order.ticker',
             {
                 market: marketPair,
                 sort: 'price',
@@ -30,14 +30,12 @@ export const fetchOrderBook = (
             data1.bids.forEach((element) => {
               if (element.contract.ticker === 'NXS') {
                 element.contract.amount = element.contract.amount / 1e6;
-              } else if (element.order.ticker === 'NXS') {
+              }
+              if (element.order.ticker === 'NXS') {
                 element.order.amount = element.order.amount / 1e6;
               }
-            });
-            data1.bids.forEach((element) => {
-                if (element.price !== (element.contract.amount / element.order.amount)) {
-                    element.price = (element.contract.amount / element.order.amount);
-                }
+              // Recalculate price after normalization for bids: price = contract/order
+              element.price = element.contract.amount / element.order.amount;
             });
             data1.bids.sort((a, b) => b.price - a.price);
         }
@@ -46,56 +44,81 @@ export const fetchOrderBook = (
             data1.asks.forEach((element) => {
               if (element.contract.ticker === 'NXS') {
                 element.contract.amount = element.contract.amount / 1e6;
-              } else if (element.order.ticker === 'NXS') {
+              }
+              if (element.order.ticker === 'NXS') {
                 element.order.amount = element.order.amount / 1e6;
               }
-            });      
-            data1.asks.forEach((element) => {
-              if (element.price !== (element.order.amount / element.contract.amount)) {
-                element.price = (element.order.amount / element.contract.amount);
-              }
+              // Recalculate price after normalization for asks: price = order/contract
+              element.price = element.order.amount / element.contract.amount;
             });
             data1.asks.sort((a, b) => b.price - a.price);
         }
 
         dispatch(setOrderBook(data1));
 
-        let baseTokenPrelim = baseToken;
-        if (baseToken === 'NXS' && quoteToken !== 'NXS') {
-            baseTokenPrelim = quoteToken;
-        } else if (baseToken === 'NXS' && quoteToken === 'NXS') {
-            baseTokenPrelim = "DIST";
-        }
+        // Query by market param instead of token when dealing with NXS pairs
+        // to avoid null/invalid token issues
+        // Also use market param if baseToken is not set
+        const myOrdersParams = (baseToken === 'NXS' || quoteToken === 'NXS' || !baseToken)
+            ? { market: marketPair }
+            : { token: baseToken };
 
-        const myOrders = await apiCall(
+        let myOrdersError = null;
+        let myOrders = await apiCall(
             'market/user/order',
-            {
-                //market: pair,
-                token: baseTokenPrelim,
+            myOrdersParams
+        ).catch(async (error1) => {
+            // Silent error - just log, don't show popup
+            console.warn('Cannot get my orders (market/user/order):', error1?.message || 'Unknown error');
+            myOrdersError = error1?.message || 'Unable to load orders';
+            
+            // Fallback: Extract user orders from the order book by matching genesis
+            try {
+                console.log('Attempting to extract user orders from order book...');
+                
+                // Get current user's genesis from session status
+                const sessionStatus = await apiCall('sessions/status/local');
+                const userGenesis = sessionStatus?.genesis;
+                
+                if (!userGenesis) {
+                    console.warn('Could not get user genesis for order filtering');
+                    return { orders: [], error: myOrdersError };
+                }
+                
+                // Filter orders from data1 by owner matching user genesis
+                const userBids = (data1.bids || []).filter(order => order.owner === userGenesis);
+                const userAsks = (data1.asks || []).filter(order => order.owner === userGenesis);
+                const userOrders = [...userBids, ...userAsks];
+                
+                console.log(`Found ${userOrders.length} user orders in order book`);
+                // Mark that these orders are already normalized from the order book
+                return { orders: userOrders, error: null, alreadyNormalized: true };
+                
+            } catch (fallbackError) {
+                console.error('Fallback order extraction failed:', fallbackError);
+                return { orders: [], error: myOrdersError };
             }
-        ).catch((error1) => {
-            dispatch(showErrorDialog({
-                message: 'Cannot get my orders (market/user/order)',
-                note: error1?.message || 'Unknown error',
-            }));
-            return myOrders = {orders: []};
         });
 
-        myOrders.orders.forEach((element) => {
-            if (element.contract.ticker === 'NXS') {
-                element.contract.amount = element.contract.amount / 1e6;
-            } else if (element.order.ticker === 'NXS') {
-                element.order.amount = element.order.amount / 1e6;
-            }
-        });
-
-        myOrders.orders.forEach((element) => {
-            if (element.type === 'bid' && element.price !== (element.order.amount / element.contract.amount)) {
-                element.price = (element.order.amount / element.contract.amount);
-            } else if (element.type === 'ask' && element.price !== (element.contract.amount / element.order.amount)) {
-                element.price = (element.contract.amount / element.order.amount);
-            }
-        });
+        // Only normalize if not already normalized (i.e., came directly from API, not from order book)
+        if (!myOrders.alreadyNormalized) {
+            myOrders.orders.forEach((element) => {
+                if (element.contract.ticker === 'NXS') {
+                    element.contract.amount = element.contract.amount / 1e6;
+                }
+                if (element.order.ticker === 'NXS') {
+                    element.order.amount = element.order.amount / 1e6;
+                }
+                // Recalculate price after normalization
+                if (element.type === 'bid') {
+                    // Bid: price = contract/order (quote per base)
+                    element.price = element.contract.amount / element.order.amount;
+                } else if (element.type === 'ask') {
+                    // Ask: price = order/contract (quote per base)
+                    element.price = element.order.amount / element.contract.amount;
+                }
+            });
+        }
 
         dispatch(setMyOrders(myOrders));
         
