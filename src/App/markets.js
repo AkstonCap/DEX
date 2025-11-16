@@ -168,18 +168,25 @@ export default function Markets() {
 
           const volume = ((bidsVolume.amount || 0) + (asksVolume.amount || 0)) / 1e6;
           let lastPrice = 0;
-          const lastExecutedAsks = lastExecuted.asks?.sort((a, b) => b.timestamp - a.timestamp);
-          const lastExecutedBids = lastExecuted.bids?.sort((a, b) => b.timestamp - a.timestamp);
+          const lastExecutedAsks = lastExecuted.asks?.sort((a, b) => b.timestamp - a.timestamp) || [];
+          const lastExecutedBids = lastExecuted.bids?.sort((a, b) => b.timestamp - a.timestamp) || [];
 
+          // Get the most recent executed order to determine last price
+          const askTimestamp = lastExecutedAsks[0]?.timestamp || 0;
+          const bidTimestamp = lastExecutedBids[0]?.timestamp || 0;
 
-          if (lastExecutedAsks[0]?.timestamp > lastExecutedBids[0]?.timestamp) {
-            lastPrice = (lastExecutedAsks[0]?.order.amount / 1e6) / lastExecutedAsks[0]?.contract.amount;
-          } else if (lastExecutedBids[0]?.timestamp > lastExecutedAsks[0]?.timestamp) {
-            lastPrice = (lastExecutedBids[0]?.contract.amount / 1e6) / lastExecutedBids[0]?.order.amount;
-          } else if (lastExecutedAsks.length === 0 && lastExecutedBids.length === 0) {
-            lastPrice = 0;
+          if (askTimestamp > bidTimestamp && lastExecutedAsks[0]) {
+            lastPrice = (lastExecutedAsks[0].order.amount / 1e6) / lastExecutedAsks[0].contract.amount;
+          } else if (bidTimestamp > askTimestamp && lastExecutedBids[0]) {
+            lastPrice = (lastExecutedBids[0].contract.amount / 1e6) / lastExecutedBids[0].order.amount;
+          } else if (lastExecutedAsks[0]) {
+            // Fallback to ask if timestamps are equal
+            lastPrice = (lastExecutedAsks[0].order.amount / 1e6) / lastExecutedAsks[0].contract.amount;
+          } else if (lastExecutedBids[0]) {
+            // Fallback to bid if no asks
+            lastPrice = (lastExecutedBids[0].contract.amount / 1e6) / lastExecutedBids[0].order.amount;
           } else {
-            lastPrice = (lastExecutedAsks[0]?.order.amount / 1e6) / lastExecutedAsks[0]?.contract.amount;
+            lastPrice = 0;
           }
 
           const bids = bidList.bids;
