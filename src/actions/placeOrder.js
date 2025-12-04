@@ -254,11 +254,12 @@ export const executeOrder = (
     };
 
     try {
-        const orderInfo = await apiCall(
-            'market/list/order', 
+        // Get all orders for the market and find the one with matching txid
+        const orderListResponse = await apiCall(
+            'market/list/order/txid,owner,price,type,contract.amount,contract.ticker,order.amount,order.ticker', 
             {
                 market: marketPair,
-                where: 'results.txid=' + txid,
+                limit: 1000
             }
         ).catch((error) => {
             showErrorDialog({
@@ -268,7 +269,24 @@ export const executeOrder = (
             return null;
         });
 
+        if (!orderListResponse) {
+            return null;
+        }
+
+        // Search through bids and asks for the order with matching txid
+        let orderInfo = null;
+        if (orderListResponse.bids) {
+            orderInfo = orderListResponse.bids.find(order => order.txid === txid);
+        }
+        if (!orderInfo && orderListResponse.asks) {
+            orderInfo = orderListResponse.asks.find(order => order.txid === txid);
+        }
+
         if (!orderInfo) {
+            showErrorDialog({
+                message: 'Order not found',
+                note: `No order found with transaction ID: ${txid}`
+            });
             return null;
         }
 

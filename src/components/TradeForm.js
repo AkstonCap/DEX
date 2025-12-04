@@ -38,6 +38,7 @@ export default function TradeForm() {
   const quoteTokenDecimals = useSelector((state) => state.ui.market.marketPairs.quoteTokenDecimals);
   const baseTokenDecimals = useSelector((state) => state.ui.market.marketPairs.baseTokenDecimals);
   const orderInQuestion = useSelector((state) => state.ui.market.orderInQuestion);
+  const availableOrders = useSelector((state) => state.ui.market.orderInQuestion.availableOrders);
   const orderMethod = orderInQuestion.orderMethod;
   //const [orderType, setOrderType] = useState('bid');
   const [quoteAmount, setQuoteAmount] = useState(0);
@@ -46,6 +47,7 @@ export default function TradeForm() {
   const [fromAccount, setFromAccount] = useState('');
   const [toAccount, setToAccount] = useState('');
   const [accounts, setAccounts] = useState({ quoteAccounts: [], baseAccounts: [] });
+  const [selectedOrderId, setSelectedOrderId] = useState('');
 
   const handleOrderMethodChange = (val) => {
     if (val === 'bid') {
@@ -73,6 +75,15 @@ export default function TradeForm() {
         if (orderMethod === 'execute') {
           setQuoteAmount(orderInQuestion.amount);
           setBaseAmount(orderInQuestion.amount / orderInQuestion.price);
+          setPrice(orderInQuestion.price);
+          
+          // If there are available orders at this price, auto-select the first one
+          if (availableOrders && availableOrders.length > 0 && !orderInQuestion.txid) {
+            const firstOrder = availableOrders[0];
+            setSelectedOrderId(firstOrder.txid);
+            const amount = firstOrder.type === 'ask' ? firstOrder.order.amount : firstOrder.contract.amount;
+            dispatch(setOrder(firstOrder.txid, firstOrder.price, amount, firstOrder.type, firstOrder.market, 'execute'));
+          }
         }
 
         const result = await apiCall('finance/list/account/balance,ticker,address', params);
@@ -140,6 +151,26 @@ export default function TradeForm() {
   useEffect(() => {
     setBaseAmount(quoteAmount / price);
   }, [quoteAmount, price]);
+
+  // Handle order selection from dropdown
+  const handleOrderSelection = (txid) => {
+    setSelectedOrderId(txid);
+    const selectedOrder = availableOrders.find(order => order.txid === txid);
+    if (selectedOrder) {
+      const amount = selectedOrder.type === 'ask' ? selectedOrder.order.amount : selectedOrder.contract.amount;
+      dispatch(setOrder(selectedOrder.txid, selectedOrder.price, amount, selectedOrder.type, selectedOrder.market, 'execute'));
+    }
+  };
+
+  // Create dropdown options from available orders
+  const orderDropdownOptions = availableOrders?.map(order => ({
+    value: order.txid,
+    display: `${order.txid.slice(0, 8)}...${order.txid.slice(-8)} - ${formatNumberWithLeadingZeros(
+      parseFloat(order.type === 'ask' ? order.order.amount : order.contract.amount),
+      3,
+      order.type === 'ask' ? quoteTokenDecimals : baseTokenDecimals
+    )} ${order.type === 'ask' ? formatTokenName(quoteToken) : formatTokenName(baseToken)}`
+  })) || [];
 
   const quoteAccountOptions = accounts.quoteAccounts.map((acct) => ({
     value: acct.address,
@@ -303,6 +334,15 @@ export default function TradeForm() {
               {renderAmountField()}
             </FormField>
           </TradeFormContainer>
+          {orderMethod === 'execute' && availableOrders && availableOrders.length > 0 && (
+            <FormField label="Select Order to Execute">
+              <Select
+                value={selectedOrderId}
+                onChange={handleOrderSelection}
+                options={orderDropdownOptions}
+              />
+            </FormField>
+          )}
           <TradeFormContainer>
             <FormField label={('Payment Account ' + formatTokenName(payToken))}>
               <Select

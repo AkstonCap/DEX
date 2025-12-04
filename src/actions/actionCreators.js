@@ -56,6 +56,15 @@ export const setOrder = (txid, price, amount, type, marketPair, orderMethod) => 
   },
 });
 
+export const setAvailableOrdersAtPrice = (orders, price, type) => ({
+  type: TYPE.SET_AVAILABLE_ORDERS_AT_PRICE,
+  payload: {
+    orders,
+    price,
+    type,
+  },
+});
+
 export const setMyOrders = (myOrders) => ({
   type: TYPE.SET_MY_ORDERS,
   payload: myOrders,
