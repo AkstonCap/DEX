@@ -1,118 +1,155 @@
-# Nexus DEX module
+# Nexus DEX Module
 
-This is a decentralized exchange wallet module for the Nexus Interface built with React and Redux. It provides:
+A user-friendly decentralized exchange (DEX) module for the Nexus Wallet. Trade tokens, view market data, and swap stablecoins—all on-chain with enterprise-grade security.
 
-- Markets and Asset views with prices, bids/asks, volumes, and market caps (on-chain data)
-- Order book, recent trades, your open orders and trade history
-- Charts and market depth visualizations
-- Trading desk to place/cancel orders (through secure wallet prompts)
-- Cross-chain Stablecoin Swap between USDC (Solana) and USDD (Nexus)
+## ✨ Features
 
-Everything is on-chain and executed via the Nexus Interface security model.
+- **🚀 Market Fill Trading** - Quick one-click buy/sell with automatic best price matching
+- **📊 Real-Time Market Data** - Live prices, order books, volumes, and market depth charts
+- **📈 Advanced Trading** - Place limit orders (bid/ask) and execute specific orders from the book
+- **🔄 Cross-Chain Stablecoin Swap** - Bridge between USDC (Solana) and USDD (Nexus)
+- **🔒 Secure** - All transactions require PIN confirmation through the Nexus Wallet security model
+- **📉 Charts & Analytics** - Candlestick charts, volume data, and market depth visualization
 
-### How to install module
+## 🎯 Quick Start
 
-1. Download and install the [latest version of Nexus Wallet](https://github.com/Nexusoft/NexusInterface/releases/latest) if you haven't.
-2. Get the latest verified release of this DEX module from the [releases page](https://github.com/AkstonCap/DEX/releases).
-3. Download the zip package from the latest release (for example: "dex_module@X.Y.Z.zip").
-4. Go to the Nexus Wallet -> Settings -> Modules
-5. Import the downloaded zip in the "Add module" box
-6. Click "Install module" in pop-up.
+### Installation (Verified Release)
 
-### How to install unverified beta- or official releases of this module (not yet verified by Nexus DAO dev team)
+1. **Download Nexus Wallet** - Get the [latest version](https://github.com/Nexusoft/NexusInterface/releases/latest)
+2. **Get the DEX Module** - Download from our [releases page](https://github.com/AkstonCap/DEX/releases)
+3. **Install** - Open Nexus Wallet → Settings → Modules → Import the downloaded zip
+4. **Start Trading** - The DEX icon will appear in your navigation bar
 
-1. Download and install the [latest version of Nexus Wallet](https://github.com/Nexusoft/NexusInterface/releases/latest) if you haven't.
-2. Download [this module's zip file](https://github.com/AkstonCap/DEX/releases/latest).
-3. Unzip the files into your local repository.
-4. Open the terminal and redirect to inside the unzipped folder.
-5. Run
-   "npm install"
-   and then
-   "npm run build"
-7. Open Nexus Wallet, go to Settings/Modules, drag and drop the unzipped folder into the "Add module" section and click "Install module" when prompted (requires that your wallet is in "Developer mode").
-8. After the wallet refreshes, an item for this template module will be added into the bottom navigation bar. Click on it to open the module.
+### Installation (Beta/Development Version)
 
-### Module overview
+For testing unreleased features:
 
-In the top right corner of the module you'll see two input fields and a refresh button, these defines and updates the chosen market pair. To update the market pair, insert the global names of the two tokens to trade (for instance DIST and NXS, yielding the market pair DIST/NXS) and click on the refresh button. 
-The module currently only works for tokens with a global name.
+1. Download the [latest source code](https://github.com/AkstonCap/DEX/releases/latest)
+2. Unzip and open terminal in the folder
+3. Run:
+   ```bash
+   npm install
+   npm run build
+   ```
+4. Enable Developer Mode in Nexus Wallet (Settings → Application)
+5. Drag the folder into Settings → Modules → "Add module"
 
-The module furthermore consists of these tabs:
+## 📖 User Guide
 
-### Overview
+### Getting Started with Trading
 
-- At-a-glance metrics for the selected market pair (price, 24h change, volume, etc.)
-- Compressed Order Book view (best bids/asks with aggregation)
-- Global Trade History for the pair
-- Your last trades and your active/open orders
-- Manual refresh and periodic auto-refresh of market data
+1. **Select a Market Pair** - Enter token names in the top-right corner (e.g., DIST and NXS)
+2. **Click Refresh** - Updates all data for your selected pair
+3. **Choose Trading Method**:
+   - **Market Fill** (Default) - Simplest option for quick trades
+   - **Bid/Ask** - Place limit orders at specific prices
+   - **Execute** - Fill existing orders from the order book
 
-### Trading desk
+### Market Fill Trading (Recommended for Beginners)
 
-- Place Buy/Sell orders through secure wallet prompts (no keys in the module)
-- Inputs for price and amount, with computed totals
-- Quick actions to use best bid/ask from the book
-- Your open orders list with the ability to cancel
-- Validations for numeric input and available balances
+The easiest way to trade:
 
-### Charts and trading history
+1. Select **Market Fill** (selected by default)
+2. Choose **Buy** or **Sell**
+3. Enter your **Max Payment Amount** (how much you want to spend)
+4. Select your **payment** and **receiving accounts**
+5. Click **Find Best Order & Execute**
+6. Review the order details and confirm with your PIN
 
-- Candlestick and/or line charts for price over time
-- Time span selector (short to long horizons)
-- Volume overlay and tooltips
-- Synchronizes with the chosen market pair
+The system automatically finds the best available price within your budget and includes 10% price protection.
 
-### Market depth
+## 📱 Module Tabs
 
-- Visual depth chart of the order book with cumulative bids/asks
-- Helps identify support/resistance levels and liquidity concentration
-- Updates with new best bid/ask snapshots
+### 📊 Overview
+- Quick view of current market metrics (price, 24h change, volume)
+- Order book with best bids and asks
+- Recent trades for the market pair
+- Your active orders and trade history
+- Auto-refresh every 10-60 seconds
 
-### Markets
+### 💱 Trade
+- **Market Fill** - Quick buy/sell with automatic price matching (recommended)
+- **Bid/Ask** - Place custom limit orders at your desired price
+- **Execute** - Fill specific orders from the order book
+- View and cancel your open orders
+- Real-time balance validation
 
-- Tokens list with live market attributes vs NXS: last price, bid, ask, volume, market cap
-- Search filter to find specific tokens by name
-- Wide-table layout with responsive column sizing and shortened addresses
-- Auto-refresh interval for asset lists (default ~60 seconds)
+### 📈 Charts
+- Price history with candlestick or line charts
+- Adjustable time spans (1h to 30 days)
+- Volume overlays and interactive tooltips
+- Synchronized with your selected market pair
 
-### Stablecoin Swap
+### 📉 Market Depth
+- Visual representation of order book liquidity
+- Cumulative bid/ask depth chart
+- Toggle between logarithmic and linear scales
+- Identify support and resistance levels
 
-Swap between USDC on Solana and USDD on Nexus, directly from the module:
+### 🏪 Markets
+- Browse all available tokens and their metrics
+- Live prices, volumes, and market caps (vs NXS)
+- Search and filter by token name
+- One-click market pair selection
 
-- USDC → USDD (Solana to Nexus)
-   - From your Solana wallet, send USDC to the service address with a memo: `nexus: <USDD_account>`
-   - Paste the Solana transaction signature in the module
-   - The module verifies the Solana transaction on-chain and monitors Nexus for the incoming USDD
-   - Once detected, status updates to completed
+### 🔄 Stablecoin Swap
 
-- USDD → USDC (Nexus to Solana)
-   - Enter the Solana address that will receive USDC
-   - The module first verifies that a USDC associated token account (ATA) exists for that address on Solana
-   - Submit the swap: the module debits USDD from your selected Nexus account (wallet prompt required)
-   - It then monitors for a Solana payout and confirms receipt based on on-chain data
+Bridge between Solana USDC and Nexus USDD:
 
-Fees and minimums for swaps:
+**USDC → USDD (Solana to Nexus)**
+1. Send USDC on Solana to the service address with memo: `nexus: <your_USDD_account>`
+2. Paste your Solana transaction signature in the module
+3. Module verifies on-chain and monitors for your USDD arrival
+4. Status updates automatically when complete
 
-- Minimum amount: 0.2 (both directions)
-- Fees: 0.1 USDC flat + 0.1% of amount
-- The UI shows an “Estimated received” amount after fees before you confirm
+**USDD → USDC (Nexus to Solana)**
+1. Enter your Solana wallet address (must have USDC token account)
+2. Module verifies your Solana account setup
+3. Confirm the swap with your PIN
+4. USDC arrives at your Solana address
 
-Notes and constraints:
+**Swap Fees:**
+- Minimum: 0.2 (both directions)
+- Fee: 0.1 flat + 0.1% of amount
+- "Estimated received" shown before confirmation
 
-- Memo format for USDC → USDD must be exactly: `nexus: <USDD_account>`
-- Solana: mainnet USDC mint is used (EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v)
-- The swap UI uses Solana JSON-RPC directly; no external centralized service URL is required
-- You can optionally override the Solana RPC endpoint via `SOLANA_RPC_URL` environment variable
+## 🔒 Security
 
-### Module security
+All transactions use the Nexus Wallet's built-in security model:
+- PIN required for every transaction
+- No private keys exposed to the module
+- Direct blockchain API calls (no intermediaries)
+- Open source and auditable
 
-The module uses API's from Nexus LLL-TAO, meaning that no transactions or other blockchain functionalities are coded from scratch. All transactions in this module happens through the secureApiCall which is an in-built utility in the nexus global variable in the Nexus Interface (https://github.com/Nexusoft/NexusInterface/blob/master/docs/Modules/module-security.md#secureapicall), with a pre-defined window pop-up and required pin input for execution.
-In this way the module inherits similar security as the wallet.
+Learn more: [Nexus Module Security Documentation](https://github.com/Nexusoft/NexusInterface/blob/master/docs/Modules/module-security.md)
 
-More info on module security can be found here: https://github.com/Nexusoft/NexusInterface/blob/master/docs/Modules/module-security.md
+## ⚠️ Important Notes
 
-### Additional details
+- **Token Requirements** - Currently only works with tokens that have global names
+- **Market Pair Format** - Enter as BASE/QUOTE (e.g., DIST/NXS)
+- **Stablecoin Swap** - Uses Solana mainnet USDC mint (`EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`)
+- **Network** - Requires connection to Nexus network and (for swaps) Solana RPC
 
-- Numbers formatting: very small decimals are displayed with leading-zero counts for readability in markets tables.
-- Addresses in tables are shortened for compactness (first 4 … last 4).
-- Asset Markets have tailored wide-table styles to fit fewer columns cleanly.
+## 🛠️ Advanced Configuration
+
+**Custom Solana RPC Endpoint** (optional):
+```bash
+export SOLANA_RPC_URL=https://your-custom-rpc-url.com
+```
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/AkstonCap/DEX/issues)
+- **Nexus Community**: [Nexus Slack](https://nexus.io/community)
+
+---
+
+Made with ❤️ for the Nexus community
