@@ -61,7 +61,9 @@ export default function Main() {
     const fetchData = () => {
       
       dispatch(fetchMarketData());
-      dispatch(refreshMarket(baseToken, quoteToken));
+      if (baseToken && quoteToken && baseToken !== '' && quoteToken !== '') {
+        dispatch(refreshMarket(baseToken, quoteToken));
+      }
     
     };
   
