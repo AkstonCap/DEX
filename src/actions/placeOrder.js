@@ -248,6 +248,11 @@ export const executeOrder = (
     const baseToken = state.ui.market.marketPairs.baseToken;
     const marketPair = state.ui.market.marketPairs.marketPair;
 
+    // Declare these outside try-catch so they're available in both blocks
+    let orderType = null;
+    let orderInfo = null;
+    let amount = null;
+
     // set params for api call
     const params = {
         txid: txid,
@@ -276,7 +281,7 @@ export const executeOrder = (
         }
 
         // Search through bids and asks for the order with matching txid
-        let orderInfo = null;
+        orderInfo = null;
         if (orderListResponse.bids) {
             orderInfo = orderListResponse.bids.find(order => order.txid === txid);
         }
@@ -292,13 +297,15 @@ export const executeOrder = (
             return null;
         }
 
-        const orderType = orderInfo.type;
-        let amount;
+        orderType = orderInfo.type;
 
+        // Set the amount you actually pay when executing the order
+        // When executing a bid: you pay base token (what the bidder wants to buy)
+        // When executing an ask: you pay quote token (what the asker wants to receive)
         if (orderType === 'bid') {
-            amount = quoteAmount;
+            amount = baseAmount;  // Executing bid: pay base
         } else if (orderType === 'ask') {
-            amount = baseAmount;
+            amount = quoteAmount; // Executing ask: pay quote
         }
 
         const infoFromAccountTest = await apiCall(
