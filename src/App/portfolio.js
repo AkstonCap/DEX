@@ -30,7 +30,7 @@ export default function Portfolio() {
 
       // Check if each ticker is a global ticker
       const accountsWithGlobalCheck = await Promise.all(accounts.map(async acc => {
-        if (!acc.ticker) return { ...acc, ticker: '' };
+        if (!acc.ticker || acc.ticker === '') return { ...acc, ticker: '' };
         if (acc.ticker !== 'NXS') {
           const res = await apiCall('register/get/finance:token', { name: acc.ticker }).catch(() => null);
           if (res && res.address) {
