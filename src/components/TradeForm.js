@@ -378,8 +378,25 @@ export default function TradeForm() {
     e.preventDefault();
     let result;
     if (orderMethod === 'execute') {
+      // Find the full order object from availableOrders to get contract and order amounts
+      const fullOrder = availableOrders?.find(order => order.txid === orderInQuestion.txid);
+      
+      let calculatedQuoteAmount = quoteAmount;
+      let calculatedBaseAmount = baseAmount;
+      
+      if (fullOrder) {
+        // Calculate amounts from the full order object
+        if (fullOrder.type === 'ask') {
+          calculatedQuoteAmount = parseFloat(fullOrder.order?.amount || 0);   // Ask: quote is in order.amount
+          calculatedBaseAmount = parseFloat(fullOrder.contract?.amount || 0);  // Ask: base is in contract.amount
+        } else if (fullOrder.type === 'bid') {
+          calculatedQuoteAmount = parseFloat(fullOrder.contract?.amount || 0); // Bid: quote is in contract.amount
+          calculatedBaseAmount = parseFloat(fullOrder.order?.amount || 0);     // Bid: base is in order.amount
+        }
+      }
+      
       result = await dispatch(
-        executeOrder(orderInQuestion.txid, fromAccount, toAccount, quoteAmount)
+        executeOrder(orderInQuestion.txid, fromAccount, toAccount, calculatedQuoteAmount, calculatedBaseAmount)
       );
       dispatch(setOrder('', 0, 0, '', '', 'execute'));
     } else if (orderMethod === 'market') {
