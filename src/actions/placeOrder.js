@@ -14,7 +14,8 @@ export const createOrder = (
 ) => {
 
     // Validate parameters
-    if (!orderType || !price || !quoteAmount || !fromAccount || !toAccount) {
+    if (!orderType || !price || !quoteAmount || !fromAccount || !toAccount || 
+        fromAccount === '' || toAccount === '') {
         showErrorDialog({
             message: 'Missing required parameters',
             note: 'Please fill in all required fields'
@@ -233,7 +234,8 @@ export const executeOrder = (
     dispatch, getState
 ) => {
 
-    if (!txid || !fromAccount || !toAccount) {
+    if (!txid || !fromAccount || !toAccount || 
+        txid === '' || fromAccount === '' || toAccount === '') {
         showErrorDialog({
             message: 'Missing required parameters',
             note: 'Please fill in all required fields'
