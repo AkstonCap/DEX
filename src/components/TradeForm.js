@@ -368,12 +368,12 @@ export default function TradeForm() {
                 ? <>
                     txid: {orderInQuestion.txid.slice(0, 10)}....{orderInQuestion.txid.slice(-10)}
                     <br />
-                    Click on another order in the order book (right hand side) to change which order to fill.
+                    Choose another order in the dropdown above to change the amount to fill, or click on an available order price in the order book (right hand side) which you would like to fill.
                   </>
                 : <>
                     txid: 
                     <br />
-                    Click on an order in the order book (right hand side) which you would like to fill.
+                    Click on an available order price in the order book (right hand side) which you would like to fill.
                   </>
             ) : null}
           </div>
