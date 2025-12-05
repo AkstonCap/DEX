@@ -325,8 +325,12 @@ export const ExecuteButton = styled(Button)`
 export const MarketFillButton = styled(Button)`
   && {
     /* Double ampersand ensures higher specificity */
-    border: 2px solid #0ca4fb !important;
-    background-color: transparent !important;
+    border: 2px solid #ff8c00 !important;
+    background-color: ${({ orderMethod }) =>
+      orderMethod === 'market' ? '#ff8c00' : 'transparent'} !important;
+    color: ${({ orderMethod }) =>
+      orderMethod === 'market' ? 'white' : 'inherit'} !important;
+  }
   color: white;
   padding: 15px 32px;
   text-align: center;

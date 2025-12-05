@@ -63,6 +63,16 @@ export const fetchOrderBook = (
             ? { market: marketPair }
             : { token: baseToken };
 
+        // Skip fetching user orders if parameters are invalid
+        if (!myOrdersParams.market && !myOrdersParams.token) {
+            console.warn('Skipping user orders fetch - missing valid token/market parameter');
+            return;
+        }
+        if (myOrdersParams.market === '' || myOrdersParams.token === '') {
+            console.warn('Skipping user orders fetch - empty token/market parameter');
+            return;
+        }
+
         let myOrdersError = null;
         let myOrders = await apiCall(
             'market/user/order',

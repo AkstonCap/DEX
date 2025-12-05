@@ -344,16 +344,16 @@ export const executeOrder = (
         }
 
         // check account token type and balance
-        if (orderType === 'bid' && infoFromAccount.ticker !== quoteToken) {
+        if (orderType === 'bid' && infoFromAccount.ticker !== baseToken) {
             showErrorDialog({
                 message: 'Invalid payment account (wrong token)',
-                note: `Expected ${quoteToken} account for bid execution`
+                note: `Expected ${baseToken} account for bid execution`
             });
             return null;
-        } else if (orderType === 'ask' && infoFromAccount.ticker !== baseToken) {
+        } else if (orderType === 'ask' && infoFromAccount.ticker !== quoteToken) {
             showErrorDialog({
                 message: 'Invalid payment account (wrong token)',
-                note: `Expected ${baseToken} account for ask execution`
+                note: `Expected ${quoteToken} account for ask execution`
             });
             return null;
         } else if (infoFromAccount.balance < amount) {
@@ -363,16 +363,16 @@ export const executeOrder = (
             });
             return null;
         }
-        if (orderType === 'bid' && infoToAccount.ticker !== baseToken) {
-            showErrorDialog({
-                message: 'Invalid receival account (wrong token)',
-                note: `Expected ${baseToken} account to receive tokens`
-            });
-            return null;
-        } else if (orderType === 'ask' && infoToAccount.ticker !== quoteToken) {
+        if (orderType === 'bid' && infoToAccount.ticker !== quoteToken) {
             showErrorDialog({
                 message: 'Invalid receival account (wrong token)',
                 note: `Expected ${quoteToken} account to receive tokens`
+            });
+            return null;
+        } else if (orderType === 'ask' && infoToAccount.ticker !== baseToken) {
+            showErrorDialog({
+                message: 'Invalid receival account (wrong token)',
+                note: `Expected ${baseToken} account to receive tokens`
             });
             return null;
         }
