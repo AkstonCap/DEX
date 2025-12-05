@@ -102,6 +102,11 @@ export default function Markets() {
       const tokenDataPromises = globalTokenList?.map(
         async (token) => {
         
+          // Skip tokens without valid ticker
+          if (!token.ticker || token.ticker === '') {
+            return null;
+          }
+
           const [bidsVolume, asksVolume, lastExecuted, supply, bidList, askList] = await Promise.all([
 
             apiCall( 
@@ -225,6 +230,9 @@ export default function Markets() {
         });
 
       globalTokenList = await Promise.all(tokenDataPromises);
+      
+      // Filter out null entries (tokens without valid tickers)
+      globalTokenList = globalTokenList.filter(token => token !== null);
       
       setTokenList(globalTokenList);
       setSearchResults(globalTokenList);
