@@ -167,6 +167,49 @@ export default function HoldersList({ num = 10 }) {
     });
   };
 
+  const renderRemainingSummary = () => {
+    if (loading || error || !Array.isArray(holders) || holders.length <= num) {
+      return null;
+    }
+
+    const remainingHolders = holders.slice(num);
+    const remainingCount = remainingHolders.length;
+    const totalHeld = remainingHolders.reduce((sum, holder) => 
+      sum + parseFloat(holder.balance || 0), 0);
+    const percentageOfSupply = circulatingSupply ? 
+      ((totalHeld / parseFloat(circulatingSupply)) * 100).toFixed(2) : 'N/A';
+
+    return (
+      <div style={{ 
+        marginTop: '16px', 
+        padding: '12px', 
+        backgroundColor: 'rgba(59, 130, 246, 0.1)', 
+        borderRadius: '4px',
+        border: '1px solid rgba(59, 130, 246, 0.2)'
+      }}>
+        <div style={{ fontSize: '0.9em', color: '#93c5fd', fontWeight: 'bold', marginBottom: '8px' }}>
+          Remaining Holders Summary
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', fontSize: '0.85em' }}>
+          <div>
+            <span style={{ color: '#9ca3af' }}>Accounts: </span>
+            <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{remainingCount}</span>
+          </div>
+          <div>
+            <span style={{ color: '#9ca3af' }}>Total Held: </span>
+            <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>
+              {formatNumberWithLeadingZeros(totalHeld, 3, baseTokenDecimals)}
+            </span>
+          </div>
+          <div>
+            <span style={{ color: '#9ca3af' }}>% of Supply: </span>
+            <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{percentageOfSupply}%</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div>
       <FieldSet legend={`Holders List (${baseToken || 'Unknown Token'})`}>
@@ -183,6 +226,7 @@ export default function HoldersList({ num = 10 }) {
             {renderHolders(holders)}
           </tbody>
         </OrderTable>
+        {renderRemainingSummary()}
       </FieldSet>
     </div>
   );
