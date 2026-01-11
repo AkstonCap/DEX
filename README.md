@@ -16,7 +16,7 @@ A user-friendly decentralized exchange (DEX) module for the Nexus Wallet. Trade 
 ### Installation (Verified Release)
 
 1. **Download Nexus Wallet** - Get the [latest version](https://github.com/Nexusoft/NexusInterface/releases/latest)
-2. **Get the DEX Module** - Download from our [releases page](https://github.com/AkstonCap/DEX/releases)
+2. **Get the DEX Module** - Download latest "dex_module@x.y.z.zip" from our [releases page](https://github.com/AkstonCap/DEX/releases/latest)
 3. **Install** - Open Nexus Wallet → Settings → Modules → Import the downloaded zip
 4. **Start Trading** - The DEX icon will appear in your navigation bar
 
