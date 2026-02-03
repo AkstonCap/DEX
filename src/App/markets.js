@@ -21,13 +21,15 @@ import {
   TextField,
   Button,
 } from 'nexus-module';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setMarketPair, switchTab } from "actions/actionCreators";
 import RefreshButton from "./RefreshButton";
 import { formatNumberWithLeadingZeros } from 'actions/formatNumber';
+import { cachedApiCall } from 'utils/apiCache';
 
 const WATCHLIST_ASSET_NAME = 'dex-watchlist';
+const MARKETS_CACHE_TTL = 30000; // 30 seconds cache for market data
 
 const SearchField = styled(TextField)({
   maxWidth: 200,
@@ -279,65 +281,73 @@ export default function Markets() {
             return null;
           }
 
+          const market = token.ticker + '/NXS';
+
           const [bidsVolume, asksVolume, lastExecuted, supply, bidList, askList] = await Promise.all([
 
-            apiCall( 
+            cachedApiCall(apiCall,
               'market/list/executed/contract.amount/sum', 
               {
-                market: token.ticker + '/NXS',
+                market,
                 where: 'results.timestamp>since(`1 year`); AND results.type=bid',
-              }
+              },
+              MARKETS_CACHE_TTL
             ).catch(() => ({ amount: 0 })
             ),
 
-            apiCall( 
+            cachedApiCall(apiCall,
               'market/list/executed/order.amount/sum', 
               {
-                market: token.ticker + '/NXS',
+                market,
                 where: 'results.timestamp>since(`1 year`); AND results.type=ask',
-              }
+              },
+              MARKETS_CACHE_TTL
             ).catch(() => ({ amount: 0 })
             ),
 
-            apiCall(
+            cachedApiCall(apiCall,
               'market/list/executed/type,order.amount,contract.amount,timestamp',
               {
-                market: token.ticker + '/NXS',
+                market,
                 sort: 'timestamp',
                 order: 'desc',
                 limit: 5,
                 where: 'results.timestamp>since(`1 year`);',
-              }
+              },
+              MARKETS_CACHE_TTL
             ).catch(() => ({})
             ),
 
-            apiCall(
+            cachedApiCall(apiCall,
               'register/get/finance:token/currentsupply,maxsupply',
               {
                 name: token.ticker,
-              }
+              },
+              MARKETS_CACHE_TTL
             ).catch(() => ({ currentsupply: 0, maxsupply: 0 })
             ),
 
-            apiCall(
+            cachedApiCall(apiCall,
               'market/list/bid/price,order.amount,contract.amount',
               {
-                market: token.ticker + '/NXS',
+                market,
                 sort: 'price',
                 order: 'desc',
-                //limit: 2,
-              }
+                limit: 10, // Limit to top 10 bids for performance
+              },
+              MARKETS_CACHE_TTL
             ).catch(() => ({bids: []}),
             ),
 
-            apiCall(
+            cachedApiCall(apiCall,
               'market/list/ask/price,order.amount,contract.amount',
               {
-                market: token.ticker + '/NXS',
+                market,
                 sort: 'price',
                 order: 'desc',
-                //limit: 2,
-              }
+                limit: 10, // Limit to top 10 asks for performance
+              },
+              MARKETS_CACHE_TTL
             ).catch(() => ({asks: []}),
             ),
 

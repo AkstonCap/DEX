@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   PageLayout, 
   TopRow, 
@@ -12,6 +12,9 @@ import { apiCall, FieldSet } from 'nexus-module';
 
 import { formatTokenName } from 'components/styles';
 import { formatNumberWithLeadingZeros } from 'actions/formatNumber';
+import { cachedApiCall } from 'utils/apiCache';
+
+const PORTFOLIO_CACHE_TTL = 15000; // 15 seconds cache for portfolio data
 
 export default function Portfolio() {
   //const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
@@ -63,7 +66,7 @@ export default function Portfolio() {
         if (token.ticker !== 'NXS') {
           try {
             const market = `${token.ticker}/NXS`;
-            const executed = await apiCall('market/list/executed', { market, sort: 'timestamp', order: 'desc', limit: 5 });
+            const executed = await cachedApiCall(apiCall, 'market/list/executed', { market, sort: 'timestamp', order: 'desc', limit: 5 }, PORTFOLIO_CACHE_TTL);
             let latest = null;
             let latestType = null;
             if (executed && typeof executed === 'object') {
@@ -90,10 +93,10 @@ export default function Portfolio() {
             
             // Fetch user's executed trades for this token to calculate P&L
             try {
-              const userTrades = await apiCall('market/user/executed', { 
+              const userTrades = await cachedApiCall(apiCall, 'market/user/executed', { 
                 token: token.ticker,
-                limit: 1000 
-              });
+                limit: 500  // Reduced from 1000 for better performance
+              }, PORTFOLIO_CACHE_TTL);
               
               if (userTrades && typeof userTrades === 'object') {
                 const userExecuted = Array.isArray(userTrades.executed) ? userTrades.executed : 
@@ -164,13 +167,13 @@ export default function Portfolio() {
             // Fetch price 24h ago
             const now = Math.floor(Date.now() / 1000);
             const dayAgo = now - 24 * 60 * 60;
-            const executed24h = await apiCall('market/list/executed', {
+            const executed24h = await cachedApiCall(apiCall, 'market/list/executed', {
               market,
               sort: 'timestamp',
               order: 'desc',
-              limit: 50,
+              limit: 20,  // Reduced from 50 for better performance
               where: `results.timestamp<${dayAgo}`
-            }).catch(() => ({}));
+            }, PORTFOLIO_CACHE_TTL).catch(() => ({}));
             let price24h = null;
             if (executed24h && typeof executed24h === 'object') {
               const bids24 = Array.isArray(executed24h.bids) ? executed24h.bids : [];

@@ -217,7 +217,7 @@ const ChartWindow = () => {
         market: marketPair,
         sort: 'timestamp',
         order: 'asc',
-        limit: 10000, // Large limit to get all trades
+        limit: 2000, // Reduced from 10000 - sufficient for most charts
         where: `results.timestamp>${fiveYearsAgo}`
       }).catch(() => ({}));
 
@@ -297,25 +297,6 @@ const ChartWindow = () => {
 
     if (tradesWithPrice.length === 0) {
       return { candlestickData: [], volumeData: [] };
-    }
-
-    // Debug: log a sample of trade data
-    if (tradesWithPrice.length > 0) {
-      console.log('Sample trade data (NXS conversion applied):', {
-        marketPair,
-        tokens: { baseToken, quoteToken },
-        first: {
-          type: tradesWithPrice[0].type,
-          calculatedPrice: tradesWithPrice[0].calculatedPrice,
-          calculatedVolume: tradesWithPrice[0].calculatedVolume
-        },
-        last: {
-          type: tradesWithPrice[tradesWithPrice.length - 1].type,
-          calculatedPrice: tradesWithPrice[tradesWithPrice.length - 1].calculatedPrice,
-          calculatedVolume: tradesWithPrice[tradesWithPrice.length - 1].calculatedVolume
-        },
-        count: tradesWithPrice.length
-      });
     }
 
     // Sort by timestamp
