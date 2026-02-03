@@ -9,7 +9,9 @@ This document contains state machine diagrams for the Distordia DEX Module, illu
 4. [Trade Execution State Machine](#trade-execution-state-machine)
 5. [Order Cancellation State Machine](#order-cancellation-state-machine)
 6. [Market Data State Machine](#market-data-state-machine)
-7. [Redux State Structure](#redux-state-structure)
+7. [Watchlist State Machine](#watchlist-state-machine)
+8. [Chart Features State Machine](#chart-features-state-machine)
+9. [Redux State Structure](#redux-state-structure)
 
 ---
 
@@ -343,6 +345,320 @@ Shows the periodic refresh cycle for market data.
               │               │
               └───────────────┘
 ```
+
+---
+
+## Watchlist State Machine
+
+The watchlist allows users to save favorite market pairs on-chain using a raw asset.
+
+### Watchlist Initialization
+
+```
+                              ┌─────────────────────────┐
+                              │                         │
+                              │   Component Mounted     │
+                              │   loadWatchlist()       │
+                              │                         │
+                              └────────────┬────────────┘
+                                           │
+                                           │ apiCall('assets/get/raw')
+                                           ▼
+                              ┌─────────────────────────┐
+                              │                         │
+                              │   Loading               │
+                              │   (watchlistLoading)    │
+                              │                         │
+                              └────────────┬────────────┘
+                                           │
+                    ┌──────────────────────┼──────────────────────┐
+                    │                      │                      │
+                    ▼                      ▼                      ▼
+        ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+        │  Asset Not      │    │  Parse Error    │    │  Asset Found    │
+        │  Found          │    │  (invalid JSON) │    │  (valid data)   │
+        │                 │    │                 │    │                 │
+        │  watchlist      │    │  watchlist      │    │  watchlist      │
+        │  Exists: false  │    │  Exists: true   │    │  Exists: true   │
+        │  watchlist: []  │    │  watchlist: []  │    │  watchlist: [...│
+        └─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+### Watchlist Creation
+
+```
+                              ┌─────────────────────────┐
+                              │                         │
+                              │   No Watchlist          │
+                              │   (watchlistExists      │
+                              │    = false)             │
+                              │                         │
+                              └────────────┬────────────┘
+                                           │
+                                           │ User clicks "Create Watchlist"
+                                           ▼
+                              ┌─────────────────────────┐
+                              │                         │
+                              │   secureApiCall         │
+                              │   ('assets/create/raw') │
+                              │                         │
+                              │   Shows PIN modal       │
+                              │                         │
+                              └────────────┬────────────┘
+                                           │
+                    ┌──────────────────────┼──────────────────────┐
+                    │                      │                      │
+                    ▼                      ▼                      ▼
+        ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+        │  User           │    │  API Error      │    │  Success        │
+        │  Cancelled      │    │                 │    │                 │
+        │                 │    │  showError      │    │  showSuccess    │
+        │  (no change)    │    │  Dialog         │    │  Dialog         │
+        └─────────────────┘    └─────────────────┘    └────────┬────────┘
+                                                               │
+                                                               ▼
+                                                   ┌─────────────────┐
+                                                   │                 │
+                                                   │  Watchlist      │
+                                                   │  Created        │
+                                                   │                 │
+                                                   │  watchlist      │
+                                                   │  Exists: true   │
+                                                   │  watchlist: []  │
+                                                   │                 │
+                                                   └─────────────────┘
+```
+
+### Toggle Watchlist Item
+
+```
+                              ┌─────────────────────────┐
+                              │                         │
+                              │   Watchlist Exists      │
+                              │   User clicks ☆ or ⭐   │
+                              │                         │
+                              └────────────┬────────────┘
+                                           │
+                                           │ toggleWatchlist(ticker)
+                                           ▼
+                              ┌─────────────────────────┐
+                              │                         │
+                              │   Compute new list      │
+                              │   - If in list: remove  │
+                              │   - If not: add         │
+                              │                         │
+                              └────────────┬────────────┘
+                                           │
+                                           │ secureApiCall('assets/update/raw')
+                                           ▼
+                              ┌─────────────────────────┐
+                              │                         │
+                              │   Updating              │
+                              │   (watchlistUpdating    │
+                              │    = true)              │
+                              │                         │
+                              │   Shows PIN modal       │
+                              │                         │
+                              └────────────┬────────────┘
+                                           │
+                    ┌──────────────────────┼──────────────────────┐
+                    │                      │                      │
+                    ▼                      ▼                      ▼
+        ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+        │  User           │    │  API Error      │    │  Success        │
+        │  Cancelled      │    │                 │    │                 │
+        │                 │    │  showError      │    │  Update local   │
+        │  (no change)    │    │  Dialog         │    │  watchlist      │
+        │                 │    │  (no change)    │    │  state          │
+        └─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+### Watchlist State Variables
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `watchlist` | `string[]` | Array of market pairs (e.g., `["DIST/NXS", "PEPE/NXS"]`) |
+| `watchlistExists` | `boolean` | Whether the on-chain asset has been created |
+| `watchlistLoading` | `boolean` | True during initial load |
+| `watchlistUpdating` | `boolean` | True during create/update operations |
+
+---
+
+## Chart Features State Machine
+
+The chart component provides multiple interactive features including time ranges, intervals, chart types, indicators, and drawing tools.
+
+### Time Range Selection
+
+```
+                    ┌──────────────────────────────────────────────────────────┐
+                    │                     setTimeRange(range)                  │
+                    ▼                                                          │
+┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────┴───┐
+│  1 Week     │  │  1 Month    │  │  1 Year     │  │  5 Years    │  │   All Time  │
+│  (1W)       │◄►│  (1M)       │◄►│  (1Y)       │◄►│  (5Y)       │◄►│   (All)     │
+│  default    │  │             │  │             │  │             │  │             │
+└─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘
+        │                │                │                │                │
+        ▼                ▼                ▼                ▼                ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                     Update Available Intervals                                  │
+│  ─────────────────────────────────────────────────────────────────────────────  │
+│  1W  → 15min, 30min, 1hr, 4hr                                                   │
+│  1M  → 1hr, 4hr, 12hr, 1D                                                       │
+│  1Y  → 4hr, 12hr, 1D, 1W                                                        │
+│  5Y  → 1D, 1W, 1M, 3M                                                           │
+│  All → 1W, 1M, 3M, 1Y                                                           │
+└─────────────────────────────────────────────────────────────────────────────────┘
+        │
+        ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                     Recalculate Candlesticks                                    │
+│  ─────────────────────────────────────────────────────────────────────────────  │
+│  1. Filter data to time range                                                   │
+│  2. Align to clock intervals (getAlignedIntervalStart)                          │
+│  3. Aggregate trades into OHLC candles                                          │
+│  4. Update main series and indicator series                                     │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Chart Type Selection
+
+```
+                    ┌─────────────────────────────────────────────┐
+                    │              setChartType(type)             │
+                    ▼                                             │
+          ┌─────────────────┐                                     │
+          │                 │                                     │
+     ┌────┤  Candlestick    │◄────────────────────────────────────┤
+     │    │  (default)      │                                     │
+     │    │                 │                                     │
+     │    └─────────────────┘                                     │
+     │            ▲                                               │
+     │            │                                               │
+     ▼            ▼                                               │
+┌─────────────────┐  ┌─────────────────┐                          │
+│                 │  │                 │                          │
+│  Line           │◄►│  Area           │◄─────────────────────────┘
+│                 │  │                 │
+└─────────────────┘  └─────────────────┘
+
+On Type Change:
+  1. Remove previous series from chart
+  2. Create new series of selected type
+  3. Set series data
+  4. Recalculate and apply indicators
+```
+
+### Indicator Toggle
+
+```
+                    ┌─────────────────────────────────────────────┐
+                    │            toggleIndicator(name)            │
+                    │                                             │
+                    │  Indicators: sma20, sma50, ema20, bb        │
+                    └────────────────────┬────────────────────────┘
+                                         │
+                    ┌────────────────────┼────────────────────────┐
+                    │                    │                        │
+                    ▼                    ▼                        ▼
+          ┌─────────────────┐  ┌─────────────────┐      ┌─────────────────┐
+          │  Indicator      │  │  Indicator      │      │  Bollinger      │
+          │  OFF            │  │  ON             │      │  Bands (BB)     │
+          │                 │  │                 │      │                 │
+          │  Not in         │  │  In indicators  │      │  Creates 3      │
+          │  indicators     │  │  set            │      │  series:        │
+          │  set            │  │                 │      │  upper, middle, │
+          └────────┬────────┘  └────────┬────────┘      │  lower          │
+                   │                    │               └────────┬────────┘
+                   │ Toggle             │ Toggle                 │
+                   ▼                    ▼                        │
+          ┌─────────────────┐  ┌─────────────────┐               │
+          │  Add to         │  │  Remove from    │               │
+          │  indicators     │  │  indicators     │◄──────────────┘
+          │  set            │  │  set            │
+          │                 │  │                 │
+          │  Create series  │  │  Remove series  │
+          │  Calculate      │  │  from chart     │
+          │  values         │  │                 │
+          └─────────────────┘  └─────────────────┘
+
+Calculation Functions:
+  - SMA: Simple Moving Average (n-period average)
+  - EMA: Exponential Moving Average (weighted recent prices)
+  - BB:  Bollinger Bands (SMA ± 2 standard deviations)
+```
+
+### Drawing Tools State Machine
+
+```
+                              ┌─────────────────────────┐
+                              │                         │
+                              │   No Drawing Tool       │
+                              │   Selected              │
+                              │   (drawingTool = null)  │
+                              │                         │
+                              └────────────┬────────────┘
+                                           │
+                                           │ User selects tool
+                                           ▼
+        ┌──────────────────────────────────┼──────────────────────────────────┐
+        │                 │                │                │                 │
+        ▼                 ▼                ▼                ▼                 ▼
+┌─────────────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐   ┌───────────┐
+│  H-Line     │   │  Trend Line │   │  Ray        │   │  Fibonacci  │   │  None     │
+│             │   │             │   │             │   │             │   │  (clear)  │
+│  1 click    │   │  2 clicks   │   │  2 clicks   │   │  2 clicks   │   │           │
+│  horizontal │   │  start/end  │   │  start →    │   │  high/low   │   │           │
+└──────┬──────┘   └──────┬──────┘   └──────┬──────┘   └──────┬──────┘   └───────────┘
+       │                 │                 │                 │
+       │                 │                 │                 │
+       ▼                 ▼                 ▼                 ▼
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                              Click Handler                                          │
+│  ──────────────────────────────────────────────────────────────────────────────────  │
+│                                                                                     │
+│  if (drawingTool === 'hline'):                                                      │
+│      Create horizontal line at click price                                          │
+│      Add to drawings array                                                          │
+│                                                                                     │
+│  if (drawingTool === 'trendline' | 'ray' | 'fib'):                                  │
+│      if (no drawingStart):                                                          │
+│          Set drawingStart = { time, value }                                         │
+│      else:                                                                          │
+│          Create line/ray/fib from start to click point                              │
+│          Add to drawings array                                                      │
+│          Clear drawingStart                                                         │
+│                                                                                     │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                              Render Drawings                                        │
+│  ──────────────────────────────────────────────────────────────────────────────────  │
+│                                                                                     │
+│  drawings.forEach(drawing => {                                                      │
+│      switch (drawing.type):                                                         │
+│          'hline':     Create PriceLine at drawing.price                             │
+│          'trendline': Create LineSeries from start to end                           │
+│          'ray':       Create LineSeries extending to chart edge                     │
+│          'fib':       Create 5 PriceLines at 0%, 23.6%, 38.2%, 50%, 61.8%, 100%     │
+│  })                                                                                 │
+│                                                                                     │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Chart State Variables
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `timeRange` | `string` | Selected time range: '1W', '1M', '1Y', '5Y', 'All' |
+| `interval` | `number` | Candlestick interval in ms (e.g., 3600000 = 1 hour) |
+| `chartType` | `string` | Chart type: 'candle', 'line', 'area' |
+| `indicators` | `Set<string>` | Active indicators: 'sma20', 'sma50', 'ema20', 'bb' |
+| `drawingTool` | `string\|null` | Active tool: 'hline', 'trendline', 'ray', 'fib', or null |
+| `drawings` | `array` | Saved drawings with type and coordinates |
+| `drawingStart` | `object\|null` | First point for 2-point drawings |
 
 ---
 
