@@ -2,7 +2,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import { FieldSet, apiCall } from 'nexus-module';
 import { OrderTable, OrderbookTableHeader, OrderbookTableRow, formatTokenName } from './styles';
 import { formatNumberWithLeadingZeros } from '../actions/formatNumber';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+
+// Update holders list every 2 minutes (120000 ms)
+const HOLDERS_UPDATE_INTERVAL = 2 * 60 * 1000;
 
 export default function HoldersList({ num = 10 }) {
   const dispatch = useDispatch();
@@ -14,102 +17,116 @@ export default function HoldersList({ num = 10 }) {
   const [holders, setHolders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  
+  // Use refs to access latest values in interval callback without causing re-renders
+  const orderBookRef = useRef(orderBook);
+  const baseTokenRef = useRef(baseToken);
+  
+  // Keep refs updated with latest values
   useEffect(() => {
-    let isMounted = true;
+    orderBookRef.current = orderBook;
+  }, [orderBook]);
+  
+  useEffect(() => {
+    baseTokenRef.current = baseToken;
+  }, [baseToken]);
+
+  const fetchHolders = useCallback(async () => {
+    if (!baseTokenAddress) {
+      console.log('HoldersList: No baseTokenAddress available');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
     
-    const fetchHolders = async () => {
-      if (!baseTokenAddress) {
-        console.log('HoldersList: No baseTokenAddress available');
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
+    try {
+      console.log('HoldersList: Fetching holders for token:', baseTokenAddress);
       
-      try {
-        console.log('HoldersList: Fetching holders for token:', baseTokenAddress);
+      const data = await apiCall(
+        'register/list/finance:accounts', 
+        { 
+          where: `results.token=${baseTokenAddress}`,
+          limit: 100,
+          sort: 'balance', 
+          order: 'desc', 
+        }
+      );
+
+      console.log('HoldersList: Raw API response:', data);
+
+      if (data && Array.isArray(data)) {
+        const filteredData = data.filter(item => 
+          item.token === baseTokenAddress && parseFloat(item.balance || 0) > 0);
         
-        const data = await apiCall(
-          'register/list/finance:accounts', 
-          { 
-            where: `results.token=${baseTokenAddress}`,
-            limit: 100,
-            sort: 'balance', 
-            order: 'desc', 
-          }
-        );
-
-        console.log('HoldersList: Raw API response:', data);
-
-        if (data && Array.isArray(data)) {
-          const filteredData = data.filter(item => 
-            item.token === baseTokenAddress && parseFloat(item.balance || 0) > 0);
-          
-          // Calculate locked amounts from order book
-          const lockedByOwner = {};
-          
-          // Process bids - for bids, the ORDER contains base token (what you want to receive)
-          // So we DON'T count bids as locked base tokens
-          
-          // Process asks - for asks, the CONTRACT contains base token (what you're selling)
-          // These ARE locked base tokens
-          if (orderBook?.asks && Array.isArray(orderBook.asks)) {
-            orderBook.asks.forEach(order => {
-              if (order.owner && order.contract?.ticker === baseToken && order.contract?.amount) {
-                const owner = order.owner;
-                const amount = parseFloat(order.contract.amount) || 0;
-                lockedByOwner[owner] = (lockedByOwner[owner] || 0) + amount;
-              }
-            });
-          }
-          
-          // Note: Bids don't lock base tokens - they lock quote tokens
-          // So we only count asks for base token holdings
-          
-          console.log('HoldersList: Locked amounts by owner:', lockedByOwner);
-          
-          // Add locked amounts to holder balances
-          const enrichedData = filteredData.map(holder => {
-            const locked = lockedByOwner[holder.owner] || 0;
-            const totalBalance = parseFloat(holder.balance || 0) + locked;
-            return {
-              ...holder,
-              lockedAmount: locked,
-              balance: totalBalance.toString()
-            };
+        // Calculate locked amounts from order book (use ref for latest value)
+        const currentOrderBook = orderBookRef.current;
+        const currentBaseToken = baseTokenRef.current;
+        const lockedByOwner = {};
+        
+        // Process bids - for bids, the ORDER contains base token (what you want to receive)
+        // So we DON'T count bids as locked base tokens
+        
+        // Process asks - for asks, the CONTRACT contains base token (what you're selling)
+        // These ARE locked base tokens
+        if (currentOrderBook?.asks && Array.isArray(currentOrderBook.asks)) {
+          currentOrderBook.asks.forEach(order => {
+            if (order.owner && order.contract?.ticker === currentBaseToken && order.contract?.amount) {
+              const owner = order.owner;
+              const amount = parseFloat(order.contract.amount) || 0;
+              lockedByOwner[owner] = (lockedByOwner[owner] || 0) + amount;
+            }
           });
-          
-          const sortedData = enrichedData.sort((a, b) => 
-            parseFloat(b.balance || 0) - parseFloat(a.balance || 0));
+        }
+        
+        // Note: Bids don't lock base tokens - they lock quote tokens
+        // So we only count asks for base token holdings
+        
+        console.log('HoldersList: Locked amounts by owner:', lockedByOwner);
+        
+        // Add locked amounts to holder balances
+        const enrichedData = filteredData.map(holder => {
+          const locked = lockedByOwner[holder.owner] || 0;
+          const totalBalance = parseFloat(holder.balance || 0) + locked;
+          return {
+            ...holder,
+            lockedAmount: locked,
+            balance: totalBalance.toString()
+          };
+        });
+        
+        const sortedData = enrichedData.sort((a, b) => 
+          parseFloat(b.balance || 0) - parseFloat(a.balance || 0));
 
-          console.log('HoldersList: Processed holders with locked amounts:', sortedData.length, 'items');
-          
-          if (isMounted) {
-            setHolders(sortedData || []);
-          }
-        } else {
-          console.log('HoldersList: No valid data received');
-          if (isMounted) {
-            setHolders([]);
-          }
-        }
-      } catch (error) {
-        console.error('HoldersList: Error fetching holders:', error);
-        if (isMounted) {
-          setHolders([]);
-          setError('Failed to load holders list');
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        console.log('HoldersList: Processed holders with locked amounts:', sortedData.length, 'items');
+        
+        setHolders(sortedData || []);
+      } else {
+        console.log('HoldersList: No valid data received');
+        setHolders([]);
       }
-    };
+    } catch (error) {
+      console.error('HoldersList: Error fetching holders:', error);
+      setHolders([]);
+      setError('Failed to load holders list');
+    } finally {
+      setLoading(false);
+    }
+  }, [baseTokenAddress]);
 
+  // Fetch immediately when baseTokenAddress changes, then set up interval
+  useEffect(() => {
+    if (!baseTokenAddress) return;
+    
+    // Fetch immediately
     fetchHolders();
-    return () => { isMounted = false; };
-  }, [baseTokenAddress, baseToken, orderBook]);
+    
+    // Set up interval for updates every 2 minutes
+    const intervalId = setInterval(fetchHolders, HOLDERS_UPDATE_INTERVAL);
+    
+    // Cleanup interval on unmount or when baseTokenAddress changes
+    return () => clearInterval(intervalId);
+  }, [baseTokenAddress, fetchHolders]);
 
   const renderHolders = (data) => {
     if (loading) {
