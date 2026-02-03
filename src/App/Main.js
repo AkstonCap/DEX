@@ -109,9 +109,18 @@ export default function Main() {
         </div>
       }
       title={
-        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src="distordia-logo.svg" alt="" style={{ width: '24px', height: '24px' }} />
-          Distordia DEX Module
+        <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <img src="distordia-logo.svg" alt="" style={{ width: '28px', height: '28px' }} />
+          <span style={{ 
+            background: 'linear-gradient(135deg, #ef4568 0%, #f0aa21 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            fontWeight: 700,
+            fontSize: '1.1em',
+            letterSpacing: '0.5px',
+            textShadow: '0 0 20px rgba(240, 170, 33, 0.3)'
+          }}>Distordia DEX Module</span>
         </span>
       }>
       <div className="text-center">

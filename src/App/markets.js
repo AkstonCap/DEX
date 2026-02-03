@@ -40,8 +40,18 @@ const StarButton = styled.button`
   font-size: 18px;
   padding: 4px 8px;
   transition: transform 0.2s;
+  color: #ffffff;
+  text-shadow: ${({ $filled }) => $filled ? 'none' : `
+    -1px -1px 0 #fff,
+    1px -1px 0 #fff,
+    -1px 1px 0 #fff,
+    1px 1px 0 #fff`};
   &:hover {
     transform: scale(1.2);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 `;
 
@@ -103,17 +113,19 @@ export default function Markets() {
       // Asset exists if we get a response (even if data is empty)
       if (asset) {
         setWatchlistExists(true);
-        try {
-          // Data might be in asset.data or directly in asset for raw assets
-          const rawData = asset.data || asset;
-          if (typeof rawData === 'string' && rawData.length > 0) {
-            const pairs = JSON.parse(rawData);
+        // The API returns parsed JSON in the 'json' field for raw assets containing valid JSON
+        if (Array.isArray(asset.json)) {
+          setWatchlist(asset.json);
+        } else if (typeof asset.data === 'string' && asset.data.length > 0) {
+          // Fallback: try to parse from data field if json field not present
+          try {
+            const pairs = JSON.parse(asset.data);
             setWatchlist(Array.isArray(pairs) ? pairs : []);
-          } else {
+          } catch (e) {
+            console.warn('Could not parse watchlist data:', asset.data);
             setWatchlist([]);
           }
-        } catch (e) {
-          // JSON parse failed, but asset exists
+        } else {
           setWatchlist([]);
         }
       } else {
@@ -534,6 +546,7 @@ export default function Markets() {
             }}
             disabled={watchlistUpdating}
             title={isWatched(item.ticker) ? 'Remove from watchlist' : 'Add to watchlist'}
+            $filled={isWatched(item.ticker)}
           >
             {isWatched(item.ticker) ? '⭐' : '☆'}
           </StarButton>
