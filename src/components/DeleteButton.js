@@ -46,7 +46,11 @@ export default function DeleteButton({ txid }) {
         style={{
           width: '24px',
           height: '24px',
-          padding: '4px'
+          padding: '4px',
+          background: 'transparent',
+          border: 'none',
+          outline: 'none',
+          boxShadow: 'none',
         }}
       >
         <img 
