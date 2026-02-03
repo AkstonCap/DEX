@@ -13,20 +13,49 @@ import {
 } from "components/styles";
 import styled from '@emotion/styled';
 import { 
-  showErrorDialog, 
+  showErrorDialog,
+  showSuccessDialog,
   apiCall,
+  secureApiCall,
   FieldSet,
   TextField,
+  Button,
 } from 'nexus-module';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setMarketPair, switchTab } from "actions/actionCreators";
 import RefreshButton from "./RefreshButton";
 import { formatNumberWithLeadingZeros } from 'actions/formatNumber';
 
+const WATCHLIST_ASSET_NAME = 'dex-watchlist';
+
 const SearchField = styled(TextField)({
   maxWidth: 200,
 });
+
+const StarButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px 8px;
+  transition: transform 0.2s;
+  &:hover {
+    transform: scale(1.2);
+  }
+`;
+
+const WatchlistHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+`;
+
+const CreateWatchlistButton = styled(Button)`
+  padding: 8px 16px;
+  font-size: 14px;
+`;
 
 const ResponsiveDualColRow = styled(DualColRow)`
   display: flex;
@@ -52,10 +81,141 @@ export default function Markets() {
   const [tokenList, setTokenList] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [search, setSearch] = useState('');
+  
+  // Watchlist state
+  const [watchlist, setWatchlist] = useState([]);
+  const [watchlistExists, setWatchlistExists] = useState(false);
+  const [watchlistLoading, setWatchlistLoading] = useState(true);
+  const [watchlistUpdating, setWatchlistUpdating] = useState(false);
 
   function handleSearchInputChange(e) {
     setSearch(e.target.value);
   }
+
+  // Check if watchlist asset exists and load it
+  const loadWatchlist = useCallback(async () => {
+    setWatchlistLoading(true);
+    try {
+      const asset = await apiCall('assets/get/raw', {
+        name: WATCHLIST_ASSET_NAME,
+      });
+
+      // Asset exists if we get a response (even if data is empty)
+      if (asset) {
+        setWatchlistExists(true);
+        try {
+          // Data might be in asset.data or directly in asset for raw assets
+          const rawData = asset.data || asset;
+          if (typeof rawData === 'string' && rawData.length > 0) {
+            const pairs = JSON.parse(rawData);
+            setWatchlist(Array.isArray(pairs) ? pairs : []);
+          } else {
+            setWatchlist([]);
+          }
+        } catch (e) {
+          // JSON parse failed, but asset exists
+          setWatchlist([]);
+        }
+      } else {
+        setWatchlistExists(false);
+        setWatchlist([]);
+      }
+    } catch (error) {
+      // API error means asset doesn't exist
+      setWatchlistExists(false);
+      setWatchlist([]);
+    }
+    setWatchlistLoading(false);
+  }, []);
+
+  // Create watchlist asset (requires PIN via secureApiCall)
+  const createWatchlist = async () => {
+    setWatchlistUpdating(true);
+    try {
+      const result = await secureApiCall('assets/create/raw', {
+        name: WATCHLIST_ASSET_NAME,
+        format: 'raw',
+        data: '[]',
+      });
+      
+      // Handle case where user cancels the PIN entry
+      if (!result) {
+        setWatchlistUpdating(false);
+        return;
+      }
+      
+      // Check for API success
+      if (result.success) {
+        dispatch(showSuccessDialog({
+          message: 'Watchlist created successfully!',
+          note: 'You can now add market pairs to your watchlist by clicking the star icon.',
+        }));
+        
+        setWatchlistExists(true);
+        setWatchlist([]);
+      } else {
+        dispatch(showErrorDialog({
+          message: 'Failed to create watchlist',
+          note: result?.error?.message || 'Unknown error occurred',
+        }));
+      }
+    } catch (error) {
+      dispatch(showErrorDialog({
+        message: 'Failed to create watchlist',
+        note: error?.message || 'Unknown error. Make sure you are logged in.',
+      }));
+    }
+    setWatchlistUpdating(false);
+  };
+
+  // Toggle a market pair in the watchlist
+  const toggleWatchlist = async (ticker) => {
+    if (!watchlistExists || watchlistUpdating) return;
+    
+    const marketPair = `${ticker}/NXS`;
+    const isInWatchlist = watchlist.includes(marketPair);
+    
+    const newWatchlist = isInWatchlist
+      ? watchlist.filter(p => p !== marketPair)
+      : [...watchlist, marketPair];
+    
+    setWatchlistUpdating(true);
+    try {
+      // Update requires PIN via secureApiCall
+      const result = await secureApiCall('assets/update/raw', {
+        name: WATCHLIST_ASSET_NAME,
+        format: 'raw',
+        data: JSON.stringify(newWatchlist),
+      });
+      
+      // Handle case where user cancels the PIN entry
+      if (!result) {
+        setWatchlistUpdating(false);
+        return;
+      }
+      
+      // Only update local state if API succeeded
+      if (result.success) {
+        setWatchlist(newWatchlist);
+      } else {
+        dispatch(showErrorDialog({
+          message: 'Failed to update watchlist',
+          note: result?.error?.message || 'Unknown error occurred',
+        }));
+      }
+    } catch (error) {
+      dispatch(showErrorDialog({
+        message: 'Failed to update watchlist',
+        note: error?.message || 'Unknown error',
+      }));
+    }
+    setWatchlistUpdating(false);
+  };
+
+  // Check if a ticker is in the watchlist
+  const isWatched = (ticker) => {
+    return watchlist.includes(`${ticker}/NXS`);
+  };
 
   useEffect(() => {
     setSearchResults(tokenList.filter(token => token.ticker.toLowerCase().includes(search.toLowerCase())));
@@ -254,6 +414,7 @@ export default function Markets() {
   useEffect(() => {
     
     fetchTokens();
+    loadWatchlist();
 
     // Set up 60 second interval
     const intervalId = setInterval(fetchTokens, 60000);
@@ -261,7 +422,7 @@ export default function Markets() {
     // Cleanup on unmount
     return () => clearInterval(intervalId);
 
-  }, []);
+  }, [loadWatchlist]);
 
   const handleClick = async (item) => {
     
@@ -355,7 +516,7 @@ export default function Markets() {
     )); 
   };
 
-  const renderMarketsWide = (data) => {
+  const renderMarketsWide = (data, showStar = true) => {
     if (!Array.isArray(data)) {
       return null;
     }
@@ -363,16 +524,30 @@ export default function Markets() {
     return data.slice(0, len).map((item, index) => (
       <OrderbookTableRow
       key={index}
-      onClick={() => handleClick(item)}
       >
-      <td><TickerText>{item.ticker}</TickerText></td>
-      <td>
+      {showStar && watchlistExists && (
+        <td style={{ width: '40px', textAlign: 'center' }}>
+          <StarButton
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleWatchlist(item.ticker);
+            }}
+            disabled={watchlistUpdating}
+            title={isWatched(item.ticker) ? 'Remove from watchlist' : 'Add to watchlist'}
+          >
+            {isWatched(item.ticker) ? '⭐' : '☆'}
+          </StarButton>
+        </td>
+      )}
+      {showStar && !watchlistExists && <td style={{ width: '40px' }}></td>}
+      <td onClick={() => handleClick(item)} style={{ cursor: 'pointer' }}><TickerText>{item.ticker}</TickerText></td>
+      <td onClick={() => handleClick(item)} style={{ cursor: 'pointer' }}>
         {item.address
           ? `${item.address.slice(0, 5)}...${item.address.slice(-5)}`
           : ''
         }
       </td>
-      <td>
+      <td onClick={() => handleClick(item)} style={{ cursor: 'pointer' }}>
         {/*`${parseFloat(item.lastPrice).toFixed(5)} NXS`*/}
         {formatNumberWithLeadingZeros(
           parseFloat(item.lastPrice), 
@@ -397,7 +572,7 @@ export default function Markets() {
         }
         {' NXS'}
       </td>
-      <td>
+      <td onClick={() => handleClick(item)} style={{ cursor: 'pointer' }}>
         {formatNumberWithLeadingZeros(
           parseFloat(item.volume), 
           3
@@ -405,7 +580,7 @@ export default function Markets() {
         }
         {' NXS'}
       </td>
-      <td>
+      <td onClick={() => handleClick(item)} style={{ cursor: 'pointer' }}>
         {formatNumberWithLeadingZeros(
           parseFloat(item.mCap), 
           3
@@ -413,7 +588,7 @@ export default function Markets() {
         }
         {' NXS'}
       </td>
-      <td>
+      <td onClick={() => handleClick(item)} style={{ cursor: 'pointer' }}>
         {formatNumberWithLeadingZeros(
           parseFloat(item.dilutedMcap), 
           3
@@ -425,8 +600,60 @@ export default function Markets() {
     )); 
   };
 
+  // Get watchlist tokens data
+  const watchlistTokens = tokenList.filter(token => 
+    watchlist.includes(`${token.ticker}/NXS`)
+  );
+
   return (
     <PageLayout>
+      {/* Watchlist Section */}
+      <div style={{ marginBottom: '24px' }}>
+        <FieldSet legend="⭐ Watchlist">
+          {watchlistLoading ? (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#9ca3af' }}>
+              Loading watchlist...
+            </div>
+          ) : !watchlistExists ? (
+            <div style={{ padding: '20px', textAlign: 'center' }}>
+              <p style={{ color: '#9ca3af', marginBottom: '16px' }}>
+                Create a watchlist to save your favorite market pairs on-chain.
+              </p>
+              <CreateWatchlistButton
+                onClick={createWatchlist}
+                disabled={watchlistUpdating}
+              >
+                {watchlistUpdating ? 'Creating...' : 'Create Watchlist (2 NXS)'}
+              </CreateWatchlistButton>
+              <p style={{ color: '#6b7280', fontSize: '12px', marginTop: '8px' }}>
+                This will create an on-chain asset to store your watchlist.
+              </p>
+            </div>
+          ) : watchlistTokens.length === 0 ? (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#9ca3af' }}>
+              Your watchlist is empty. Click the ☆ icon next to any token below to add it.
+            </div>
+          ) : (
+            <WideMarketsTable>
+              <MarketsTableHeader>
+                <tr>
+                  <th style={{ width: '40px' }}></th>
+                  <th>Ticker</th>
+                  <th>Register</th>
+                  <th>Last price</th>
+                  <th>Bid</th>
+                  <th>Ask</th>
+                  <th>1yr volume</th>
+                  <th>Market cap</th>
+                  <th>Fully diluted MCap</th>
+                </tr>
+              </MarketsTableHeader>
+              <tbody>{renderMarketsWide(watchlistTokens, true)}</tbody>
+            </WideMarketsTable>
+          )}
+        </FieldSet>
+      </div>
+
       <ResponsiveDualColRow> 
           <FieldSet legend="Top 10 by volume">
             <MarketsTable>
@@ -473,6 +700,7 @@ export default function Markets() {
           <WideMarketsTable>
             <MarketsTableHeader>
               <tr>
+                <th style={{ width: '40px' }}>{watchlistExists ? '⭐' : ''}</th>
                 <th>Ticker</th>
                 <th>Register</th>
                 <th>Last price</th>
@@ -483,7 +711,7 @@ export default function Markets() {
                 <th>Fully diluted MCap </th>
               </tr>
             </MarketsTableHeader>
-            <tbody>{renderMarketsWide(searchResults)}</tbody>
+            <tbody>{renderMarketsWide(searchResults, true)}</tbody>
           </WideMarketsTable>
         </FieldSet>
       </div>
