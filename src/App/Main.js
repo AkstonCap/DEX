@@ -108,8 +108,12 @@ export default function Main() {
           </ButtonContainer>
         </div>
       }
-      title={"Distordia DEX Module"} 
-      icon={{ url: 'dist/distordia-large.svg', id: 'icon' }}>
+      title={
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <img src="distordia-logo.svg" alt="" style={{ width: '24px', height: '24px' }} />
+          Distordia DEX Module
+        </span>
+      }>
       <div className="text-center">
         <HorizontalTab.TabBar>
           <HorizontalTab
