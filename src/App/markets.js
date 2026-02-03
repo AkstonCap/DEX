@@ -668,7 +668,7 @@ export default function Markets() {
                   <th>Ask</th>
                   <th>1yr volume</th>
                   <th>Market cap</th>
-                  <th>Fully diluted MCap</th>
+                  <th style={{ minWidth: '190px' }}>Fully diluted MCap</th>
                 </tr>
               </MarketsTableHeader>
               <tbody>{renderMarketsWide(watchlistTokens, true)}</tbody>
@@ -731,7 +731,7 @@ export default function Markets() {
                 <th>Ask</th>
                 <th>1yr volume</th>
                 <th>Market cap </th>
-                <th>Fully diluted MCap </th>
+                <th style={{ minWidth: '190px' }}>Fully diluted MCap </th>
               </tr>
             </MarketsTableHeader>
             <tbody>{renderMarketsWide(searchResults, true)}</tbody>
