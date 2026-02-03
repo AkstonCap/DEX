@@ -23,6 +23,15 @@ import { refreshMarket } from 'actions/fetchTokenAttributes';
 
 const TokenTextField = styled(TextField)({
   maxWidth: 200,
+  '& input': {
+    fontWeight: 600,
+  },
+  '& input::placeholder': {
+    color: '#555',
+    opacity: 1,
+    fontWeight: 400,
+    fontStyle: 'italic',
+  },
 });
 
 const ButtonContainer = styled.div`
