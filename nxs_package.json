@@ -1,12 +1,12 @@
 {
   "name": "dex_module",
   "displayName": "DEX",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "targetWalletVersion": "3.1.5",
   "description": "DEX module",
   "type": "app",
   "entry": "dist/index.html",
-  "icon": "dist/distordia-large.svg",
+  "icon": "dist/distordia-logo.svg",
   "files": [
     "dist/index.html", 
     "dist/react.svg", 
