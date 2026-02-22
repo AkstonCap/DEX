@@ -11,9 +11,10 @@ This document contains state machine diagrams for the Distordia DEX Module, illu
 6. [Market Data State Machine](#market-data-state-machine)
 7. [Watchlist State Machine](#watchlist-state-machine)
 8. [NFT Art Creation State Machine](#nft-art-creation-state-machine)
-9. [NFT Trading State Machine](#nft-trading-state-machine)
-10. [Chart Features State Machine](#chart-features-state-machine)
-11. [Redux State Structure](#redux-state-structure)
+9. [NFT Tokenization State Machine](#nft-tokenization-state-machine)
+10. [NFT Trading State Machine](#nft-trading-state-machine)
+11. [Chart Features State Machine](#chart-features-state-machine)
+12. [Redux State Structure](#redux-state-structure)
 
 ---
 
@@ -557,9 +558,71 @@ Validation notes:
 
 ---
 
+## NFT Tokenization State Machine
+
+Tokenization is the required bridge between an NFT asset and market trading. The Market API trades tokens, not raw asset ownership.
+
+```
+                              ┌─────────────────────────┐
+                              │                         │
+                              │   NFT Asset Created     │
+                              │   (non-tradeable yet)   │
+                              │                         │
+                              └────────────┬────────────┘
+                                           │
+                                           │ User selects tokenization
+                                           ▼
+                              ┌─────────────────────────┐
+                              │                         │
+                              │   Validate params       │
+                              │   asset + token         │
+                              │                         │
+                              └────────────┬────────────┘
+                                           │
+                   ┌───────────────────────┼────────────────────────┐
+                   │                       │                        │
+                   ▼                       │                        ▼
+       ┌──────────────────┐                │            ┌──────────────────────┐
+       │ Missing fields   │                │            │ Validation OK        │
+       │ showErrorDialog  │                │            └──────────┬───────────┘
+       │ Return null      │                │                       │
+       └──────────────────┘                │                       ▼
+                                           │            ┌──────────────────────┐
+                                           │            │ secureApiCall        │
+                                           │            │ assets/tokenize/asset│
+                                           │            └──────────┬───────────┘
+                                           │                       │
+                    ┌──────────────────────┼───────────────────────┼──────────────────────┐
+                    │                      │                       │                      │
+                    ▼                      ▼                       ▼                      ▼
+          ┌─────────────────┐    ┌─────────────────┐     ┌─────────────────┐    ┌─────────────────┐
+          │ User Cancelled  │    │ API Error       │     │ success = false │    │ Success         │
+          │ Return null     │    │ showErrorDialog │     │ showErrorDialog │    │ Tokenized NFT   │
+          └─────────────────┘    └─────────────────┘     └─────────────────┘    └────────┬────────┘
+                                                                                           │
+                                                                                           ▼
+                                                                                ┌──────────────────────┐
+                                                                                │ Tradeable via Market │
+                                                                                │ as tokenized supply  │
+                                                                                └──────────────────────┘
+```
+
+### Nexus API Conformance (Tokenization)
+
+| Operation | Endpoint | Call Type | Required Parameters |
+|----------|----------|-----------|---------------------|
+| Tokenize NFT asset | `assets/tokenize/asset` | `secureApiCall` | `address` (or `name`), `token` |
+
+Validation notes:
+- `assets/tokenize/*` is a sigchain write and must use `secureApiCall`.
+- Token economics (e.g., total supply and decimals) are defined when creating the token itself; `assets/tokenize/asset` binds the NFT asset to that already-defined token.
+
+---
+
 ## NFT Trading State Machine
 
 NFT trading has two write paths: direct transfer and market-based sale/execution.
+For Market API trading, the asset must already be tokenized.
 
 ### A) Direct Transfer (Owner → Recipient)
 
@@ -613,10 +676,10 @@ NFT trading has two write paths: direct transfer and market-based sale/execution
 ### B) Market Sale + Purchase (Ask + Execute)
 
 ```
-         Seller flow                                                      Buyer flow
+         Seller flow (tokenized NFT only)                                 Buyer flow
 
 ┌───────────────────────────┐                          ┌───────────────────────────┐
-│ Seller owns NFT asset     │                          │ Buyer selects order        │
+│ Seller owns tokenized NFT │                          │ Buyer selects order        │
 └──────────────┬────────────┘                          └──────────────┬────────────┘
                                                          │                                                     │
                                                          │ listNftForSale(...)                                 │ buyNft(...)
@@ -651,11 +714,13 @@ NFT trading has two write paths: direct transfer and market-based sale/execution
 | Operation | Endpoint | Call Type | Required Parameters |
 |----------|----------|-----------|---------------------|
 | Transfer NFT directly | `assets/transfer/asset` | `secureApiCall` | `address` (or `name`), `recipient` |
+| Prerequisite for market trading | `assets/tokenize/asset` | `secureApiCall` | `address` (or `name`), `token` |
 | List NFT for sale | `market/create/ask` | `secureApiCall` | `market`, `amount`, `price`, `from`, `to` |
 | Buy listed NFT | `market/execute/order` | `secureApiCall` | `txid`, `from`, `to` |
 | Read order book/listings | `market/list/order` or `market/list/executed` | `apiCall` | `market` |
 
 Validation notes:
+- Only tokenized assets are market-tradeable; un-tokenized assets can be transferred but not traded through Market API order flow.
 - All `market/create/*`, `market/execute/*`, and `assets/transfer/*` operations are sigchain writes and require `secureApiCall`.
 - For market listing/execution, include both account endpoints (`from` and `to`) per Market API docs.
 

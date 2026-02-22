@@ -29,6 +29,7 @@ function parseNftData(asset) {
     title: data.title || asset.name || 'Untitled',
     description: data.description || '',
     image_url: data.image_url || asset.image_url || '',
+    image_sha256: data.image_sha256 || '',
     artist: data.artist || 'Unknown',
     edition: data.edition || '',
     type: data.type || '',
