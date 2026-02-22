@@ -107,7 +107,7 @@ export default function NFTCreateForm({ onCreated }) {
           onClick={handleSubmit}
           disabled={isSubmitting || !name.trim() || !imageUrl.trim()}
         >
-          {isSubmitting ? 'Creating...' : 'Create NFT Art (1 NXS)'}
+          {isSubmitting ? 'Creating...' : 'Create NFT Art (2 NXS)'}
         </NFTActionButton>
       </div>
       <p style={{ color: '#6b7280', fontSize: '0.85em', textAlign: 'center', marginTop: '8px' }}>

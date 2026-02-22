@@ -1,5 +1,4 @@
 {
-  "standard": "distordia-art-asset",
   "standard_version": "1.0.0",
   "description": "Canonical metadata format for Distordia NFT art assets stored via assets/create/asset format=JSON.",
   "constraints": {
@@ -8,44 +7,34 @@
     "uniqueness_rule": "image_sha256 must be unique among Distordia art assets"
   },
   "required_fields": [
-    "standard",
+    "distordia-type",
     "standard_version",
     "title",
     "image_url",
     "image_sha256",
     "artist",
-    "edition",
-    "asset_class",
-    "created"
+    "edition"
   ],
   "recommended_fields": [
-    "description",
-    "image_content_type",
-    "image_size_bytes",
-    "type"
+    "description"
   ],
   "metadata_object_example": {
-    "standard": "distordia-art-asset",
+    "distordia-type": "art-asset",
     "standard_version": "1.0.0",
     "title": "My Distordia Artwork",
     "description": "Short description of the artwork",
     "image_url": "https://example.com/artwork.png",
     "image_sha256": "b1946ac92492d2347c6235b4d2611184b6d6f0f0f5fdf3f0de5fcb89d1f9f5ab",
-    "image_content_type": "image/png",
-    "image_size_bytes": 245033,
     "artist": "Artist Name",
-    "edition": "1/1",
-    "asset_class": "digital_art",
-    "type": "digital_art",
-    "created": 1760000000
+    "edition": "1/1"
   },
   "nexus_json_format_example": {
     "format": "JSON",
     "json": [
       {
-        "name": "standard",
+        "name": "distordia-type",
         "type": "string",
-        "value": "distordia-art-asset",
+        "value": "art-asset",
         "mutable": false
       },
       {
@@ -59,21 +48,21 @@
         "type": "string",
         "value": "My Distordia Artwork",
         "mutable": true,
-        "maxlength": 256
+        "maxlength": 64
       },
       {
         "name": "description",
         "type": "string",
         "value": "Short description",
         "mutable": true,
-        "maxlength": 512
+        "maxlength": 64
       },
       {
         "name": "image_url",
         "type": "string",
         "value": "https://example.com/artwork.png",
-        "mutable": true,
-        "maxlength": 512
+        "mutable": false,
+        "maxlength": 256
       },
       {
         "name": "image_sha256",
@@ -87,27 +76,14 @@
         "type": "string",
         "value": "Artist Name",
         "mutable": true,
-        "maxlength": 128
+        "maxlength": 64
       },
       {
         "name": "edition",
         "type": "string",
         "value": "1/1",
         "mutable": true,
-        "maxlength": 32
-      },
-      {
-        "name": "asset_class",
-        "type": "string",
-        "value": "digital_art",
-        "mutable": false,
-        "maxlength": 64
-      },
-      {
-        "name": "created",
-        "type": "uint64",
-        "value": "1760000000",
-        "mutable": false
+        "maxlength": 16
       }
     ]
   }

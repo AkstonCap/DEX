@@ -12,7 +12,8 @@ import {
 import { cachedApiCall } from 'utils/apiCache';
 
 const NFT_CACHE_TTL = 15000;
-const DISTORDIA_ART_STANDARD = 'distordia-art-asset';
+const DISTORDIA_TYPE_FIELD = 'distordia-type';
+const DISTORDIA_ART_STANDARD = 'art-asset';
 const DISTORDIA_ART_STANDARD_VERSION = '1.0.0';
 const MAX_ASSET_JSON_BYTES = 1000;
 
@@ -26,9 +27,21 @@ const getJsonByteLength = (value) => {
   return unescape(encodeURIComponent(value)).length;
 };
 
+const normalizeJsonFields = (json) => {
+  if (Array.isArray(json)) {
+    return json.reduce((obj, field) => {
+      if (field && typeof field.name === 'string') {
+        obj[field.name] = field.value;
+      }
+      return obj;
+    }, {});
+  }
+  return typeof json === 'object' && json !== null ? json : {};
+};
+
 const parseAssetMetadata = (asset) => {
-  if (asset?.json && typeof asset.json === 'object') {
-    return asset.json;
+  if (asset?.json) {
+    return normalizeJsonFields(asset.json);
   }
 
   if (typeof asset?.data === 'string' && asset.data.length > 0) {
@@ -47,9 +60,7 @@ const isArtNft = (asset) => {
   return Boolean(
     metadata.image_url ||
     asset?.image_url ||
-    metadata.standard === DISTORDIA_ART_STANDARD ||
-    metadata.asset_class === 'digital_art' ||
-    metadata.type === 'digital_art'
+    metadata[DISTORDIA_TYPE_FIELD] === DISTORDIA_ART_STANDARD
   );
 };
 
@@ -89,7 +100,10 @@ const findExistingArtByHash = async (imageHash) => {
   return (
     assets.find((asset) => {
       const metadata = parseAssetMetadata(asset);
-      return metadata.image_sha256 === imageHash;
+      const isDistordiaArt =
+        metadata[DISTORDIA_TYPE_FIELD] === DISTORDIA_ART_STANDARD;
+
+      return isDistordiaArt && metadata.image_sha256 === imageHash;
     }) || null
   );
 };
@@ -203,24 +217,18 @@ export const createNftArt =
         return null;
       }
 
-      const assetPayload = {
-        standard: DISTORDIA_ART_STANDARD,
-        standard_version: DISTORDIA_ART_STANDARD_VERSION,
-        title: name,
-        description: description || '',
-        image_url: normalizedImageUrl,
-        image_sha256: imageHashInfo.hash,
-        image_content_type: imageHashInfo.contentType,
-        image_size_bytes: imageHashInfo.sizeBytes,
-        artist: artist || 'Anonymous',
-        edition: edition || '1/1',
-        asset_class: 'digital_art',
-        type: 'digital_art',
-        created: Math.floor(Date.now() / 1000),
-      };
+      const jsonFields = [
+        { name: DISTORDIA_TYPE_FIELD, type: 'string', value: DISTORDIA_ART_STANDARD, mutable: false, maxlength: 32 },
+        { name: 'standard_version', type: 'string', value: DISTORDIA_ART_STANDARD_VERSION, mutable: false, maxlength: 16 },
+        { name: 'title', type: 'string', value: name, mutable: true, maxlength: 64 },
+        { name: 'description', type: 'string', value: description || '', mutable: true, maxlength: 64 },
+        { name: 'image_url', type: 'string', value: normalizedImageUrl, mutable: false, maxlength: 256 },
+        { name: 'image_sha256', type: 'string', value: imageHashInfo.hash, mutable: false, maxlength: 64 },
+        { name: 'artist', type: 'string', value: artist || 'Anonymous', mutable: true, maxlength: 64 },
+        { name: 'edition', type: 'string', value: edition || '1/1', mutable: true, maxlength: 32 },
+      ];
 
-      const assetPayloadJson = JSON.stringify(assetPayload);
-      const payloadSize = getJsonByteLength(assetPayloadJson);
+      const payloadSize = getJsonByteLength(JSON.stringify(jsonFields));
       if (payloadSize > MAX_ASSET_JSON_BYTES) {
         showErrorDialog({
           message: 'Asset metadata exceeds 1KB limit',
@@ -235,7 +243,7 @@ export const createNftArt =
       const params = {
         name: name,
         format: 'JSON',
-        json: assetPayloadJson,
+        json: jsonFields,
       };
 
       const result = await secureApiCall('assets/create/asset', params);

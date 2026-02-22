@@ -298,13 +298,7 @@ export default function NFTDetailModal({ asset, onClose, isOwned }) {
             </ModalMetaItem>
             <ModalMetaItem>
               <ModalMetaLabel>Created</ModalMetaLabel>
-              <ModalMetaValue>{formatDate(nft.created)}</ModalMetaValue>
-            </ModalMetaItem>
-            <ModalMetaItem>
-              <ModalMetaLabel>Type</ModalMetaLabel>
-              <ModalMetaValue>
-                {nft.type || 'Digital Art'}
-              </ModalMetaValue>
+              <ModalMetaValue>{formatDate(asset.created)}</ModalMetaValue>
             </ModalMetaItem>
             {asset.owner && (
               <ModalMetaItem>

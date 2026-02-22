@@ -13,11 +13,23 @@ import {
   NFTEdition,
 } from './nftStyles';
 
+function normalizeJsonFields(json) {
+  if (Array.isArray(json)) {
+    return json.reduce((obj, field) => {
+      if (field && typeof field.name === 'string') {
+        obj[field.name] = field.value;
+      }
+      return obj;
+    }, {});
+  }
+  return typeof json === 'object' && json !== null ? json : {};
+}
+
 function parseNftData(asset) {
   // Try to parse JSON data from the asset
   let data = {};
-  if (asset.json && typeof asset.json === 'object') {
-    data = asset.json;
+  if (asset.json) {
+    data = normalizeJsonFields(asset.json);
   } else if (typeof asset.data === 'string' && asset.data.length > 0) {
     try {
       data = JSON.parse(asset.data);
@@ -32,8 +44,6 @@ function parseNftData(asset) {
     image_sha256: data.image_sha256 || '',
     artist: data.artist || 'Unknown',
     edition: data.edition || '',
-    type: data.type || '',
-    created: data.created || 0,
   };
 }
 
