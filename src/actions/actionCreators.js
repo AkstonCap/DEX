@@ -124,17 +124,28 @@ export const removeUnconfirmedTrade = (txid) => ({
   payload: { txid },
 });
 
-/*export const removeUnconfirmedOrder = (txid) => ({
-  type: TYPE.REMOVE_UNCONFIRMED_ORDER,
-  payload: txid,
+// NFT Art Marketplace
+export const setNftListings = (listings) => ({
+  type: TYPE.SET_NFT_LISTINGS,
+  payload: listings,
 });
-*/
-/*
-export const updateInput = (orderToken, baseToken) => ({
-  type: TYPE.UPDATE_INPUT,
-  payload: {
-    orderToken,
-    baseToken
-  },
+
+export const setNftSelected = (nft) => ({
+  type: TYPE.SET_NFT_SELECTED,
+  payload: nft,
 });
-*/
+
+export const setNftMyAssets = (assets) => ({
+  type: TYPE.SET_NFT_MY_ASSETS,
+  payload: assets,
+});
+
+export const setNftLoading = (loading) => ({
+  type: TYPE.SET_NFT_LOADING,
+  payload: loading,
+});
+
+export const setNftFilter = (filter) => ({
+  type: TYPE.SET_NFT_FILTER,
+  payload: filter,
+});
