@@ -15,6 +15,7 @@ import MarketDepth from './marketDepth';
 import Markets from './markets';
 import Portfolio from './portfolio';
 import StablecoinSwap from './stablecoinSwap';
+import NFTMarketplace from './nftMarketplace';
 
 import { switchTab, setMarketPair } from 'actions/actionCreators';
 import RefreshButton from './RefreshButton';
@@ -170,6 +171,12 @@ export default function Main() {
           >
             Portfolio
           </HorizontalTab>
+          <HorizontalTab
+            active={activeTab === 'NFTArt'}
+            onClick={() => handleSwitchTab('NFTArt')}
+          >
+            NFT Art
+          </HorizontalTab>
           {/* Stablecoin Swap tab hidden until ready for release
           <HorizontalTab
             active={activeTab === 'StablecoinSwap'}
@@ -187,6 +194,7 @@ export default function Main() {
       <div>{activeTab === 'MarketDepth' && <MarketDepth />}</div>
       <div>{activeTab === 'Markets' && <Markets />}</div>
       <div>{activeTab === 'Portfolio' && <Portfolio />}</div>
+      <div>{activeTab === 'NFTArt' && <NFTMarketplace />}</div>
       {/* Stablecoin Swap component hidden until ready for release
       <div>{activeTab === 'StablecoinSwap' && <StablecoinSwap />}</div>
       */}
