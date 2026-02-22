@@ -10,8 +10,10 @@ This document contains state machine diagrams for the Distordia DEX Module, illu
 5. [Order Cancellation State Machine](#order-cancellation-state-machine)
 6. [Market Data State Machine](#market-data-state-machine)
 7. [Watchlist State Machine](#watchlist-state-machine)
-8. [Chart Features State Machine](#chart-features-state-machine)
-9. [Redux State Structure](#redux-state-structure)
+8. [NFT Art Creation State Machine](#nft-art-creation-state-machine)
+9. [NFT Trading State Machine](#nft-trading-state-machine)
+10. [Chart Features State Machine](#chart-features-state-machine)
+11. [Redux State Structure](#redux-state-structure)
 
 ---
 
@@ -20,6 +22,7 @@ This document contains state machine diagrams for the Distordia DEX Module, illu
 The DEX application uses Redux for state management with the following main state slices:
 - `ui.activeTab` - Current navigation tab
 - `ui.market` - Market-related data (order book, pairs, orders, trades)
+- `ui.nft` - NFT marketplace data (listings, owned assets, selected item, filters)
 - `settings` - User settings (timespan, etc.)
 - `nexus` - Wallet data from Nexus module
 
@@ -484,6 +487,180 @@ The watchlist allows users to save favorite market pairs on-chain using a raw as
 
 ---
 
+## NFT Art Creation State Machine
+
+This flow covers creating NFT art assets and refreshing NFT state after writes.
+
+```
+                                                                                                                        ┌─────────────────────────┐
+                                                                                                                        │                         │
+                                                                                                                        │   Create NFT Form       │
+                                                                                                                        │   (Idle)                │
+                                                                                                                        │                         │
+                                                                                                                        └────────────┬────────────┘
+                                                                                                                                                                         │
+                                                                                                                                                                         │ User clicks Create
+                                                                                                                                                                         │ createNftArt(name, imageUrl, ...)
+                                                                                                                                                                         ▼
+                                                                                                                        ┌─────────────────────────┐
+                                                                                                                        │                         │
+                                                                                                                        │   Validating Inputs     │
+                                                                                                                        │   name + imageUrl       │
+                                                                                                                        │                         │
+                                                                                                                        └────────────┬────────────┘
+                                                                                                                                                                         │
+                                                                         ┌───────────────────────┼────────────────────────┐
+                                                                         │                       │                        │
+                                                                         ▼                       │                        ▼
+                         ┌──────────────────┐                │            ┌──────────────────────┐
+                         │ Missing fields   │                │            │ Validation OK        │
+                         │ showErrorDialog  │                │            │                      │
+                         │ Return null      │                │            └──────────┬───────────┘
+                         └──────────────────┘                │                       │
+                                                                                                                                                                         │                       ▼
+                                                                                                                                                                         │            ┌──────────────────────┐
+                                                                                                                                                                         │            │ secureApiCall        │
+                                                                                                                                                                         │            │ assets/create/asset  │
+                                                                                                                                                                         │            │ format=JSON          │
+                                                                                                                                                                         │            └──────────┬───────────┘
+                                                                                                                                                                         │                       │
+                                                                                ┌──────────────────────┼───────────────────────┼──────────────────────┐
+                                                                                │                      │                       │                      │
+                                                                                ▼                      ▼                       ▼                      ▼
+                                        ┌─────────────────┐    ┌─────────────────┐     ┌─────────────────┐    ┌─────────────────┐
+                                        │ User Cancelled  │    │ API Error       │     │ success = false │    │ Success         │
+                                        │ (PIN modal)     │    │ showErrorDialog │     │ showErrorDialog │    │ showSuccess     │
+                                        │ Return null     │    │ Return null     │     │ Return null     │    │ dispatch refresh│
+                                        └─────────────────┘    └─────────────────┘     └─────────────────┘    └────────┬────────┘
+                                                                                                                                                                                                                                                                                                                                                                         │
+                                                                                                                                                                                                                                                                                                                                                                         │ dispatch(fetchMyNftAssets)
+                                                                                                                                                                                                                                                                                                                                                                         │ dispatch(fetchNftListings)
+                                                                                                                                                                                                                                                                                                                                                                         ▼
+                                                                                                                                                                                                                                                                                                                                ┌──────────────────────┐
+                                                                                                                                                                                                                                                                                                                                │ NFT State Synced     │
+                                                                                                                                                                                                                                                                                                                                │ ui.nft.myAssets      │
+                                                                                                                                                                                                                                                                                                                                │ ui.nft.listings      │
+                                                                                                                                                                                                                                                                                                                                └──────────────────────┘
+```
+
+### Nexus API Conformance (Creation)
+
+| Operation | Endpoint | Call Type | Required Parameters |
+|----------|----------|-----------|---------------------|
+| Create NFT art asset | `assets/create/asset` | `secureApiCall` | `format`, asset data (`json` for JSON format), optional `name` |
+| Refresh owned assets | `assets/list/asset` | `apiCall` | Optional list filters (`limit`, `where`, etc.) |
+| Refresh global listings | `register/list/assets:asset` | `apiCall` | Optional list filters (`limit`, `where`, etc.) |
+
+Validation notes:
+- `assets/create/*` modifies sigchain, so `secureApiCall` is required.
+- User cancellation in the PIN modal must be treated as non-fatal (`return null`, no hard error state).
+
+---
+
+## NFT Trading State Machine
+
+NFT trading has two write paths: direct transfer and market-based sale/execution.
+
+### A) Direct Transfer (Owner → Recipient)
+
+```
+                                                                                                                        ┌─────────────────────────┐
+                                                                                                                        │                         │
+                                                                                                                        │   NFT Selected          │
+                                                                                                                        │   Owner View            │
+                                                                                                                        │                         │
+                                                                                                                        └────────────┬────────────┘
+                                                                                                                                                                         │
+                                                                                                                                                                         │ User confirms transfer
+                                                                                                                                                                              │ transferNft(address, recipient)
+                                                                                                                                                                         ▼
+                                                                                                                        ┌─────────────────────────┐
+                                                                                                                        │                         │
+                                                                                                                        │   Validate params       │
+                                                                                                                              │   address + recipient   │
+                                                                                                                        │                         │
+                                                                                                                        └────────────┬────────────┘
+                                                                                                                                                                         │
+                                                                                        ┌────────────────────┼─────────────────────┐
+                                                                                        │                    │                     │
+                                                                                        ▼                    │                     ▼
+                                        ┌──────────────────┐             │         ┌──────────────────────┐
+                                        │ Missing fields   │             │         │ Validation OK        │
+                                        │ showErrorDialog  │             │         └──────────┬───────────┘
+                                        │ Return null      │             │                    │
+                                        └──────────────────┘             │                    ▼
+                                                                                                                                                                         │         ┌──────────────────────┐
+                                                                                                                                                                         │         │ secureApiCall        │
+                                                                                                                                                                         │         │ assets/transfer/asset│
+                                                                                                                                                                         │         └──────────┬───────────┘
+                                                                                                                                                                         │                    │
+                                                                                 ┌─────────────────────┼────────────────────┼─────────────────────┐
+                                                                                 │                     │                    │                     │
+                                                                                 ▼                     ▼                    ▼                     ▼
+                                         ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
+                                         │ User Cancelled  │   │ API Error       │   │ success = false │   │ Success         │
+                                         │ Return null     │   │ showErrorDialog │   │ showErrorDialog │   │ showSuccess     │
+                                         └─────────────────┘   └─────────────────┘   └─────────────────┘   └────────┬────────┘
+                                                                                                                                                                                                                                                                                                                                                         │
+                                                                                                                                                                                                                                                                                                                                                         ▼
+                                                                                                                                                                                                                                                                                                                 ┌──────────────────────┐
+                                                                                                                                                                                                                                                                                                                 │ Refresh NFT state    │
+                                                                                                                                                                                                                                                                                                                 │ fetchMyNftAssets     │
+                                                                                                                                                                                                                                                                                                                 │ fetchNftListings     │
+                                                                                                                                                                                                                                                                                                                 └──────────────────────┘
+```
+
+### B) Market Sale + Purchase (Ask + Execute)
+
+```
+         Seller flow                                                      Buyer flow
+
+┌───────────────────────────┐                          ┌───────────────────────────┐
+│ Seller owns NFT asset     │                          │ Buyer selects order        │
+└──────────────┬────────────┘                          └──────────────┬────────────┘
+                                                         │                                                     │
+                                                         │ listNftForSale(...)                                 │ buyNft(...)
+                                                         ▼                                                     ▼
+┌───────────────────────────┐                          ┌───────────────────────────┐
+│ Validate required params  │                          │ Validate required params  │
+│ market, from, to,         │                          │ txid, from, to            │
+│ amount, price             │                          │                           │
+└──────────────┬────────────┘                          └──────────────┬────────────┘
+                                                         │                                                     │
+                                                         ▼                                                     ▼
+┌───────────────────────────┐                          ┌───────────────────────────┐
+│ secureApiCall             │                          │ secureApiCall             │
+│ market/create/ask         │                          │ market/execute/order      │
+└──────────────┬────────────┘                          └──────────────┬────────────┘
+                                                         │                                                     │
+                        ┌────────┼────────┐                                    ┌───────┼────────┐
+                        ▼        ▼        ▼                                    ▼       ▼        ▼
+                Cancel   Error   Success                               Cancel   Error   Success
+                        │        │        │                                    │       │        │
+                        └────────┴────────┴───────────────┬────────────────────┴───────┴────────┘
+                                                                                                                                                                 ▼
+                                                                                                                        ┌───────────────────────────┐
+                                                                                                                        │ Refresh market + NFT data │
+                                                                                                                        │ apiCall market/list/*     │
+                                                                                                                        │ apiCall assets/list/*     │
+                                                                                                                        └───────────────────────────┘
+```
+
+### Nexus API Conformance (Trading)
+
+| Operation | Endpoint | Call Type | Required Parameters |
+|----------|----------|-----------|---------------------|
+| Transfer NFT directly | `assets/transfer/asset` | `secureApiCall` | `address` (or `name`), `recipient` |
+| List NFT for sale | `market/create/ask` | `secureApiCall` | `market`, `amount`, `price`, `from`, `to` |
+| Buy listed NFT | `market/execute/order` | `secureApiCall` | `txid`, `from`, `to` |
+| Read order book/listings | `market/list/order` or `market/list/executed` | `apiCall` | `market` |
+
+Validation notes:
+- All `market/create/*`, `market/execute/*`, and `assets/transfer/*` operations are sigchain writes and require `secureApiCall`.
+- For market listing/execution, include both account endpoints (`from` and `to`) per Market API docs.
+
+---
+
 ## Chart Features State Machine
 
 The chart component provides multiple interactive features including time ranges, intervals, chart types, indicators, and drawing tools.
@@ -717,6 +894,25 @@ Calculation Functions:
 │  │  │  └───────────────────────┘    │ └─ availableOrders: []            │     │    │    │
 │  │  │                               └───────────────────────────────────┘     │    │    │
 │  │  └─────────────────────────────────────────────────────────────────────────┘    │    │
+│  │                                                                                 │    │
+│  │  ┌─────────────────────────────────────────────────────────────────────────┐    │    │
+│  │  │                                nft                                      │    │    │
+│  │  ├─────────────────────────────────────────────────────────────────────────┤    │    │
+│  │  │  ┌───────────────────────┐    ┌───────────────────────┐                 │    │    │
+│  │  │  │ listings              │    │ myAssets              │                 │    │    │
+│  │  │  │ └─ assets: []         │    │ └─ assets: []         │                 │    │    │
+│  │  │  └───────────────────────┘    └───────────────────────┘                 │    │    │
+│  │  │                                                                         │    │    │
+│  │  │  ┌───────────────────────┐    ┌───────────────────────┐                 │    │    │
+│  │  │  │ selected              │    │ filter                │                 │    │    │
+│  │  │  │ └─ asset \| null       │    │ └─ all \| my_art       │                 │    │    │
+│  │  │  └───────────────────────┘    └───────────────────────┘                 │    │    │
+│  │  │                                                                         │    │    │
+│  │  │  ┌───────────────────────┐                                              │    │    │
+│  │  │  │ loading               │                                              │    │    │
+│  │  │  │ └─ boolean            │                                              │    │    │
+│  │  │  └───────────────────────┘                                              │    │    │
+│  │  └─────────────────────────────────────────────────────────────────────────┘    │    │
 │  └─────────────────────────────────────────────────────────────────────────────────┘    │
 │                                                                                         │
 │  ┌─────────────────────────────────────────────────────────────────────────────────┐    │
@@ -761,6 +957,11 @@ Calculation Functions:
 | `REMOVE_UNCONFIRMED_TRADE` | Removes confirmed trade from pending | `ui.market.myUnconfirmedTrades` |
 | `SET_ORDER` | Sets currently selected order for execution | `ui.market.orderInQuestion` |
 | `SET_AVAILABLE_ORDERS_AT_PRICE` | Sets available orders at a price point | `ui.market.orderInQuestion` |
+| `SET_NFT_LISTINGS` | Updates NFT marketplace listings | `ui.nft.listings` |
+| `SET_NFT_MY_ASSETS` | Updates user-owned NFT assets | `ui.nft.myAssets` |
+| `SET_NFT_SELECTED` | Sets currently selected NFT | `ui.nft.selected` |
+| `SET_NFT_FILTER` | Updates NFT marketplace filter | `ui.nft.filter` |
+| `SET_NFT_LOADING` | Sets NFT loading state | `ui.nft.loading` |
 | `INITIALIZE` | Nexus module initialization | Merges stored data |
 
 ---
@@ -780,4 +981,14 @@ Calculation Functions:
 ### Cancellation States
 ```
 Active Order → Cancelling → Cancelled (removed)
+```
+
+### NFT Creation States
+```
+Create Form Idle → Validating → [Error | User Cancelled | Created] → NFT State Synced
+```
+
+### NFT Trading States
+```
+Owned NFT → Transfer/List In Progress → [Error | User Cancelled | Completed] → Refreshed Listings
 ```
