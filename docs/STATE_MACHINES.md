@@ -562,6 +562,12 @@ Validation notes:
 
 Tokenization is the required bridge between an NFT asset and market trading. The Market API trades tokens, not raw asset ownership.
 
+Required sale path:
+1. Create art as an asset (unique asset address).
+2. Create a token (unique token address) with chosen supply and decimals.
+3. Tokenize the asset with that token address.
+4. List the token on market using pair `<token-address>/NXS`.
+
 ```
                               ┌─────────────────────────┐
                               │                         │
@@ -615,14 +621,15 @@ Tokenization is the required bridge between an NFT asset and market trading. The
 
 Validation notes:
 - `assets/tokenize/*` is a sigchain write and must use `secureApiCall`.
-- Token economics (e.g., total supply and decimals) are defined when creating the token itself; `assets/tokenize/asset` binds the NFT asset to that already-defined token.
+- Token economics (supply and decimals) are defined when the token is created; `assets/tokenize/asset` binds the NFT asset to that already-defined token.
+- Market listing must use token address as base side, i.e. market pair `<token-address>/NXS`.
 
 ---
 
 ## NFT Trading State Machine
 
 NFT trading has two write paths: direct transfer and market-based sale/execution.
-For Market API trading, the asset must already be tokenized.
+For Market API trading, the required sequence is asset creation → token creation → asset tokenization → ask creation.
 
 ### A) Direct Transfer (Owner → Recipient)
 
@@ -676,37 +683,51 @@ For Market API trading, the asset must already be tokenized.
 ### B) Market Sale + Purchase (Ask + Execute)
 
 ```
-         Seller flow (tokenized NFT only)                                 Buyer flow
+         Seller flow (required 4-step sequence)                            Buyer flow
 
-┌───────────────────────────┐                          ┌───────────────────────────┐
-│ Seller owns tokenized NFT │                          │ Buyer selects order        │
-└──────────────┬────────────┘                          └──────────────┬────────────┘
-                                                         │                                                     │
-                                                         │ listNftForSale(...)                                 │ buyNft(...)
-                                                         ▼                                                     ▼
-┌───────────────────────────┐                          ┌───────────────────────────┐
-│ Validate required params  │                          │ Validate required params  │
-│ market, from, to,         │                          │ txid, from, to            │
-│ amount, price             │                          │                           │
-└──────────────┬────────────┘                          └──────────────┬────────────┘
-                                                         │                                                     │
-                                                         ▼                                                     ▼
-┌───────────────────────────┐                          ┌───────────────────────────┐
-│ secureApiCall             │                          │ secureApiCall             │
-│ market/create/ask         │                          │ market/execute/order      │
-└──────────────┬────────────┘                          └──────────────┬────────────┘
-                                                         │                                                     │
-                        ┌────────┼────────┐                                    ┌───────┼────────┐
-                        ▼        ▼        ▼                                    ▼       ▼        ▼
-                Cancel   Error   Success                               Cancel   Error   Success
-                        │        │        │                                    │       │        │
-                        └────────┴────────┴───────────────┬────────────────────┴───────┴────────┘
-                                                                                                                                                                 ▼
-                                                                                                                        ┌───────────────────────────┐
-                                                                                                                        │ Refresh market + NFT data │
-                                                                                                                        │ apiCall market/list/*     │
-                                                                                                                        │ apiCall assets/list/*     │
-                                                                                                                        └───────────────────────────┘
+┌───────────────────────────────┐                    ┌───────────────────────────┐
+│ 1) Asset created              │                    │ Buyer selects order        │
+│    (unique asset address)     │                    └──────────────┬────────────┘
+└──────────────┬────────────────┘                                   │
+               │                                                     │
+               ▼                                                     │
+┌───────────────────────────────┐                                    │
+│ 2) Token created              │                                    │
+│    (unique token address,     │                                    │
+│     supply + decimals chosen) │                                    │
+└──────────────┬────────────────┘                                    │
+               │                                                     │
+               ▼                                                     │
+┌───────────────────────────────┐                                    │
+│ 3) listNftForSale(...)        │                                    │
+│    verifies tokenization,     │                                    │
+│    calls assets/tokenize/asset│                                    │
+│    if needed                  │                                    │
+└──────────────┬────────────────┘                                    │
+               │                                                     │
+               ▼                                                     ▼
+┌───────────────────────────────┐                    ┌───────────────────────────┐
+│ 4) Derive market pair         │                    │ Validate required params  │
+│    <token-address>/NXS        │                    │ txid, from, to            │
+└──────────────┬────────────────┘                    └──────────────┬────────────┘
+               │                                                     │
+               ▼                                                     ▼
+┌───────────────────────────────┐                    ┌───────────────────────────┐
+│ secureApiCall                 │                    │ secureApiCall             │
+│ market/create/ask             │                    │ market/execute/order      │
+└──────────────┬────────────────┘                    └──────────────┬────────────┘
+               │                                                     │
+      ┌────────┼────────┐                                   ┌────────┼────────┐
+      ▼        ▼        ▼                                   ▼        ▼        ▼
+   Cancel    Error    Success                            Cancel    Error    Success
+      │        │        │                                   │        │        │
+      └────────┴────────┴───────────────┬───────────────────┴────────┴────────┘
+                                        ▼
+                           ┌───────────────────────────┐
+                           │ Refresh market + NFT data │
+                           │ apiCall market/list/*     │
+                           │ apiCall assets/list/*     │
+                           └───────────────────────────┘
 ```
 
 ### Nexus API Conformance (Trading)
@@ -715,11 +736,13 @@ For Market API trading, the asset must already be tokenized.
 |----------|----------|-----------|---------------------|
 | Transfer NFT directly | `assets/transfer/asset` | `secureApiCall` | `address` (or `name`), `recipient` |
 | Prerequisite for market trading | `assets/tokenize/asset` | `secureApiCall` | `address` (or `name`), `token` |
-| List NFT for sale | `market/create/ask` | `secureApiCall` | `market`, `amount`, `price`, `from`, `to` |
+| List NFT for sale | `market/create/ask` | `secureApiCall` | `market=<token-address>/NXS`, `amount`, `price`, `from`, `to` |
 | Buy listed NFT | `market/execute/order` | `secureApiCall` | `txid`, `from`, `to` |
 | Read order book/listings | `market/list/order` or `market/list/executed` | `apiCall` | `market` |
 
 Validation notes:
+- Market listing flow requires: asset created, token created, asset tokenized with that token, then ask creation.
+- Market pair for sale is derived from token address and fixed as `<token-address>/NXS`.
 - Only tokenized assets are market-tradeable; un-tokenized assets can be transferred but not traded through Market API order flow.
 - All `market/create/*`, `market/execute/*`, and `assets/transfer/*` operations are sigchain writes and require `secureApiCall`.
 - For market listing/execution, include both account endpoints (`from` and `to`) per Market API docs.

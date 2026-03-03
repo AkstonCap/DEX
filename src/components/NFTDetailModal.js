@@ -10,8 +10,8 @@ import {
 import { parseNftData } from './NFTCard';
 import {
   buyNft,
+  createNftSaleToken,
   listNftForSale,
-  tokenizeNftAsset,
   transferNft,
 } from 'actions/nftActions';
 import {
@@ -102,15 +102,14 @@ export default function NFTDetailModal({ asset, onClose, isOwned }) {
 
   const [activeAction, setActiveAction] = useState('');
 
-  const [tokenizeToken, setTokenizeToken] = useState('');
-
   const [recipientAddress, setRecipientAddress] = useState('');
 
   const [sellToken, setSellToken] = useState('');
-  const [sellMarket, setSellMarket] = useState('');
+  const [createTokenName, setCreateTokenName] = useState('');
+  const [createTokenSupply, setCreateTokenSupply] = useState('1');
+  const [createTokenDecimals, setCreateTokenDecimals] = useState('0');
   const [sellAmount, setSellAmount] = useState('1');
   const [sellPrice, setSellPrice] = useState('');
-  const [sellFrom, setSellFrom] = useState('');
   const [sellTo, setSellTo] = useState('');
 
   const [buyTxid, setBuyTxid] = useState('');
@@ -118,8 +117,13 @@ export default function NFTDetailModal({ asset, onClose, isOwned }) {
   const [buyTo, setBuyTo] = useState('');
 
   const [nxsAccounts, setNxsAccounts] = useState([]);
+  const [nxsAccountsWithBalance, setNxsAccountsWithBalance] = useState([]);
   const [resolvedImageHash, setResolvedImageHash] = useState(nft.image_sha256 || '');
   const [hashLoading, setHashLoading] = useState(false);
+  const [tokenizationLoading, setTokenizationLoading] = useState(false);
+  const [isTokenized, setIsTokenized] = useState(false);
+  const [tokenizedTokenAddress, setTokenizedTokenAddress] = useState('');
+  const [activeAskCount, setActiveAskCount] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -154,24 +158,55 @@ export default function NFTDetailModal({ asset, onClose, isOwned }) {
   }, [nft.image_sha256, nft.image_url]);
 
   const fingerprintImage = buildHashFingerprintSvg(resolvedImageHash);
+  const derivedSellMarketPair = sellToken.trim()
+    ? `${sellToken.trim()}/NXS`
+    : '';
 
   useEffect(() => {
     // Fetch NXS accounts for potential buying
     async function fetchAccounts() {
       try {
         const accounts = await apiCall(
-          'finance/list/account/balance,ticker,address',
+          'finance/list/account/balance,ticker,address,name',
           { sort: 'balance', order: 'desc' }
         );
         if (Array.isArray(accounts)) {
-          setNxsAccounts(
-            accounts
-              .filter((a) => a.ticker === 'NXS' && a.balance > 0)
-              .map((a) => ({
+          const allNxsAccounts = accounts
+            .filter((a) => a.ticker === 'NXS')
+            .map((a) => {
+              const accountName = String(a.name || '').trim();
+              const accountLabel = accountName
+                ? `${accountName} (${a.address.slice(0, 4)}...${a.address.slice(-4)}) - ${a.balance} NXS`
+                : `${a.address.slice(0, 4)}...${a.address.slice(-4)} - ${a.balance} NXS`;
+
+              return {
                 value: a.address,
-                display: `${a.address.slice(0, 4)}...${a.address.slice(-4)} - ${a.balance} NXS`,
-              }))
+                display: accountLabel,
+                name: accountName,
+                balance: Number(a.balance) || 0,
+              };
+            });
+
+          const fundedNxsAccounts = allNxsAccounts.filter(
+            (a) => a.balance > 0
           );
+
+          setNxsAccounts(allNxsAccounts);
+          setNxsAccountsWithBalance(
+            fundedNxsAccounts.length > 0 ? fundedNxsAccounts : allNxsAccounts
+          );
+
+          setSellTo((prev) => {
+            if (prev) {
+              return prev;
+            }
+
+            const defaultAccount = allNxsAccounts.find(
+              (a) => String(a.name || '').toLowerCase() === 'default'
+            );
+
+            return defaultAccount?.value || allNxsAccounts[0]?.value || '';
+          });
         }
       } catch (e) {
         // Ignore
@@ -179,6 +214,101 @@ export default function NFTDetailModal({ asset, onClose, isOwned }) {
     }
     fetchAccounts();
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchTokenizationAndAsks() {
+      if (!asset?.address) {
+        setIsTokenized(false);
+        setTokenizedTokenAddress('');
+        setActiveAskCount(0);
+        return;
+      }
+
+      setTokenizationLoading(true);
+      setIsTokenized(false);
+      setTokenizedTokenAddress('');
+      setActiveAskCount(0);
+
+      try {
+        const tokens = await apiCall(
+          'register/list/finance:token/token,ticker',
+          {
+            limit: 300,
+          }
+        ).catch(() => []);
+
+        if (!Array.isArray(tokens) || tokens.length === 0) {
+          if (!cancelled) {
+            setTokenizationLoading(false);
+          }
+          return;
+        }
+
+        let matchedTokenAddress = '';
+
+        for (const token of tokens) {
+          const tokenAddress = String(token?.token || '').trim();
+          if (!tokenAddress) {
+            continue;
+          }
+
+          const verification = await apiCall('assets/verify/partial', {
+            token: tokenAddress,
+          }).catch(() => null);
+
+          if (
+            verification?.valid &&
+            verification?.asset?.address === asset.address
+          ) {
+            matchedTokenAddress = tokenAddress;
+            break;
+          }
+        }
+
+        if (!cancelled) {
+          if (!matchedTokenAddress) {
+            setIsTokenized(false);
+            setTokenizedTokenAddress('');
+            setActiveAskCount(0);
+            setTokenizationLoading(false);
+            return;
+          }
+
+          setIsTokenized(true);
+          setTokenizedTokenAddress(matchedTokenAddress);
+        }
+
+        const marketPair = `${matchedTokenAddress}/NXS`;
+        const orderBook = await apiCall(
+          'market/list/order/txid,type',
+          {
+            market: marketPair,
+            limit: 1000,
+          }
+        ).catch(() => null);
+
+        if (!cancelled) {
+          const asks = Array.isArray(orderBook?.asks)
+            ? orderBook.asks
+            : [];
+          setActiveAskCount(asks.length);
+          setTokenizationLoading(false);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setTokenizationLoading(false);
+        }
+      }
+    }
+
+    fetchTokenizationAndAsks();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [asset?.address]);
 
   const handleTransfer = async () => {
     if (!recipientAddress) return;
@@ -190,26 +320,14 @@ export default function NFTDetailModal({ asset, onClose, isOwned }) {
     }
   };
 
-  const handleTokenize = async () => {
-    if (!tokenizeToken.trim()) return;
-    const result = await dispatch(
-      tokenizeNftAsset(asset.address, tokenizeToken.trim())
-    );
-    if (result) {
-      setActiveAction('');
-      setTokenizeToken('');
-    }
-  };
-
   const handleListForSale = async () => {
     const result = await dispatch(
       listNftForSale({
         assetAddress: asset.address,
         token: sellToken.trim(),
-        market: sellMarket.trim(),
         amount: sellAmount,
         price: sellPrice,
-        from: sellFrom,
+        from: sellToken.trim(),
         to: sellTo,
       })
     );
@@ -217,11 +335,23 @@ export default function NFTDetailModal({ asset, onClose, isOwned }) {
     if (result) {
       setActiveAction('');
       setSellToken('');
-      setSellMarket('');
       setSellAmount('1');
       setSellPrice('');
-      setSellFrom('');
       setSellTo('');
+    }
+  };
+
+  const handleCreateSaleToken = async () => {
+    const result = await dispatch(
+      createNftSaleToken({
+        name: createTokenName.trim(),
+        supply: createTokenSupply,
+        decimals: createTokenDecimals,
+      })
+    );
+
+    if (result?.address) {
+      setSellToken(String(result.address));
     }
   };
 
@@ -331,6 +461,34 @@ export default function NFTDetailModal({ asset, onClose, isOwned }) {
                   : resolvedImageHash || 'Not available'}
               </ModalMetaValue>
             </ModalMetaItem>
+            <ModalMetaItem>
+              <ModalMetaLabel>Tokenized</ModalMetaLabel>
+              <ModalMetaValue>
+                {tokenizationLoading
+                  ? 'Checking...'
+                  : isTokenized
+                  ? 'Yes'
+                  : 'No'}
+              </ModalMetaValue>
+            </ModalMetaItem>
+            <ModalMetaItem>
+              <ModalMetaLabel>Token Address</ModalMetaLabel>
+              <ModalMetaValue>
+                {tokenizationLoading
+                  ? 'Resolving...'
+                  : tokenizedTokenAddress || 'Not tokenized'}
+              </ModalMetaValue>
+            </ModalMetaItem>
+            <ModalMetaItem>
+              <ModalMetaLabel>Active Asks</ModalMetaLabel>
+              <ModalMetaValue>
+                {tokenizationLoading
+                  ? 'Checking market...'
+                  : isTokenized
+                  ? String(activeAskCount)
+                  : 'N/A'}
+              </ModalMetaValue>
+            </ModalMetaItem>
           </ModalMetaGrid>
 
           <FieldSet legend="Artwork / Hash Fingerprint">
@@ -383,15 +541,9 @@ export default function NFTDetailModal({ asset, onClose, isOwned }) {
                 <ModalActions>
                   <NFTActionButton
                     variant="list"
-                    onClick={() => setActiveAction('tokenize')}
-                  >
-                    Tokenize NFT
-                  </NFTActionButton>
-                  <NFTActionButton
-                    variant="list"
                     onClick={() => setActiveAction('sell')}
                   >
-                    List for Sale
+                    Tokenize & List for Sale
                   </NFTActionButton>
                   <NFTActionButton
                     variant="sell"
@@ -400,50 +552,62 @@ export default function NFTDetailModal({ asset, onClose, isOwned }) {
                     Transfer NFT
                   </NFTActionButton>
                 </ModalActions>
-              ) : activeAction === 'tokenize' ? (
-                <FieldSet legend="Tokenize NFT for Market Trading">
-                  <FormField label="Token (name or token address)">
+              ) : activeAction === 'sell' ? (
+                <FieldSet legend="Tokenize Asset and List on Market">
+                  <p style={{ color: '#9ca3af', fontSize: '0.85em', marginTop: 0 }}>
+                    Full process: 1) Art asset created  2) Token created (supply/decimals)  3) Asset tokenized with token address  4) Ask created on market pair <strong>{derivedSellMarketPair || '<token-address>/NXS'}</strong>.
+                  </p>
+
+                  <FormField label="Create Token (optional name)">
                     <TextField
-                      value={tokenizeToken}
-                      onChange={(e) => setTokenizeToken(e.target.value)}
-                      placeholder="namespace::token or token address"
+                      value={createTokenName}
+                      onChange={(e) => setCreateTokenName(e.target.value)}
+                      placeholder="Optional token name"
+                    />
+                  </FormField>
+                  <FormField label="Token Supply">
+                    <TextField
+                      value={createTokenSupply}
+                      onChange={(e) => setCreateTokenSupply(e.target.value)}
+                      placeholder="1"
+                    />
+                  </FormField>
+                  <FormField label="Token Decimals">
+                    <TextField
+                      value={createTokenDecimals}
+                      onChange={(e) => setCreateTokenDecimals(e.target.value)}
+                      placeholder="0"
                     />
                   </FormField>
                   <p style={{ color: '#9ca3af', fontSize: '0.85em' }}>
-                    Use a pre-created token. Supply and decimals are defined when the token is created.
+                    Suggested for unique art: supply <strong>1</strong>, decimals <strong>0</strong>. You can change these before creating token.
                   </p>
                   <ModalActions>
                     <NFTActionButton
                       variant="list"
-                      onClick={handleTokenize}
-                      disabled={!tokenizeToken.trim()}
+                      onClick={handleCreateSaleToken}
+                      disabled={!createTokenSupply || !createTokenDecimals}
                     >
-                      Confirm Tokenize
-                    </NFTActionButton>
-                    <NFTActionButton
-                      variant=""
-                      onClick={() => setActiveAction('')}
-                    >
-                      Cancel
+                      Create Token
                     </NFTActionButton>
                   </ModalActions>
-                </FieldSet>
-              ) : activeAction === 'sell' ? (
-                <FieldSet legend="List Tokenized NFT on Market">
-                  <FormField label="Token used for tokenization">
+
+                  <FormField label="Token address for asset tokenization">
                     <TextField
                       value={sellToken}
                       onChange={(e) => setSellToken(e.target.value)}
-                      placeholder="namespace::token or token address"
+                      placeholder="Token register address"
                     />
                   </FormField>
-                  <FormField label="Market Pair (required)">
-                    <TextField
-                      value={sellMarket}
-                      onChange={(e) => setSellMarket(e.target.value)}
-                      placeholder="TOKEN/NXS"
-                    />
-                  </FormField>
+                  <p style={{ color: '#9ca3af', fontSize: '0.85em' }}>
+                    Step 2 requirement: create the token first with your chosen supply and decimals. This flow then tokenizes the asset (if needed) and creates the ask order.
+                  </p>
+                  <p style={{ color: '#9ca3af', fontSize: '0.85em' }}>
+                    Market pair is fixed to <strong>{derivedSellMarketPair || '<token-address>/NXS'}</strong>.
+                  </p>
+                  <p style={{ color: '#9ca3af', fontSize: '0.85em' }}>
+                    The sell "from" source is automatically set to this token address.
+                  </p>
                   <FormField label="Amount">
                     <TextField
                       value={sellAmount}
@@ -459,14 +623,7 @@ export default function NFTDetailModal({ asset, onClose, isOwned }) {
                     />
                   </FormField>
 
-                  <FormField label="From Account">
-                    <Select
-                      value={sellFrom}
-                      onChange={(val) => setSellFrom(val)}
-                      options={nxsAccounts}
-                    />
-                  </FormField>
-                  <FormField label="To Account">
+                  <FormField label="To Account (NXS, defaults to default)">
                     <Select
                       value={sellTo}
                       onChange={(val) => setSellTo(val)}
@@ -480,17 +637,14 @@ export default function NFTDetailModal({ asset, onClose, isOwned }) {
                       onClick={handleListForSale}
                       disabled={
                         !sellToken.trim() ||
-                        !sellMarket.trim() ||
                         !sellAmount ||
                         !sellPrice ||
-                        !sellFrom ||
                         !sellTo
                       }
                     >
-                      Confirm Listing
+                      Tokenize & Create Ask
                     </NFTActionButton>
                     <NFTActionButton
-                      variant=""
                       onClick={() => setActiveAction('')}
                     >
                       Cancel
@@ -514,7 +668,6 @@ export default function NFTDetailModal({ asset, onClose, isOwned }) {
                       Confirm Transfer
                     </NFTActionButton>
                     <NFTActionButton
-                      variant=""
                       onClick={() => setActiveAction('')}
                     >
                       Cancel
@@ -549,7 +702,7 @@ export default function NFTDetailModal({ asset, onClose, isOwned }) {
                     <Select
                       value={buyFrom}
                       onChange={(val) => setBuyFrom(val)}
-                      options={nxsAccounts}
+                      options={nxsAccountsWithBalance}
                     />
                   </FormField>
                   <FormField label="To Account (receiving)">
@@ -568,7 +721,6 @@ export default function NFTDetailModal({ asset, onClose, isOwned }) {
                       Confirm Buy
                     </NFTActionButton>
                     <NFTActionButton
-                      variant=""
                       onClick={() => setActiveAction('')}
                     >
                       Cancel

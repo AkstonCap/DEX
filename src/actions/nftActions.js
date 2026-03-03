@@ -388,24 +388,103 @@ export const tokenizeNftAsset =
     }
   };
 
+// Create token for NFT sale flow
+export const createNftSaleToken =
+  (params) => async () => {
+    const {
+      name,
+      supply,
+      decimals,
+    } = params || {};
+
+    const normalizedName = String(name || '').trim();
+    const parsedSupply = Number(supply);
+    const parsedDecimals = Number(decimals);
+
+    if (
+      !Number.isFinite(parsedSupply) ||
+      parsedSupply <= 0 ||
+      !Number.isInteger(parsedSupply) ||
+      !Number.isFinite(parsedDecimals) ||
+      parsedDecimals < 0 ||
+      !Number.isInteger(parsedDecimals)
+    ) {
+      showErrorDialog({
+        message: 'Invalid token parameters',
+        note: 'Supply must be a positive integer and decimals must be a non-negative integer.',
+      });
+      return null;
+    }
+
+    try {
+      const requestParams = {
+        supply: parsedSupply,
+        decimals: parsedDecimals,
+      };
+
+      if (normalizedName) {
+        requestParams.name = normalizedName;
+      }
+
+      const result = await secureApiCall('finance/create/token', requestParams);
+
+      if (!result) {
+        return null;
+      }
+
+      if (result.success) {
+        showSuccessDialog({
+          message: 'Sale token created successfully!',
+          note:
+            'Token address: ' +
+            String(result.address || '') +
+            '\nSupply: ' +
+            String(parsedSupply) +
+            '\nDecimals: ' +
+            String(parsedDecimals) +
+            '\nTransaction ID: ' +
+            String(result.txid || ''),
+        });
+        return result;
+      }
+
+      showErrorDialog({
+        message: 'Failed to create token',
+        note: result?.message || 'Unknown error',
+      });
+      return null;
+    } catch (error) {
+      if (isUserCancelled(error)) {
+        return null;
+      }
+      showErrorDialog({
+        message: 'Error creating token',
+        note: error?.message || 'Unknown error occurred',
+      });
+      return null;
+    }
+  };
+
 // List an NFT for sale on the market (create ask order)
 export const listNftForSale =
   (params) => async (dispatch) => {
     const {
       assetAddress,
       token,
-      market,
       amount,
       price,
       from,
       to,
     } = params || {};
 
+    const normalizedTokenAddress = String(token || '').trim();
+    const derivedMarket = normalizedTokenAddress
+      ? `${normalizedTokenAddress}/NXS`
+      : '';
+
     if (
       !assetAddress ||
-      !token ||
-      !market ||
-      typeof market !== 'string' ||
+      !normalizedTokenAddress ||
       !from ||
       !to ||
       !amount ||
@@ -416,24 +495,41 @@ export const listNftForSale =
       showErrorDialog({
         message: 'Missing required fields',
         note:
-          'Required: assetAddress, token, market, amount, price, from, to',
+          'Required: assetAddress, tokenAddress, amount, price, from, to',
       });
       return null;
     }
 
     try {
-      const tokenized = await verifyAssetTokenization(assetAddress, token);
+      let wasTokenizedInFlow = false;
+
+      const tokenized = await verifyAssetTokenization(
+        assetAddress,
+        normalizedTokenAddress
+      );
       if (!tokenized) {
-        showErrorDialog({
-          message: 'NFT is not tokenized for market trading',
-          note:
-            'Tokenize the asset first with assets/tokenize/asset using a pre-created token (with your chosen supply/decimals).',
+        const tokenizationResult = await secureApiCall('assets/tokenize/asset', {
+          address: assetAddress,
+          token: normalizedTokenAddress,
         });
-        return null;
+
+        if (!tokenizationResult) {
+          return null;
+        }
+
+        if (!tokenizationResult.success) {
+          showErrorDialog({
+            message: 'Failed to tokenize NFT for market listing',
+            note: tokenizationResult?.message || 'Unknown error',
+          });
+          return null;
+        }
+
+        wasTokenizedInFlow = true;
       }
 
       const result = await secureApiCall('market/create/ask', {
-        market,
+        market: derivedMarket,
         amount: Number(amount),
         price: Number(price),
         from,
@@ -448,6 +544,12 @@ export const listNftForSale =
         showSuccessDialog({
           message: 'NFT listed for sale!',
           note:
+            (wasTokenizedInFlow
+              ? 'Asset tokenized and ask created successfully.\n'
+              : '') +
+            'Market: ' +
+            derivedMarket +
+            '\n' +
             'Price: ' +
             Number(price) +
             ' NXS\nTransaction ID: ' +
