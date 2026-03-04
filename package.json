@@ -16,13 +16,20 @@
     "babel-plugin-transform-react-pure-class-to-function": "^1.0.1",
     "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
     "cross-env": "^7.0.3",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "redux-mock-store": "^1.5.5",
+    "redux-thunk": "^3.1.0",
     "webpack": "^5.93.0",
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.15.1"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production webpack --config webpack.config.babel.js",
-    "dev": "cross-env NODE_ENV=development webpack serve --config webpack-dev.config.babel.js"
+    "dev": "cross-env NODE_ENV=development webpack serve --config webpack-dev.config.babel.js",
+    "test": "jest --verbose"
   },
   "dependencies": {
     "@solana/spl-token": "^0.4.13",
@@ -32,7 +39,6 @@
     "nexus-module": "^1.0.0",
     "react-redux": "8.1.2",
     "redux": "4.1.2",
-    "redux-thunk": "^2.4.2",
     "victory": "^36.9.2"
   }
 }
