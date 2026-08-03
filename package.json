@@ -16,6 +16,8 @@
     "babel-plugin-transform-react-pure-class-to-function": "^1.0.1",
     "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
     "cross-env": "^7.0.3",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react": "^7.37.5",
     "webpack": "^5.93.0",
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.15.1"
