@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   FieldSet,
@@ -52,7 +52,49 @@ export default function TradeForm() {
   const [marketFillType, setMarketFillType] = useState('buy'); // 'buy' or 'sell'
   const [marketFillMaxAmount, setMarketFillMaxAmount] = useState(0);
   const [confirmationOrder, setConfirmationOrder] = useState(null);
+  const [accountsLoading, setAccountsLoading] = useState(false);
   const orderBook = useSelector((state) => state.ui.market.orderBook);
+  // Memoize expensive computations
+  const formattedQuoteToken = useMemo(() => formattedQuoteToken, [quoteToken]);
+  const formattedBaseToken = useMemo(() => formattedBaseToken, [baseToken]);
+  
+  // Memoize handler functions to prevent recreation on every render
+  const handleQuoteAmountChange = useCallback((e) => {
+    setQuoteAmount(parseFloat(e.target.value) || 0);
+  }, []);
+  
+  const handleBaseAmountChange = useCallback((e) => {
+    setBaseAmount(parseFloat(e.target.value) || 0);
+  }, []);
+  
+  const handlePriceChange = useCallback((e) => {
+    setPrice(parseFloat(e.target.value) || 0);
+  }, []);
+  
+  const handleFromAccountChange = useCallback((e) => {
+    setFromAccount(e.target.value);
+  }, []);
+  
+  const handleToAccountChange = useCallback((e) => {
+    setToAccount(e.target.value);
+  }, []);
+  
+  const handleMarketFillTypeChange = useCallback((type) => {
+    setMarketFillType(type);
+    setMarketFillMaxAmount(0);
+  }, []);
+  
+  const handleMarketFillMaxAmountChange = useCallback((e) => {
+    setMarketFillMaxAmount(parseFloat(e.target.value) || 0);
+  }, []);
+  
+  const handleSelectedOrderIdChange = useCallback((txid) => {
+    setSelectedOrderId(txid);
+  }, []);
+  
+  const handleConfirmationOrderChange = useCallback((order) => {
+    setConfirmationOrder(order);
+  }, []);
 
   const handleOrderMethodChange = (val) => {
     if (val === 'bid') {
@@ -145,7 +187,7 @@ export default function TradeForm() {
       if (sortedAsks.length === 0) {
         showErrorDialog({
           message: 'Amount is too small',
-          note: `No orders found with payment amount <= ${marketFillMaxAmount} ${formatTokenName(quoteToken)}. Please increase your max payment amount.`
+          note: `No orders found with payment amount <= ${marketFillMaxAmount} ${formattedQuoteToken}. Please increase your max payment amount.`
         });
         return;
       }
@@ -158,7 +200,7 @@ export default function TradeForm() {
       if (bestOrder.calculatedPrice > priceThreshold) {
         showErrorDialog({
           message: 'Price protection triggered',
-          note: `Best available order within your budget is at ${formatNumberWithLeadingZeros(bestOrder.calculatedPrice, 3, quoteTokenDecimals)} ${formatTokenName(quoteToken)}, which is more than 10% above the market price of ${formatNumberWithLeadingZeros(marketBestPrice, 3, quoteTokenDecimals)} ${formatTokenName(quoteToken)}. Please increase your max payment amount or manually select an order.`
+          note: `Best available order within your budget is at ${formatNumberWithLeadingZeros(bestOrder.calculatedPrice, 3, quoteTokenDecimals)} ${formattedQuoteToken}, which is more than 10% above the market price of ${formatNumberWithLeadingZeros(marketBestPrice, 3, quoteTokenDecimals)} ${formattedQuoteToken}. Please increase your max payment amount or manually select an order.`
         });
         return;
       }
@@ -193,7 +235,7 @@ export default function TradeForm() {
       if (sortedBids.length === 0) {
         showErrorDialog({
           message: 'Amount is too small',
-          note: `No orders found with payment amount <= ${marketFillMaxAmount} ${formatTokenName(baseToken)}. Please increase your max payment amount.`
+          note: `No orders found with payment amount <= ${marketFillMaxAmount} ${formattedBaseToken}. Please increase your max payment amount.`
         });
         return;
       }
@@ -206,7 +248,7 @@ export default function TradeForm() {
       if (bestOrder.calculatedPrice < priceThreshold) {
         showErrorDialog({
           message: 'Price protection triggered',
-          note: `Best available order within your budget is at ${formatNumberWithLeadingZeros(bestOrder.calculatedPrice, 3, quoteTokenDecimals)} ${formatTokenName(quoteToken)}, which is more than 10% below the market price of ${formatNumberWithLeadingZeros(marketBestPrice, 3, quoteTokenDecimals)} ${formatTokenName(quoteToken)}. Please increase your max payment amount or manually select an order.`
+          note: `Best available order within your budget is at ${formatNumberWithLeadingZeros(bestOrder.calculatedPrice, 3, quoteTokenDecimals)} ${formattedQuoteToken}, which is more than 10% below the market price of ${formatNumberWithLeadingZeros(marketBestPrice, 3, quoteTokenDecimals)} ${formattedQuoteToken}. Please increase your max payment amount or manually select an order.`
         });
         return;
       }
@@ -360,7 +402,7 @@ export default function TradeForm() {
       parseFloat(order.type === 'ask' ? order.order.amount : order.contract.amount),
       3,
       order.type === 'ask' ? quoteTokenDecimals : baseTokenDecimals
-    )} ${order.type === 'ask' ? formatTokenName(quoteToken) : formatTokenName(baseToken)}`
+    )} ${order.type === 'ask' ? formattedQuoteToken : formattedBaseToken}`
   })) || [];
 
   const quoteAccountOptions = accounts.quoteAccounts.map((acct) => ({
@@ -433,7 +475,7 @@ export default function TradeForm() {
             quoteTokenDecimals
             )
           }{' '} 
-          {formatTokenName(quoteToken)}
+          {formattedQuoteToken}
         </>
         //orderInQuestion.price + ' ' + quoteToken
       );
@@ -465,7 +507,7 @@ export default function TradeForm() {
             quoteTokenDecimals
             )
           }{' '} 
-          {formatTokenName(quoteToken)}
+          {formattedQuoteToken}
         </>
         //orderInQuestion.price + ' ' + quoteToken
       );
@@ -564,12 +606,12 @@ export default function TradeForm() {
           ) : (
             <TradeFormContainer> 
               <FormField
-                label={('Price (' + formatTokenName(quoteToken) + ' per ' + formatTokenName(baseToken) + ')')}>
+                label={('Price (' + formattedQuoteToken + ' per ' + formattedBaseToken + ')')}>
                 {renderPriceField()}
               </FormField>
               <FormField
                 orderMethod={orderMethod}
-                label={('Amount ' + formatTokenName(quoteToken))}>
+                label={('Amount ' + formattedQuoteToken)}>
                 {renderAmountField()}
               </FormField>
             </TradeFormContainer>
@@ -709,7 +751,7 @@ export default function TradeForm() {
                   ),
                   3,
                   quoteTokenDecimals
-                )} {formatTokenName(quoteToken)}
+                )} {formattedQuoteToken}
               </div>
               <div style={{ marginBottom: '10px' }}>
                 <strong>Payment Amount:</strong> {formatNumberWithLeadingZeros(
