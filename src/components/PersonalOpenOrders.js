@@ -11,7 +11,6 @@ import { formatNumberWithLeadingZeros } from '../actions/formatNumber';
 export default function PersonalOpenOrders() {
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
-  const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
   const myOrdersState = useSelector((state) => state.ui.market.myOrders);
   const myOrders = myOrdersState?.orders;
   const myUnconfirmedOrders = useSelector((state) => state.ui.market.myUnconfirmedOrders?.unconfirmedOrders || []);

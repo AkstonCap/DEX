@@ -39,10 +39,10 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
         return await apiCall('register/get/finance:token/decimals,currentsupply,maxsupply,address', { address: field });
       }
     } catch (error) {
-      dispatch(showErrorDialog({
+      showErrorDialog({
         message: `Cannot get token attributes for ${field}`,
         note: error?.message || 'Unknown error',
-      }));
+      });
       return null;
     }
   };
@@ -55,12 +55,16 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
     if (field === 'NXS') return { exists: true, isGlobal: true };
     try {
       const globalCheck = await apiCall('register/get/finance:token', { name: field });
-      if (globalCheck.address) return { exists: true, isGlobal: true };
-    } catch {}
+      if (globalCheck?.address) return { exists: true, isGlobal: true };
+    } catch (error) {
+      // Not a global name, fall through to the address lookup
+    }
     try {
       const nonGlobalCheck = await apiCall('register/get/finance:token', { address: field });
-      if (nonGlobalCheck.address) return { exists: true, isGlobal: false };
-    } catch {}
+      if (nonGlobalCheck?.address) return { exists: true, isGlobal: false };
+    } catch (error) {
+      // Not a register address either
+    }
     return { exists: false, isGlobal: false };
   };
 
@@ -74,8 +78,18 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
       // Check quote token
       const quoteStatus = await checkToken(quoteTokenField);
 
+      // Previously this returned silently, so a typo just did nothing at all
       if (!baseStatus.exists || !quoteStatus.exists) {
-        setRefreshing(false);
+        const missing = [
+          !baseStatus.exists ? baseTokenField : null,
+          !quoteStatus.exists ? quoteTokenField : null,
+        ].filter(Boolean).join(', ');
+        showErrorDialog({
+          message: 'Unknown token',
+          note: missing
+            ? `Could not find a token matching: ${missing}`
+            : 'Please enter both a base and a quote token.',
+        });
         return;
       }
 
@@ -84,7 +98,6 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
       const quoteTokenAttributes = await getTokenAttributes(quoteTokenField, quoteStatus.isGlobal);
 
       if (!baseTokenAttributes || !quoteTokenAttributes) {
-        setRefreshing(false);
         return;
       }
       

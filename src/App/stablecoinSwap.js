@@ -260,7 +260,7 @@ export default function StablecoinSwap() {
     try {
       const res = await apiCall('register/get/assets:asset', { name: SWAP_STATUS_ASSET_NAME });
       if (res?.last_poll_timestamp) return res.last_poll_timestamp;
-    } catch {}
+    } catch { /* best effort - fall through */ }
     return null;
   };
 
@@ -306,7 +306,7 @@ export default function StablecoinSwap() {
     try {
       const ui = await connection.getTokenAccountBalance(new PublicKey(addressOrOwner), 'confirmed');
       if (typeof ui?.value?.uiAmount === 'number') return ui.value.uiAmount;
-    } catch {}
+    } catch { /* best effort - fall through */ }
 
     // 2) Try as an owner: sum all USDC token accounts for this owner
     try {
@@ -321,20 +321,20 @@ export default function StablecoinSwap() {
         }
         return total;
       }
-    } catch {}
+    } catch { /* best effort - fall through */ }
 
     // 3) Fallbacks using RPC helpers
     try {
       const res = await solanaRpc('getTokenAccountBalance', [addressOrOwner, { commitment: 'confirmed' }]);
       const ui = res?.value?.uiAmount;
       if (typeof ui === 'number') return ui;
-    } catch {}
+    } catch { /* best effort - fall through */ }
 
     try {
       const acct = await getParsedAccountInfo(addressOrOwner);
       const ui = acct?.value?.data?.parsed?.info?.tokenAmount?.uiAmount;
       if (typeof ui === 'number') return ui;
-    } catch {}
+    } catch { /* best effort - fall through */ }
 
     // 4) Last resort: owner via RPC
     try {
@@ -348,7 +348,7 @@ export default function StablecoinSwap() {
         }
         return total;
       }
-    } catch {}
+    } catch { /* best effort - fall through */ }
 
     return null;
   };
@@ -359,7 +359,7 @@ export default function StablecoinSwap() {
       const t = await apiCall('register/get/finance:token/currentsupply', { name: 'USDD' });
       const s = t?.currentsupply;
       if (s != null) return Number(s);
-    } catch {}
+    } catch { /* best effort - fall through */ }
     // Try asset by address if configured
     return null;
   };
@@ -556,7 +556,7 @@ export default function StablecoinSwap() {
         const resp = await solanaRpc('getTokenAccountsByOwner', [address, { mint: USDC_MINT_MAINNET }, { encoding: 'jsonParsed', commitment: 'confirmed' }]);
         const hasAny = Array.isArray(resp?.value) && resp.value.length > 0;
         if (hasAny) return { ok: true, owner: address };
-      } catch {}
+      } catch { /* best effort - fall through */ }
 
       return { ok: false };
       
@@ -575,9 +575,9 @@ export default function StablecoinSwap() {
       // Fallback: raw base64 data
       const memoIx2 = instructions.find(ix => ix.programId === 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
       if (memoIx2 && memoIx2.data) {
-        try { return atob(memoIx2.data); } catch {}
+        try { return atob(memoIx2.data); } catch { /* best effort - fall through */ }
       }
-    } catch {}
+    } catch { /* best effort - fall through */ }
     return null;
   };
 
@@ -596,7 +596,7 @@ export default function StablecoinSwap() {
           }
         }
       }
-    } catch {}
+    } catch { /* best effort - fall through */ }
     return null;
   };
 
@@ -701,7 +701,7 @@ export default function StablecoinSwap() {
           setTransactionStatus(prev => ({ ...(prev || {}), status: 'completed', message: `USDD credited on Nexus. Amount ~${delta} to ${address}.` }));
           setNotification({ type: 'success', message: 'USDD received on Nexus' });
         }
-      } catch {}
+      } catch { /* best effort - fall through */ }
     }, 7000);
     setNexusPollId(id);
   };
@@ -712,13 +712,13 @@ export default function StablecoinSwap() {
       // Try a direct get
       const acc = await apiCall('finance/get/account', { address });
       if (acc && typeof acc.balance === 'number') return acc.balance;
-    } catch {}
+    } catch { /* best effort - fall through */ }
     try {
       // Fallback to list and find
       const all = await apiCall('finance/list/account');
       const found = Array.isArray(all) ? all.find(a => a.address === address) : null;
       if (found && typeof found.balance === 'number') return found.balance;
-    } catch {}
+    } catch { /* best effort - fall through */ }
     return null;
   };
 
@@ -726,11 +726,11 @@ export default function StablecoinSwap() {
     try {
       const tx = await apiCall('finance/get/transaction', { txid });
       return tx;
-    } catch {}
+    } catch { /* best effort - fall through */ }
     try {
       const tx = await apiCall('ledger/get/transaction', { txid });
       return tx;
-    } catch {}
+    } catch { /* best effort - fall through */ }
     return null;
   };
 

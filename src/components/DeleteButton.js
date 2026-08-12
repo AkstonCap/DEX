@@ -1,19 +1,9 @@
 //Based on https://github.com/Nexusoft/nexus-market-data-module/blob/master/src/App/RefreshButton.js
-import { keyframes } from '@emotion/react';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Tooltip, Button } from 'nexus-module';
 import { cancelOrder } from 'actions/placeOrder';
 import { fetchMarketData } from 'actions/fetchMarketData';
-
-const spin = keyframes`
-  from {
-      transform:rotate(0deg);
-  }
-  to {
-      transform:rotate(360deg);
-  }
-`;
 
 function useCancelOrder( txid ) {
   const [canceling, setCanceling] = useState(false);
@@ -38,11 +28,12 @@ function useCancelOrder( txid ) {
 
 export default function DeleteButton({ txid }) {
   const [canceling, cancelingOrder] = useCancelOrder(txid);
-  
+
   return (
-    <Tooltip.Trigger tooltip="Delete">
-      <Button 
+    <Tooltip.Trigger tooltip={canceling ? 'Cancelling...' : 'Delete'}>
+      <Button
         onClick={cancelingOrder}
+        disabled={canceling}
         style={{
           width: '24px',
           height: '24px',
@@ -51,11 +42,12 @@ export default function DeleteButton({ txid }) {
           border: 'none',
           outline: 'none',
           boxShadow: 'none',
+          opacity: canceling ? 0.5 : 1,
         }}
       >
-        <img 
-          src="delete-simple.svg" 
-          alt="Delete" 
+        <img
+          src="delete-simple.svg"
+          alt="Delete"
           style={{ width: '16px', height: '16px' }}
         />
       </Button>

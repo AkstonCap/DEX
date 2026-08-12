@@ -1,5 +1,6 @@
 node_modules
 dist/js
+coverage
 storage.json
 repo_info.json
 Nexus API docs/

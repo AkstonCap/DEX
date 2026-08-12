@@ -1,9 +1,10 @@
 //import { listMarket } from 'actions/listMarket';
 import { setOrderBook, setMyOrders, removeUnconfirmedOrder, removeCancellingOrder, removeUnconfirmedTrade } from './actionCreators';
-import { 
-    showErrorDialog, 
-    apiCall 
+import {
+    showErrorDialog,
+    apiCall
 } from 'nexus-module';
+import { normalizeMarketEntries } from '../utils/marketData';
 
 export const fetchOrderBook = (
 ) => async (
@@ -26,35 +27,14 @@ export const fetchOrderBook = (
             }
         );
 
-        if ( data1.bids?.length !== 0 ) {
-            data1.bids.forEach((element) => {
-              if (element.contract.ticker === 'NXS') {
-                element.contract.amount = element.contract.amount / 1e6;
-              }
-              if (element.order.ticker === 'NXS') {
-                element.order.amount = element.order.amount / 1e6;
-              }
-              // Recalculate price after normalization for bids: price = contract/order
-              element.price = element.contract.amount / element.order.amount;
-            });
-            data1.bids.sort((a, b) => b.price - a.price);
-        }
-      
-        if ( data1.asks?.length !== 0 ) {
-            data1.asks.forEach((element) => {
-              if (element.contract.ticker === 'NXS') {
-                element.contract.amount = element.contract.amount / 1e6;
-              }
-              if (element.order.ticker === 'NXS') {
-                element.order.amount = element.order.amount / 1e6;
-              }
-              // Recalculate price after normalization for asks: price = order/contract
-              element.price = element.order.amount / element.contract.amount;
-            });
-            data1.asks.sort((a, b) => b.price - a.price);
-        }
+        // The endpoint omits a side entirely when it is empty, so an
+        // `?.length !== 0` check would fall straight through to forEach on
+        // undefined. normalizeMarketEntries converts NXS divisible units and
+        // recomputes price from the amounts (see utils/marketData.js).
+        const bids = normalizeMarketEntries(data1?.bids).sort((a, b) => b.price - a.price);
+        const asks = normalizeMarketEntries(data1?.asks).sort((a, b) => b.price - a.price);
 
-        dispatch(setOrderBook(data1));
+        dispatch(setOrderBook({ bids, asks }));
 
         // Query by market param instead of token when dealing with NXS pairs
         // to avoid null/invalid token issues
@@ -74,7 +54,7 @@ export const fetchOrderBook = (
         }
 
         let myOrdersError = null;
-        let myOrders = await apiCall(
+        const myOrdersResponse = await apiCall(
             'market/user/order',
             myOrdersParams
         ).catch(async (error1) => {
@@ -84,8 +64,6 @@ export const fetchOrderBook = (
             
             // Fallback: Extract user orders from the order book by matching genesis
             try {
-                console.log('Attempting to extract user orders from order book...');
-                
                 // Get current user's genesis from session status
                 const sessionStatus = await apiCall('sessions/status/local');
                 const userGenesis = sessionStatus?.genesis;
@@ -95,12 +73,11 @@ export const fetchOrderBook = (
                     return { orders: [], error: myOrdersError };
                 }
                 
-                // Filter orders from data1 by owner matching user genesis
-                const userBids = (data1.bids || []).filter(order => order.owner === userGenesis);
-                const userAsks = (data1.asks || []).filter(order => order.owner === userGenesis);
+                // Filter the already-normalized order book by owner
+                const userBids = bids.filter(order => order.owner === userGenesis);
+                const userAsks = asks.filter(order => order.owner === userGenesis);
                 const userOrders = [...userBids, ...userAsks];
-                
-                console.log(`Found ${userOrders.length} user orders in order book`);
+
                 // Mark that these orders are already normalized from the order book
                 return { orders: userOrders, error: null, alreadyNormalized: true };
                 
@@ -110,24 +87,19 @@ export const fetchOrderBook = (
             }
         });
 
-        // Only normalize if not already normalized (i.e., came directly from API, not from order book)
+        // The fallback deliberately reports `error: null` when it recovers the
+        // orders from the order book, so an explicit field always wins.
+        const hasExplicitError = myOrdersResponse && 'error' in myOrdersResponse;
+        const myOrders = {
+            ...(myOrdersResponse || {}),
+            orders: Array.isArray(myOrdersResponse?.orders) ? myOrdersResponse.orders : [],
+            error: hasExplicitError ? myOrdersResponse.error : (myOrdersError || null),
+        };
+
+        // Orders recovered from the order book by the fallback below are
+        // already normalized; normalizing twice would divide NXS by 1e6 again.
         if (!myOrders.alreadyNormalized) {
-            myOrders.orders.forEach((element) => {
-                if (element.contract.ticker === 'NXS') {
-                    element.contract.amount = element.contract.amount / 1e6;
-                }
-                if (element.order.ticker === 'NXS') {
-                    element.order.amount = element.order.amount / 1e6;
-                }
-                // Recalculate price after normalization
-                if (element.type === 'bid') {
-                    // Bid: price = contract/order (quote per base)
-                    element.price = element.contract.amount / element.order.amount;
-                } else if (element.type === 'ask') {
-                    // Ask: price = order/contract (quote per base)
-                    element.price = element.order.amount / element.contract.amount;
-                }
-            });
+            myOrders.orders = normalizeMarketEntries(myOrders.orders);
         }
 
         dispatch(setMyOrders(myOrders));
@@ -137,7 +109,8 @@ export const fetchOrderBook = (
         const unconfirmedOrders = currentState.ui.market.myUnconfirmedOrders?.unconfirmedOrders || [];
         const cancellingOrders = currentState.ui.market.myCancellingOrders?.cancellingOrders || [];
         const unconfirmedTrades = currentState.ui.market.myUnconfirmedTrades?.unconfirmedTrades || [];
-        const myTrades = currentState.ui.market.myTrades?.trades || [];
+        // The myTrades reducer stores the list under `executed`
+        const myTrades = currentState.ui.market.myTrades?.executed || [];
         
         myOrders.orders.forEach(confirmedOrder => {
             const wasUnconfirmed = unconfirmedOrders.find(unconfirmed => unconfirmed.txid === confirmedOrder.txid);
@@ -180,13 +153,13 @@ export const fetchOrderBook = (
         
     } catch (error) {
 
-        dispatch(showErrorDialog({
+        showErrorDialog({
             message: 'Cannot get order book (fetchOrderBook)',
             note: error?.message || 'Unknown error',
-        }));
+        });
 
         dispatch(setOrderBook({bids: [], asks: []}));
-        dispatch(setMyOrders({bids: [], asks: []}));
+        dispatch(setMyOrders({orders: [], error: error?.message || 'Unable to load orders'}));
         return null; // Return null for error
     }
 }

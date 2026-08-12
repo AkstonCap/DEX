@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+# A new push to a PR makes the in-flight run obsolete
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Lint, test and build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Fails the build on ESLint errors. Warnings are still reported but do not
+      # fail the run yet - see IMPROVEMENTS.md before tightening this with
+      # --max-warnings.
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test -- --ci --coverage
+
+      - name: Build
+        run: npm run build
+
+      # dist/js is gitignored, so this is the only way to inspect the bundle a
+      # PR actually produces
+      - name: Upload bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: dex-module-bundle
+          path: dist/js/app.js
+          if-no-files-found: error
+          retention-days: 14

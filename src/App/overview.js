@@ -1,23 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { 
+import {
   FieldSet,
-  Arrow,
-  Dropdown,
   Select,
   FormField,
  } from 'nexus-module';
 import { fetchVolumeData } from 'actions/fetchVolumeData';
-import { fetchMarketData } from 'actions/fetchMarketData';
 import { setTimeSpan } from 'actions/actionCreators';
-import { 
-  BottomRow,
+import {
   TopRow,
   PageLayout,
-  ChangeText,
   Line,
   Value,
   Label,
+  formatTokenName,
  } from 'components/styles';
 import OrderBookComp from 'components/OrderBookComp';
 import TradeHistory from 'components/TradeHistory';
@@ -37,7 +33,6 @@ export default function Overview() {
   const baseTokenCirculatingSupply = useSelector((state) => state.ui.market.marketPairs.baseTokenCirculatingSupply);
   const baseTokenMaxsupply = useSelector((state) => state.ui.market.marketPairs.baseTokenMaxsupply);
 
-  const orderBook = useSelector((state) => state.ui.market.orderBook);
   const executedOrders = useSelector(
     (state) => state.ui.market.executedOrders
   );
@@ -51,9 +46,7 @@ export default function Overview() {
   const [low, setLow] = useState(0);
   const [change, setChange] = useState(0);
   //const [timeFrame, setTimeFrame] = useState('1y');
-  const [highestBid, setHighestBid] = useState('N/A');
-  const [lowestAsk, setLowestAsk] = useState('N/A');
-  const [mcap, setMcap] = useState(lastPrice * baseTokenCirculatingSupply);
+  const [mcap, setMcap] = useState(0);
 
   const timeFrames = [
     {
@@ -82,16 +75,8 @@ export default function Overview() {
     },*/
   ];
 
-  // Helper to collapse long token names/addresses
-  function formatTokenName(token) {
-    if (typeof token === 'string' && token.length > 20) {
-      return token.slice(0, 4) + '...' + token.slice(-4);
-    }
-    return token;
-  }
-
   // Define updateData function at the component level
-  const updateData = (executedOrders, orderBook) => {
+  const updateData = (executedOrders) => {
     if (
       executedOrders &&
       (executedOrders.bids?.length > 0 || executedOrders.asks?.length > 0)
@@ -101,30 +86,40 @@ export default function Overview() {
       setQuoteTokenVolume(volumeData.quoteTokenVolume.toFixed(Math.min(3, quoteTokenDecimals)));
 
       const sortedExecutedOrders = [
-        ...executedOrders.bids,
-        ...executedOrders.asks,
+        ...(executedOrders.bids || []),
+        ...(executedOrders.asks || []),
       ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
-      setLastPrice(sortedExecutedOrders[0]?.price || 'N/A');
-      
-      //setMcap((lastPrice * baseTokenCirculatingSupply).toFixed(Math.min(2, quoteTokenDecimals)));
 
-      const highPrice = Math.max(
-        ...sortedExecutedOrders.map((order) => order.price)
-      ).toFixed(Math.min(8, quoteTokenDecimals));
-      setHigh(highPrice);
+      // Newest first, so [0] is the latest trade and the last entry the oldest
+      const newestPrice = sortedExecutedOrders[0]?.price;
+      const oldestPrice = sortedExecutedOrders[sortedExecutedOrders.length - 1]?.price;
 
-      const lowPrice = Math.min(
-        ...sortedExecutedOrders.map((order) => order.price)
-      ).toFixed(Math.min(8, quoteTokenDecimals));
-      setLow(lowPrice);
+      setLastPrice(newestPrice ?? 'N/A');
 
-      const changePercentage = (
-        ((lastPrice - sortedExecutedOrders[sortedExecutedOrders.length - 1].price) /
-          sortedExecutedOrders[sortedExecutedOrders.length - 1].price) *
-        100
-      ).toFixed(1);
-      setChange(changePercentage);
+      const prices = sortedExecutedOrders
+        .map((order) => parseFloat(order.price))
+        .filter((price) => Number.isFinite(price));
+
+      setHigh(
+        prices.length
+          ? Math.max(...prices).toFixed(Math.min(8, quoteTokenDecimals))
+          : 0
+      );
+      setLow(
+        prices.length
+          ? Math.min(...prices).toFixed(Math.min(8, quoteTokenDecimals))
+          : 0
+      );
+
+      // Use the freshly computed price: `lastPrice` from state is still the
+      // previous render's value at this point, so the change was one tick stale.
+      if (Number.isFinite(parseFloat(newestPrice)) && parseFloat(oldestPrice)) {
+        setChange(
+          (((parseFloat(newestPrice) - parseFloat(oldestPrice)) / parseFloat(oldestPrice)) * 100).toFixed(1)
+        );
+      } else {
+        setChange(0);
+      }
 
     } else {
       setBaseTokenVolume(0);
@@ -132,12 +127,9 @@ export default function Overview() {
       setLastPrice('N/A');
       setHigh(0);
       setLow(0);
+      setChange(0);
     }
 
-    setHighestBid(orderBook?.bids?.[0]?.price || 'N/A');
-    setLowestAsk(
-      orderBook?.asks?.[orderBook?.asks?.length - 1]?.price || 'N/A'
-    );
   };
 
   useEffect(() => {
@@ -147,7 +139,7 @@ export default function Overview() {
   useEffect(() => {
 
     // Fetch data immediately
-    updateData(executedOrders, orderBook);
+    updateData(executedOrders);
 
     /*// Fetch data every 5 seconds
     const intervalId = setInterval(updateData, 5000);
@@ -155,7 +147,7 @@ export default function Overview() {
     // Cleanup interval on unmount
     return () => clearInterval(intervalId);
 */
-  }, [marketPair, executedOrders, orderBook]);
+  }, [marketPair, executedOrders]);
 
   return (
     <PageLayout>
