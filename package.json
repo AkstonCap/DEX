@@ -15,16 +15,25 @@
     "babel-plugin-module-resolver": "^4.1.0",
     "babel-plugin-transform-react-pure-class-to-function": "^1.0.1",
     "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
+    "babel-jest": "^29.7.0",
     "cross-env": "^7.0.3",
     "eslint": "^8.57.1",
     "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
     "webpack": "^5.93.0",
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.15.1"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production webpack --config webpack.config.babel.js",
-    "dev": "cross-env NODE_ENV=development webpack serve --config webpack-dev.config.babel.js"
+    "dev": "cross-env NODE_ENV=development webpack serve --config webpack-dev.config.babel.js",
+    "lint": "eslint src __tests__ --ext .js",
+    "lint:fix": "eslint src __tests__ --ext .js --fix",
+    "test": "cross-env NODE_ENV=test jest",
+    "test:watch": "cross-env NODE_ENV=test jest --watch"
   },
   "dependencies": {
     "@solana/spl-token": "^0.4.13",

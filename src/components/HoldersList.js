@@ -1,6 +1,6 @@
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { FieldSet, apiCall } from 'nexus-module';
-import { OrderTable, OrderbookTableHeader, OrderbookTableRow, formatTokenName } from './styles';
+import { OrderTable, OrderbookTableRow, formatTokenName } from './styles';
 import { formatNumberWithLeadingZeros } from '../actions/formatNumber';
 import { useEffect, useState, useRef, useCallback } from 'react';
 
@@ -8,7 +8,6 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 const HOLDERS_UPDATE_INTERVAL = 2 * 60 * 1000;
 
 export default function HoldersList({ num = 10 }) {
-  const dispatch = useDispatch();
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const baseTokenDecimals = useSelector((state) => state.ui.market.marketPairs.baseTokenDecimals);
   const circulatingSupply = useSelector((state) => state.ui.market.marketPairs.baseTokenCirculatingSupply);
@@ -33,7 +32,6 @@ export default function HoldersList({ num = 10 }) {
 
   const fetchHolders = useCallback(async () => {
     if (!baseTokenAddress) {
-      console.log('HoldersList: No baseTokenAddress available');
       return;
     }
 
@@ -41,8 +39,6 @@ export default function HoldersList({ num = 10 }) {
     setError(null);
     
     try {
-      console.log('HoldersList: Fetching holders for token:', baseTokenAddress);
-      
       const data = await apiCall(
         'register/list/finance:accounts', 
         { 
@@ -52,8 +48,6 @@ export default function HoldersList({ num = 10 }) {
           order: 'desc', 
         }
       );
-
-      console.log('HoldersList: Raw API response:', data);
 
       if (data && Array.isArray(data)) {
         const filteredData = data.filter(item => 
@@ -82,8 +76,6 @@ export default function HoldersList({ num = 10 }) {
         // Note: Bids don't lock base tokens - they lock quote tokens
         // So we only count asks for base token holdings
         
-        console.log('HoldersList: Locked amounts by owner:', lockedByOwner);
-        
         // Add locked amounts to holder balances
         const enrichedData = filteredData.map(holder => {
           const locked = lockedByOwner[holder.owner] || 0;
@@ -98,11 +90,8 @@ export default function HoldersList({ num = 10 }) {
         const sortedData = enrichedData.sort((a, b) => 
           parseFloat(b.balance || 0) - parseFloat(a.balance || 0));
 
-        console.log('HoldersList: Processed holders with locked amounts:', sortedData.length, 'items');
-        
         setHolders(sortedData || []);
       } else {
-        console.log('HoldersList: No valid data received');
         setHolders([]);
       }
     } catch (error) {
@@ -163,8 +152,7 @@ export default function HoldersList({ num = 10 }) {
     return data.slice(0, Math.min(num, len)).map((item, index) => {
       const totalBalance = parseFloat(item.balance || 0);
       const lockedAmount = parseFloat(item.lockedAmount || 0);
-      const freeBalance = totalBalance - lockedAmount;
-      
+
       return (
         <OrderbookTableRow key={item.address || index} style={{ color: '#fbbf24' }}>
           <td>{item.owner ? formatTokenName(item.owner) : 'Unknown'}</td>
@@ -193,8 +181,9 @@ export default function HoldersList({ num = 10 }) {
     const remainingCount = remainingHolders.length;
     const totalHeld = remainingHolders.reduce((sum, holder) => 
       sum + parseFloat(holder.balance || 0), 0);
-    const percentageOfSupply = circulatingSupply ? 
-      ((totalHeld / parseFloat(circulatingSupply)) * 100).toFixed(2) : 'N/A';
+    const percentageOfSupply = circulatingSupply
+      ? `${((totalHeld / parseFloat(circulatingSupply)) * 100).toFixed(2)}%`
+      : 'N/A';
 
     return (
       <div style={{ 
@@ -220,7 +209,7 @@ export default function HoldersList({ num = 10 }) {
           </div>
           <div>
             <span style={{ color: '#9ca3af' }}>% of Supply: </span>
-            <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{percentageOfSupply}%</span>
+            <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{percentageOfSupply}</span>
           </div>
         </div>
       </div>

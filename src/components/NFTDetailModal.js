@@ -606,7 +606,7 @@ export default function NFTDetailModal({ asset, onClose, isOwned }) {
                     Market pair is fixed to <strong>{derivedSellMarketPair || '<token-address>/NXS'}</strong>.
                   </p>
                   <p style={{ color: '#9ca3af', fontSize: '0.85em' }}>
-                    The sell "from" source is automatically set to this token address.
+                    The sell &quot;from&quot; source is automatically set to this token address.
                   </p>
                   <FormField label="Amount">
                     <TextField

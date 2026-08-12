@@ -21,7 +21,7 @@ import {
   TextField,
   Button,
 } from 'nexus-module';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setMarketPair, switchTab } from "actions/actionCreators";
 import RefreshButton from "./RefreshButton";
@@ -91,7 +91,6 @@ export default function Markets() {
   const [topVolumeMarkets, setTopVolumeMarkets] = useState([]); 
   const [topMarketCapMarkets, setTopMarketCapMarkets] = useState([]);
   const [tokenList, setTokenList] = useState([]);
-  const [searchResults, setSearchResults] = useState([]);
   const [search, setSearch] = useState('');
   
   // Watchlist state
@@ -160,24 +159,24 @@ export default function Markets() {
       
       // Check for API success
       if (result.success) {
-        dispatch(showSuccessDialog({
+        showSuccessDialog({
           message: 'Watchlist created successfully!',
           note: 'You can now add market pairs to your watchlist by clicking the star icon.',
-        }));
+        });
         
         setWatchlistExists(true);
         setWatchlist([]);
       } else {
-        dispatch(showErrorDialog({
+        showErrorDialog({
           message: 'Failed to create watchlist',
           note: result?.error?.message || 'Unknown error occurred',
-        }));
+        });
       }
     } catch (error) {
-      dispatch(showErrorDialog({
+      showErrorDialog({
         message: 'Failed to create watchlist',
         note: error?.message || 'Unknown error. Make sure you are logged in.',
-      }));
+      });
     }
     setWatchlistUpdating(false);
   };
@@ -212,16 +211,16 @@ export default function Markets() {
       if (result.success) {
         setWatchlist(newWatchlist);
       } else {
-        dispatch(showErrorDialog({
+        showErrorDialog({
           message: 'Failed to update watchlist',
           note: result?.error?.message || 'Unknown error occurred',
-        }));
+        });
       }
     } catch (error) {
-      dispatch(showErrorDialog({
+      showErrorDialog({
         message: 'Failed to update watchlist',
         note: error?.message || 'Unknown error',
-      }));
+      });
     }
     setWatchlistUpdating(false);
   };
@@ -231,9 +230,15 @@ export default function Markets() {
     return watchlist.includes(`${ticker}/NXS`);
   };
 
-  useEffect(() => {
-    setSearchResults(tokenList.filter(token => token.ticker.toLowerCase().includes(search.toLowerCase())));
-  } , [search]);
+  // Derived rather than stored: as state it was recomputed only on `search`,
+  // so the 60s refresh silently replaced it with the unfiltered list.
+  const searchResults = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return tokenList;
+    return tokenList.filter(token =>
+      String(token.ticker || '').toLowerCase().includes(query)
+    );
+  }, [tokenList, search]);
 
   const fetchTokens = async () => {
 
@@ -247,10 +252,10 @@ export default function Markets() {
           where: 'results.currentsupply>0'
         }
       ).catch((error) => {
-        dispatch(showErrorDialog({
+        showErrorDialog({
           message: 'Cannot get tokens from apiCall (fetchTokens)',
           note: error?.message || 'Unknown error',
-        }));
+        });
         return [];
         }
       );
@@ -262,10 +267,13 @@ export default function Markets() {
         }
       );
 
-      let globalTokenList = tokens
-        .filter(token => globalNames.some(name => name.register === token.token))
+      const tokenList = Array.isArray(tokens) ? tokens : [];
+      const nameList = Array.isArray(globalNames) ? globalNames : [];
+
+      let globalTokenList = tokenList
+        .filter(token => nameList.some(name => name.register === token.token))
         .map(token => {
-          const globalName = globalNames.find(name => name.register === token.token);
+          const globalName = nameList.find(name => name.register === token.token);
           return {
             name: globalName?.name || '',
             ticker: token.ticker,
@@ -376,27 +384,21 @@ export default function Markets() {
             lastPrice = 0;
           }
 
-          const bids = bidList.bids;
-          const asks = askList.asks;
-          let sortedBids;
-          let sortedAsks;
+          const bids = Array.isArray(bidList?.bids) ? bidList.bids : [];
+          const asks = Array.isArray(askList?.asks) ? askList.asks : [];
 
-          if (bids.length > 0) {
-            bids.forEach(element => {
-              element.price = element.contract.amount / element.order.amount / 1e6;
-            });
-            sortedBids = bids.sort((a, b) => b.price - a.price);
-          }
+          bids.forEach(element => {
+            element.price = element.contract.amount / element.order.amount / 1e6;
+          });
+          const sortedBids = [...bids].sort((a, b) => b.price - a.price);
 
-          if (asks.length > 0) {
-            asks.forEach(element => {
-              element.price = element.order.amount / element.contract.amount / 1e6;
-            });
-            sortedAsks = asks.sort((a, b) => a.price - b.price);
-          }
+          asks.forEach(element => {
+            element.price = element.order.amount / element.contract.amount / 1e6;
+          });
+          const sortedAsks = [...asks].sort((a, b) => a.price - b.price);
 
-          const bidPrice = bids?.length > 0 ? sortedBids[0].price : 0;
-          const askPrice = asks?.length > 0 ? sortedAsks[0].price : 0;
+          const bidPrice = sortedBids.length > 0 ? sortedBids[0].price : 0;
+          const askPrice = sortedAsks.length > 0 ? sortedAsks[0].price : 0;
       
           return {
             ticker: token.ticker,
@@ -417,19 +419,20 @@ export default function Markets() {
       globalTokenList = globalTokenList.filter(token => token !== null);
       
       setTokenList(globalTokenList);
-      setSearchResults(globalTokenList);
 
-      const sortedVolume = globalTokenList.sort((a, b) => b.volume - a.volume);
+      // Sort copies - sorting in place would reorder the array already handed to
+      // React state, mutating rendered state behind React's back.
+      const sortedVolume = [...globalTokenList].sort((a, b) => b.volume - a.volume);
       const sortedMarketCap = [...globalTokenList].sort((a, b) => b.mCap - a.mCap);
 
       setTopVolumeMarkets(sortedVolume.slice(0, 10));
       setTopMarketCapMarkets(sortedMarketCap.slice(0, 10));
 
     } catch (error) {
-      dispatch(showErrorDialog({
+      showErrorDialog({
         message: 'Cannot get tokens from apiCall (fetchTokens)',
         note: error?.message || 'Unknown error',
-      }));
+      });
     }
   };
 

@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { FieldSet, Modal } from 'nexus-module';
-import { setOrder, setAvailableOrdersAtPrice } from 'actions/actionCreators';
+import { FieldSet } from 'nexus-module';
+import { setAvailableOrdersAtPrice } from 'actions/actionCreators';
 import { OrderTable, OrderbookTableHeader, OrderbookTableRow, formatTokenName } from './styles';
 import { formatNumberWithLeadingZeros } from '../actions/formatNumber';
 
@@ -13,9 +13,8 @@ export default function OrderBookComp({ num }) {
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const baseTokenDecimals = useSelector((state) => state.ui.market.marketPairs.baseTokenDecimals);
   const quoteTokenDecimals = useSelector((state) => state.ui.market.marketPairs.quoteTokenDecimals);
-  const [orderSelectionDialog, setOrderSelectionDialog] = useState(null);
 
-  const aggregateOrdersByPrice = (orders) => {
+  const aggregateOrdersByPrice = useMemo(() => (orders) => {
     if (!Array.isArray(orders)) return [];
     
     const priceMap = new Map();
@@ -37,20 +36,11 @@ export default function OrderBookComp({ num }) {
     });
     
     return Array.from(priceMap.values());
-  };
+  }, []);
 
   const handlePriceLevelClick = (priceLevel) => {
     // Set available orders at this price level for dropdown selection in TradeForm
     dispatch(setAvailableOrdersAtPrice(priceLevel.orders, priceLevel.price, priceLevel.type));
-  };
-
-  const handleOrderSelect = (order) => {
-    if (order.type === 'ask') {
-      dispatch(setOrder(order.txid, order.price, order.order.amount, order.type, order.market, 'execute'));
-    } else if (order.type === 'bid') {
-      dispatch(setOrder(order.txid, order.price, order.contract.amount, order.type, order.market, 'execute'));
-    }
-    setOrderSelectionDialog(null);
   };
 
   const renderTableBids = (data) => {

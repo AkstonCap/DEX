@@ -148,11 +148,13 @@ export const fetchNftListings = () => async (dispatch) => {
       return;
     }
 
+    const nameList = Array.isArray(globalNames) ? globalNames : [];
+
     // Filter for art NFTs (assets with image_url field)
     const artNfts = assets
       .filter((asset) => isArtNft(asset))
       .map((asset) => {
-        const globalName = globalNames.find(
+        const globalName = nameList.find(
           (n) => n.register === asset.address
         );
         return {

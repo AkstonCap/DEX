@@ -1,12 +1,32 @@
-import { 
+import {
   setExecutedOrders,
   setMyTrades,
-  removeUnconfirmedTrade,
 } from './actionCreators';
-import { 
-  showErrorDialog 
+import {
+  showErrorDialog
 } from 'nexus-module';
 import apiCallWithRetry from '../utils/apiCallWithRetry';
+
+// Time span keys as offered by the Overview dropdown, mapped to the core's
+// `since()` syntax. Note `1m` means one month here - the previous chain of
+// if/else branches declared it twice and the "1 minute" branch was dead code.
+const TIME_SPAN_QUERIES = {
+  all: '',
+  '1y': 'results.timestamp>since(`1 year`);',
+  '1mo': 'results.timestamp>since(`1 month`);',
+  '1m': 'results.timestamp>since(`1 month`);',
+  '1w': 'results.timestamp>since(`1 week`);',
+  '1d': 'results.timestamp>since(`1 day`);',
+  '12h': 'results.timestamp>since(`12 hours`);',
+  '6h': 'results.timestamp>since(`6 hours`);',
+  '1h': 'results.timestamp>since(`1 hour`);',
+  '30min': 'results.timestamp>since(`30 minutes`);',
+  '15min': 'results.timestamp>since(`15 minutes`);',
+  '5min': 'results.timestamp>since(`5 minutes`);',
+  '1min': 'results.timestamp>since(`1 minute`);',
+};
+
+const DEFAULT_TIME_SPAN_QUERY = TIME_SPAN_QUERIES['1y'];
 
 export const fetchExecuted = (
 ) => async (
@@ -14,44 +34,20 @@ export const fetchExecuted = (
   getState
 ) => {
   try {
-    //const pair = inputMarket;
-    //const baseToken = pair.split('/')[0];
     const state = getState();
     const marketPair = state.ui.market.marketPairs.marketPair;
-    const baseToken = state.ui.market.marketPairs.baseToken;
-    const quoteToken = state.ui.market.marketPairs.quoteToken;
     const timeSpan = state.settings.timeSpan;
-    //const timestampMin = Date.now()/1000 - 60*60*24*365; // 1 year
-    let queryString = 'results.timestamp>since(`1 year`);';
-    if (timeSpan === '1y') {
-      queryString = 'results.timestamp>since(`1 year`);';
-    } else if (timeSpan === '1m') {
-      queryString = 'results.timestamp>since(`1 month`);';
-    } else if (timeSpan === '1w') {
-      queryString = 'results.timestamp>since(`1 week`);';
-    } else if (timeSpan === '1d') {
-      queryString = 'results.timestamp>since(`1 day`);';
-    } else if (timeSpan === '12h') {
-      queryString = 'results.timestamp>since(`12 hours`);';
-    } else if (timeSpan === '6h') {
-      queryString = 'results.timestamp>since(`6 hours`);';
-    } else if (timeSpan === '1h') {
-      queryString = 'results.timestamp>since(`1 hour`);';
-    } else if (timeSpan === '30m') {
-      queryString = 'results.timestamp>since(`30 minutes`);';
-    } else if (timeSpan === '15m') {
-      queryString = 'results.timestamp>since(`15 minutes`);';
-    } else if (timeSpan === '5m') {
-      queryString = 'results.timestamp>since(`5 minutes`);';
-    } else if (timeSpan === '1m') {
-      queryString = 'results.timestamp>since(`1 minute`);';
-    }
+
+    const queryString = timeSpan in TIME_SPAN_QUERIES
+      ? TIME_SPAN_QUERIES[timeSpan]
+      : DEFAULT_TIME_SPAN_QUERY;
 
     const endpoint = 'market/executed/';
-    const params = {
-      marketPair,
-      queryString,
-    };
+    const params = { marketPair };
+    // 'all' asks for the full history, so no time filter is sent at all
+    if (queryString) {
+      params.queryString = queryString;
+    }
 
     const data = await apiCallWithRetry(endpoint, params);
     if (!data) {
@@ -60,9 +56,11 @@ export const fetchExecuted = (
 
     dispatch(setExecutedOrders(data));
     dispatch(setMyTrades(data.myTrades));
-    dispatch(removeUnconfirmedTrade());
   } catch (error) {
     console.error('Error in fetchExecuted:', error);
-    showErrorDialog('Cannot get executed transactions', error?.message || 'Unknown error');
+    showErrorDialog({
+      message: 'Cannot get executed transactions',
+      note: error?.message || 'Unknown error',
+    });
   }
 };

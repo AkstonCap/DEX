@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import styled from '@emotion/styled';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   Panel,
   HorizontalTab,
   TextField,
-  apiCall,
 } from 'nexus-module';
 
 import Overview from './overview';
@@ -14,10 +13,9 @@ import Chart from './chart';
 import MarketDepth from './marketDepth';
 import Markets from './markets';
 import Portfolio from './portfolio';
-import StablecoinSwap from './stablecoinSwap';
 import NFTMarketplace from './nftMarketplace';
 
-import { switchTab, setMarketPair } from 'actions/actionCreators';
+import { switchTab } from 'actions/actionCreators';
 import RefreshButton from './RefreshButton';
 import { fetchMarketData } from 'actions/fetchMarketData';
 import { refreshMarket } from 'actions/fetchTokenAttributes';
@@ -62,27 +60,42 @@ export default function Main() {
 
   function handleTokenInputChange(e) {
     const { name, value } = e.target;
-    setInputPair({
-      ...inputPair,
+    setInputPair((current) => ({
+      ...current,
       [name]: value,
-    });
+    }));
   }
+
+  // The pair can also be changed from the Markets and Portfolio tabs, so mirror
+  // the store back into the inputs instead of leaving the old tokens on screen.
+  useEffect(() => {
+    setInputPair({
+      baseTokenInput: baseToken,
+      quoteTokenInput: quoteToken,
+    });
+  }, [baseToken, quoteToken]);
+
+  // Read the freshest tokens inside the interval without restarting it
+  const tokensRef = useRef({ baseToken, quoteToken });
+  useEffect(() => {
+    tokensRef.current = { baseToken, quoteToken };
+  }, [baseToken, quoteToken]);
 
   useEffect(() => {
     const fetchData = () => {
-      
       dispatch(fetchMarketData());
-      if (baseToken && quoteToken && baseToken !== '' && quoteToken !== '') {
-        dispatch(refreshMarket(baseToken, quoteToken));
+      const { baseToken: base, quoteToken: quote } = tokensRef.current;
+      if (base && quote) {
+        dispatch(refreshMarket(base, quote));
       }
     };
-    
+
     // Fetch data immediately
     fetchData();
-  
+
     // Set interval to fetch data every 15 seconds
     const intervalId = setInterval(fetchData, 15000);
-  
+
     // Cleanup interval on unmount
     return () => clearInterval(intervalId);
   }, [dispatch, marketPair, timeSpan]);
@@ -197,9 +210,8 @@ export default function Main() {
         <div>{activeTab === 'Markets' && <Markets />}</div>
         <div>{activeTab === 'Portfolio' && <Portfolio />}</div>
         <div>{activeTab === 'NFTArt' && <NFTMarketplace />}</div>
-        {/* Stablecoin Swap component hidden until ready for release
-      <div>{activeTab === 'StablecoinSwap' && <StablecoinSwap />}</div>
-      */}
+        {/* Stablecoin Swap component hidden until ready for release:
+            re-add the import and <StablecoinSwap /> here when it ships */}
       </Panel>
     </ErrorBoundary>
   );

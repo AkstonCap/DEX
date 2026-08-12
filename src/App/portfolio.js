@@ -1,10 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { 
-  PageLayout, 
-  TopRow, 
-  BottomRow,
-  TradeBottomRow, 
-} from 'components/styles';
+import { useState, useEffect } from 'react';
+import { PageLayout, TopRow } from 'components/styles';
 import { useDispatch } from 'react-redux';
 import { setMarketPair, switchTab } from 'actions/actionCreators';
 
@@ -146,8 +141,6 @@ export default function Portfolio() {
                   }
                 }
                 
-                // Net tokens acquired through trading
-                const netTokensFromTrading = totalTokensBought - totalTokensSold;
                 // Net NXS cost (spent - received)
                 const netNxsCost = totalNxsSpent - totalNxsReceived;
                 
@@ -199,12 +192,19 @@ export default function Portfolio() {
             nxsValue = 0;
           }
         } else {
-          const trustBalance = await apiCall('finance/list/trust/balance/sum');
-          const trustStake = await apiCall('finance/list/trust/stake/sum');
-          nxsValue = token.balance + trustBalance.balance + trustStake.stake;
+          // A failing sum must not blank the whole portfolio, and a missing
+          // field must not turn the balance into NaN.
+          const [trustBalance, trustStake] = await Promise.all([
+            apiCall('finance/list/trust/balance/sum').catch(() => ({})),
+            apiCall('finance/list/trust/stake/sum').catch(() => ({})),
+          ]);
+          const staked =
+            (parseFloat(trustBalance?.balance) || 0) + (parseFloat(trustStake?.stake) || 0);
+          const totalNxs = (parseFloat(token.balance) || 0) + staked;
+          nxsValue = totalNxs;
           lastPrice = 1;
           change24h = null;
-          token.balance = token.balance + trustBalance.balance + trustStake.stake;
+          return { ...token, balance: totalNxs, nxsValue, lastPrice, change24h, totalPnL, costBasis };
         }
         return { ...token, nxsValue, lastPrice, change24h, totalPnL, costBasis };
       }));
@@ -224,19 +224,23 @@ export default function Portfolio() {
       return;
     } else {
 
+      // `finance/list/account` returns the token register address as `token`;
+      // there is no `address` field on these rows.
+      const tokenAddress = token.token;
+
       const tokenData = await apiCall(
         'register/get/finance:token/token,ticker,maxsupply,currentsupply,decimals',
         {
-          address: token.address,
+          address: tokenAddress,
         }
       ).catch(() => ({
-        ticker: '', address: token.address, maxsupply: 0, currentsupply: 0, decimals: 0
+        ticker: '', maxsupply: 0, currentsupply: 0, decimals: 0
       }));
-    
+
       dispatch(setMarketPair(
-        (token.ticker !== '' && token.ticker !== 'NXS') 
+        (token.ticker !== '' && token.ticker !== 'NXS')
           ? token.ticker + '/NXS'
-          : token.address + '/NXS',
+          : tokenAddress + '/NXS',
         token.ticker,
         'NXS',
         tokenData.maxsupply,
@@ -245,7 +249,7 @@ export default function Portfolio() {
         0,
         tokenData.decimals,
         6,
-        token.address,
+        tokenAddress,
         '0'
       ));
       dispatch(switchTab('Overview'));

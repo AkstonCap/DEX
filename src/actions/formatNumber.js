@@ -27,7 +27,7 @@ export function formatNumberWithLeadingZeros(number, decimals, tokenDecimals=6) 
 
   // Handle numbers between threshold and 1 (normal small decimals)
   if (absNumber >= threshold) {
-    const [base0, exp0] = number.toExponential(decimals).split('e');
+    const exp0 = number.toExponential(decimals).split('e')[1];
     const exponent0 = parseInt(exp0, 10);
     const leadingZeros0 = Math.abs(exponent0) - 1;
     return number.toFixed(Math.max(decimals + leadingZeros0, 2));

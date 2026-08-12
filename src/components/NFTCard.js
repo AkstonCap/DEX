@@ -7,8 +7,6 @@ import {
   NFTTitle,
   NFTArtist,
   NFTPrice,
-  NFTPriceLabel,
-  NFTPriceValue,
   NFTBadge,
   NFTEdition,
 } from './nftStyles';
