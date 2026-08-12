@@ -95,14 +95,112 @@ export default function Main() {
     <ErrorBoundary>
       <Panel 
         controls={
-          <div className=\"controls-container\">
+          <div className="controls-container">
             <ButtonContainer>
               <TokenTextField
-                label=\"Base Token\"
-                name=\"baseTokenInput\"
+                label="Base Token"
+                name="baseTokenInput"
                 value={inputPair.baseTokenInput}
                 onChange={handleTokenInputChange}
                 placeholder={baseToken}
-              />\n              /\n              <TokenTextField\n                label=\"Quote Token\"\n                name=\"quoteTokenInput\"\n                value={inputPair.quoteTokenInput}\n                onChange={handleTokenInputChange}\n                placeholder={quoteToken}\n              />\n              <RefreshButton\n                baseTokenField={inputPair.baseTokenInput}\n                quoteTokenField={inputPair.quoteTokenInput}\n              />\n            </ButtonContainer>\n          </div>\n        }\n        title={\n          <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>\n            <img src=\"distordia-logo.svg\" alt=\"\" style={{ width: '28px', height: '28px' }} />\n            <span style={{ \n              background: 'linear-gradient(135deg, #ef4568 0%, #f0aa21 100%)',\n              WebkitBackgroundClip: 'text',\n              WebkitTextFillColor: 'transparent',\n              backgroundClip: 'text',\n              fontWeight: 700,\n              fontSize: '1.1em',\n              letterSpacing: '0.5px',\n              textShadow: '0 0 20px rgba(240, 170, 33, 0.3)'\n            }}>Distordia DEX Module</span>\n          </span>\n        }\n      >\n        <div className=\"text-center\">\n          <HorizontalTab.TabBar>\n            <HorizontalTab\n              active={activeTab === 'Overview'}\n              onClick={() => handleSwitchTab('Overview')}\n            >\n              Token Overview\n            </HorizontalTab>\n            <HorizontalTab\n              active={activeTab === 'Trade'}\n              onClick={() => handleSwitchTab('Trade')}\n            >\n              Trading Desk\n            </HorizontalTab>\n            <HorizontalTab\n              active={activeTab === 'Chart'}\n              onClick={() => handleSwitchTab('Chart')}\n            >\n              History & Chart\n            </HorizontalTab>\n            <HorizontalTab\n              active={activeTab === 'MarketDepth'}\n              onClick={() => handleSwitchTab('MarketDepth')}\n            >\n              Market Depth\n            </HorizontalTab>\n            <HorizontalTab\n              active={activeTab === 'Markets'}\n              onClick={() => handleSwitchTab('Markets')}\n            >\n              Markets\n            </HorizontalTab>\n            <HorizontalTab\n              active={activeTab === 'Portfolio'}\n              onClick={() => handleSwitchTab('Portfolio')}\n            >\n              Portfolio\n            </HorizontalTab>\n            <HorizontalTab\n              active={activeTab === 'NFTArt'}\n              onClick={() => handleSwitchTab('NFTArt')}\n            >\n              NFT Art\n            </HorizontalTab>\n            {/* Stablecoin Swap tab hidden until ready for release\n          <HorizontalTab\n            active={activeTab === 'StablecoinSwap'}\n            onClick={() => handleSwitchTab('StablecoinSwap')}\n          >\n            Stablecoin Swap\n          </HorizontalTab>\n          */}\n        </HorizontalTab.TabBar>\n      </div>\n\n      <div>{activeTab === 'Overview' && <Overview />}</div>\n      <div>{activeTab === 'Trade' && <Trade />}</div>\n      <div>{activeTab === 'Chart' && <Chart />}</div>\n      <div>{activeTab === 'MarketDepth' && <MarketDepth />}</div>\n      <div>{activeTab === 'Markets' && <Markets />}</div>\n      <div>{activeTab === 'Portfolio' && <Portfolio />}</div>\n      <div>{activeTab === 'NFTArt' && <NFTMarketplace />}</div>\n      {/* Stablecoin Swap component hidden until ready for release\n      <div>{activeTab === 'StablecoinSwap' && <StablecoinSwap />}</div>\n      */}\n    </Panel>\n    </ErrorBoundary>
+              />
+              /
+              <TokenTextField
+                label="Quote Token"
+                name="quoteTokenInput"
+                value={inputPair.quoteTokenInput}
+                onChange={handleTokenInputChange}
+                placeholder={quoteToken}
+              />
+              <RefreshButton
+                baseTokenField={inputPair.baseTokenInput}
+                quoteTokenField={inputPair.quoteTokenInput}
+              />
+            </ButtonContainer>
+          </div>
+        }
+        title={
+          <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img src="distordia-logo.svg" alt="" style={{ width: '28px', height: '28px' }} />
+            <span style={{ 
+              background: 'linear-gradient(135deg, #ef4568 0%, #f0aa21 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              fontWeight: 700,
+              fontSize: '1.1em',
+              letterSpacing: '0.5px',
+              textShadow: '0 0 20px rgba(240, 170, 33, 0.3)'
+            }}>Distordia DEX Module</span>
+          </span>
+        }
+      >
+        <div className="text-center">
+          <HorizontalTab.TabBar>
+            <HorizontalTab
+              active={activeTab === 'Overview'}
+              onClick={() => handleSwitchTab('Overview')}
+            >
+              Token Overview
+            </HorizontalTab>
+            <HorizontalTab
+              active={activeTab === 'Trade'}
+              onClick={() => handleSwitchTab('Trade')}
+            >
+              Trading Desk
+            </HorizontalTab>
+            <HorizontalTab
+              active={activeTab === 'Chart'}
+              onClick={() => handleSwitchTab('Chart')}
+            >
+              History & Chart
+            </HorizontalTab>
+            <HorizontalTab
+              active={activeTab === 'MarketDepth'}
+              onClick={() => handleSwitchTab('MarketDepth')}
+            >
+              Market Depth
+            </HorizontalTab>
+            <HorizontalTab
+              active={activeTab === 'Markets'}
+              onClick={() => handleSwitchTab('Markets')}
+            >
+              Markets
+            </HorizontalTab>
+            <HorizontalTab
+              active={activeTab === 'Portfolio'}
+              onClick={() => handleSwitchTab('Portfolio')}
+            >
+              Portfolio
+            </HorizontalTab>
+            <HorizontalTab
+              active={activeTab === 'NFTArt'}
+              onClick={() => handleSwitchTab('NFTArt')}
+            >
+              NFT Art
+            </HorizontalTab>
+            {/* Stablecoin Swap tab hidden until ready for release
+          <HorizontalTab
+            active={activeTab === 'StablecoinSwap'}
+            onClick={() => handleSwitchTab('StablecoinSwap')}
+          >
+            Stablecoin Swap
+          </HorizontalTab>
+          */}
+          </HorizontalTab.TabBar>
+        </div>
+
+        <div>{activeTab === 'Overview' && <Overview />}</div>
+        <div>{activeTab === 'Trade' && <Trade />}</div>
+        <div>{activeTab === 'Chart' && <Chart />}</div>
+        <div>{activeTab === 'MarketDepth' && <MarketDepth />}</div>
+        <div>{activeTab === 'Markets' && <Markets />}</div>
+        <div>{activeTab === 'Portfolio' && <Portfolio />}</div>
+        <div>{activeTab === 'NFTArt' && <NFTMarketplace />}</div>
+        {/* Stablecoin Swap component hidden until ready for release
+      <div>{activeTab === 'StablecoinSwap' && <StablecoinSwap />}</div>
+      */}
+      </Panel>
+    </ErrorBoundary>
   );
 }
