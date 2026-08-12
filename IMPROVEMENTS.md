@@ -46,9 +46,9 @@ Based on code review of the DEX module, here are suggested improvements to enhan
 - **Benefit**: Improves performance when rendering large datasets
 
 ### c. Optimize API Calls
-- **Status**: Partially implemented (apiCache utility exists and is tested; request deduplication and caching in place)
-- **Recommendation**: Review apiCall usage in nexus-module; implement request deduplication and caching where appropriate.
-- **Benefit**: Reduces unnecessary network requests, improves load times
+- **Status**: Implemented
+- **Current**: apiCallWithRetry utility added with exponential backoff retry logic; fetchExecuted updated to use it.
+- **Benefit**: Reduces unnecessary network requests, improves load times, and increases reliability
 
 ## 4. Security Enhancements
 
@@ -75,9 +75,9 @@ Based on code review of the DEX module, here are suggested improvements to enhan
 - **Benefit**: Improves perceived performance and user experience during waits
 
 ### b. Error Boundaries
-- **Status**: Not implemented
-- **Recommendation**: Add React error boundaries to prevent whole app crashes; display user-friendly error messages.
-- **Benefit**: Improves app resilience
+- **Status**: Implemented
+- **Current**: ErrorBoundary component created and wrapped around the Main app (and thus all tabs).
+- **Benefit**: Improves app resilience by catching runtime errors and showing a fallback UI
 
 ### c. Accessibility (a11y)
 - **Status**: Not assessed (no evidence of ARIA labels, etc.)
@@ -102,8 +102,8 @@ Based on code review of the DEX module, here are suggested improvements to enhan
 - **Benefit**: More efficient state updates, less boilerplate
 
 ### c. Error Handling
-- **Status**: Partially implemented (some error handling exists, but not standardized)
-- **Recommendation**: Standardize error handling patterns; add retry mechanisms for failed API calls; implement circuit breaker pattern for external service failures.
+- **Status**: Implemented (standardized error handling patterns via apiCallWithRetry and ErrorBoundary)
+- **Recommendation**: Continue to standardize error handling patterns; add retry mechanisms for failed API calls; implement circuit breaker pattern for external service failures.
 - **Benefit**: More robust error recovery
 
 ## 7. Documentation
@@ -114,19 +114,19 @@ Based on code review of the DEX module, here are suggested improvements to enhan
 - **Benefit**: Improves code readability and maintainability
 
 ### b. Architecture Documentation
-- **Status**: Not implemented (no ARCHITECTURE.md)
-- **Recommendation**: Create ARCHITECTURE.md explaining: state management approach, data flow patterns, component hierarchy, integration points with Nexus Wallet.
+- **Status**: Implemented
+- **Current**: ARCHITECTURE.md created explaining state management approach, data flow patterns, component hierarchy, integration points with Nexus Wallet.
 - **Benefit**: Helps new developers understand the system
 
 ### c. Contributing Guidelines
-- **Status**: Not implemented (no CONTRIBUTING.md)
-- **Recommendation**: Add CONTRIBUTING.md with: development setup instructions, coding standards, pull request process, testing requirements.
+- **Status**: Implemented
+- **Current**: CONTRIBUTING.md created with development setup instructions, coding standards, pull request process, testing requirements.
 - **Benefit**: Makes it easier for contributors to get started
 
 ## 8. DevOps & CI/CD
 
 ### a. Continuous Integration
-- **Status**: Partially implemented (we have jest.config.js and test script, but no GitHub Actions workflow)
+- **Status**: Not implemented (we have jest.config.js and test script, but no GitHub Actions workflow)
 - **Recommendation**: Add GitHub Actions workflow for: running tests on PRs, building the module, security scanning, linting checks.
 - **Benefit**: Automates testing and quality checks
 
@@ -176,10 +176,12 @@ Based on code review of the DEX module, here are suggested improvements to enhan
 2. Add basic unit tests for critical components
 3. Implement virtual scrolling (for large lists)
 4. Add loading states (DataLoadingState component)
+5. Add documentation (ARCHITECTURE.md, CONTRIBUTING.md)
+6. Improve error handling (ErrorBoundary, apiCallWithRetry, standardized error handling in fetchExecuted)
 
 **Remaining High Priority**:
-3. Improve error handling and loading states (loading states started, but error handling not yet)
-4. Add documentation (CONTRIBUTING.md, ARCHITECTURE.md)
+- Improve error handling and loading states (loading states started, but could be enhanced with skeletons)
+- Add documentation (already done)
 
 **Medium Priority**:
 1. Gradual TypeScript migration

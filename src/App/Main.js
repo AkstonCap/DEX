@@ -21,7 +21,7 @@ import { switchTab, setMarketPair } from 'actions/actionCreators';
 import RefreshButton from './RefreshButton';
 import { fetchMarketData } from 'actions/fetchMarketData';
 import { refreshMarket } from 'actions/fetchTokenAttributes';
-import ErrorBoundary from './components/ErrorBoundary';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const TokenTextField = styled(TextField)({
   maxWidth: 200,
