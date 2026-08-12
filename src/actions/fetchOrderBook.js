@@ -1,19 +1,10 @@
 //import { listMarket } from 'actions/listMarket';
 import { setOrderBook, setMyOrders, removeUnconfirmedOrder, removeCancellingOrder, removeUnconfirmedTrade } from './actionCreators';
-import { 
-    showErrorDialog, 
-    apiCall 
+import {
+    showErrorDialog,
+    apiCall
 } from 'nexus-module';
-
-// NXS amounts come back from the core in divisible units (actual * 1e6)
-const normalizeNxsAmounts = (element) => {
-    if (element?.contract?.ticker === 'NXS') {
-        element.contract.amount = element.contract.amount / 1e6;
-    }
-    if (element?.order?.ticker === 'NXS') {
-        element.order.amount = element.order.amount / 1e6;
-    }
-};
+import { normalizeMarketEntries } from '../utils/marketData';
 
 export const fetchOrderBook = (
 ) => async (
@@ -36,24 +27,12 @@ export const fetchOrderBook = (
             }
         );
 
-        // The endpoint omits the key entirely when a side is empty, so an
-        // `?.length !== 0` check would still fall through to forEach on undefined.
-        const bids = Array.isArray(data1?.bids) ? data1.bids : [];
-        const asks = Array.isArray(data1?.asks) ? data1.asks : [];
-
-        bids.forEach((element) => {
-            normalizeNxsAmounts(element);
-            // Recalculate price after normalization for bids: price = contract/order
-            element.price = element.contract.amount / element.order.amount;
-        });
-        bids.sort((a, b) => b.price - a.price);
-
-        asks.forEach((element) => {
-            normalizeNxsAmounts(element);
-            // Recalculate price after normalization for asks: price = order/contract
-            element.price = element.order.amount / element.contract.amount;
-        });
-        asks.sort((a, b) => b.price - a.price);
+        // The endpoint omits a side entirely when it is empty, so an
+        // `?.length !== 0` check would fall straight through to forEach on
+        // undefined. normalizeMarketEntries converts NXS divisible units and
+        // recomputes price from the amounts (see utils/marketData.js).
+        const bids = normalizeMarketEntries(data1?.bids).sort((a, b) => b.price - a.price);
+        const asks = normalizeMarketEntries(data1?.asks).sort((a, b) => b.price - a.price);
 
         dispatch(setOrderBook({ bids, asks }));
 
@@ -117,19 +96,10 @@ export const fetchOrderBook = (
             error: hasExplicitError ? myOrdersResponse.error : (myOrdersError || null),
         };
 
-        // Only normalize if not already normalized (i.e., came directly from API, not from order book)
+        // Orders recovered from the order book by the fallback below are
+        // already normalized; normalizing twice would divide NXS by 1e6 again.
         if (!myOrders.alreadyNormalized) {
-            myOrders.orders.forEach((element) => {
-                normalizeNxsAmounts(element);
-                // Recalculate price after normalization
-                if (element.type === 'bid') {
-                    // Bid: price = contract/order (quote per base)
-                    element.price = element.contract.amount / element.order.amount;
-                } else if (element.type === 'ask') {
-                    // Ask: price = order/contract (quote per base)
-                    element.price = element.order.amount / element.contract.amount;
-                }
-            });
+            myOrders.orders = normalizeMarketEntries(myOrders.orders);
         }
 
         dispatch(setMyOrders(myOrders));

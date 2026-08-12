@@ -6,6 +6,7 @@ import {
   showErrorDialog
 } from 'nexus-module';
 import apiCallWithRetry from '../utils/apiCallWithRetry';
+import { normalizeMarketSides, normalizeMarketEntries } from '../utils/marketData';
 
 // Time span keys as offered by the Overview dropdown, mapped to the core's
 // `since()` syntax. Note `1m` means one month here - the previous chain of
@@ -54,8 +55,17 @@ export const fetchExecuted = (
       throw new Error('No data returned from apiCall');
     }
 
-    dispatch(setExecutedOrders(data));
-    dispatch(setMyTrades(data.myTrades));
+    // The core returns NXS amounts in divisible units and an unreliable price
+    // field, so executed trades have to be normalized before anything reads
+    // them - the Overview headline figures and the trade tables all derive
+    // from here.
+    dispatch(setExecutedOrders(normalizeMarketSides(data)));
+    dispatch(setMyTrades({
+      ...(data.myTrades || {}),
+      executed: normalizeMarketEntries(
+        data.myTrades?.executed || data.myTrades?.trades || data.myTrades
+      ),
+    }));
   } catch (error) {
     console.error('Error in fetchExecuted:', error);
     showErrorDialog({
