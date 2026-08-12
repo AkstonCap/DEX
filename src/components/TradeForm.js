@@ -1,12 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { 
+import {
   FieldSet,
   Button,
-  Dropdown,
   TextField,
   Select,
-  Modal,
   apiCall,
   showErrorDialog,
   FormField,
@@ -20,13 +18,11 @@ import {
   SubmitButton,
   formatTokenName,
 } from './styles';
-import { 
-  createOrder, 
-  cancelOrder, 
+import {
+  createOrder,
   executeOrder,
 } from 'actions/placeOrder';
 import { setOrder } from 'actions/actionCreators';
-import { fetchMarketData } from 'actions/fetchMarketData';
 import { formatNumberWithLeadingZeros } from 'actions/formatNumber';
 
 export default function TradeForm() {
@@ -47,7 +43,9 @@ export default function TradeForm() {
   const [price, setPrice] = useState(0);
   const [fromAccount, setFromAccount] = useState('');
   const [toAccount, setToAccount] = useState('');
-  const [accounts, setAccounts] = useState({ quoteAccounts: [], baseAccounts: [] });
+  // Raw account/token lists as returned by the API. Balance filtering happens in a
+  // memo below so typing an amount never triggers another round of API calls.
+  const [ownedAccounts, setOwnedAccounts] = useState({ accounts: [], tokens: [] });
   const [selectedOrderId, setSelectedOrderId] = useState('');
   const [marketFillType, setMarketFillType] = useState('buy'); // 'buy' or 'sell'
   const [marketFillMaxAmount, setMarketFillMaxAmount] = useState(0);
@@ -55,45 +53,33 @@ export default function TradeForm() {
   const [accountsLoading, setAccountsLoading] = useState(false);
   const orderBook = useSelector((state) => state.ui.market.orderBook);
   // Memoize expensive computations
-  const formattedQuoteToken = useMemo(() => formattedQuoteToken, [quoteToken]);
-  const formattedBaseToken = useMemo(() => formattedBaseToken, [baseToken]);
-  
+  const formattedQuoteToken = useMemo(() => formatTokenName(quoteToken), [quoteToken]);
+  const formattedBaseToken = useMemo(() => formatTokenName(baseToken), [baseToken]);
+
   // Memoize handler functions to prevent recreation on every render
   const handleQuoteAmountChange = useCallback((e) => {
     setQuoteAmount(parseFloat(e.target.value) || 0);
   }, []);
-  
-  const handleBaseAmountChange = useCallback((e) => {
-    setBaseAmount(parseFloat(e.target.value) || 0);
-  }, []);
-  
+
   const handlePriceChange = useCallback((e) => {
     setPrice(parseFloat(e.target.value) || 0);
   }, []);
-  
-  const handleFromAccountChange = useCallback((e) => {
-    setFromAccount(e.target.value);
+
+  const handleFromAccountChange = useCallback((val) => {
+    setFromAccount(val);
   }, []);
-  
-  const handleToAccountChange = useCallback((e) => {
-    setToAccount(e.target.value);
+
+  const handleToAccountChange = useCallback((val) => {
+    setToAccount(val);
   }, []);
-  
+
   const handleMarketFillTypeChange = useCallback((type) => {
     setMarketFillType(type);
     setMarketFillMaxAmount(0);
   }, []);
-  
+
   const handleMarketFillMaxAmountChange = useCallback((e) => {
     setMarketFillMaxAmount(parseFloat(e.target.value) || 0);
-  }, []);
-  
-  const handleSelectedOrderIdChange = useCallback((txid) => {
-    setSelectedOrderId(txid);
-  }, []);
-  
-  const handleConfirmationOrderChange = useCallback((order) => {
-    setConfirmationOrder(order);
   }, []);
 
   const handleOrderMethodChange = (val) => {
@@ -255,7 +241,6 @@ export default function TradeForm() {
     }
 
     // Show confirmation dialog with order details
-    console.log('Setting confirmation order:', { bestOrder, fromAccount, toAccount });
     setConfirmationOrder({
       order: bestOrder,
       fromAccount,
@@ -294,95 +279,129 @@ export default function TradeForm() {
     }
   }
 
+  // Mirror the order picked in the order book into the form fields
   useEffect(() => {
+    if (orderMethod !== 'execute') return;
+
+    setQuoteAmount(orderInQuestion.amount);
+    setPrice(orderInQuestion.price);
+
+    // If there are available orders at this price, auto-select the first one
+    if (availableOrders && availableOrders.length > 0 && !orderInQuestion.txid) {
+      const firstOrder = availableOrders[0];
+      setSelectedOrderId(firstOrder.txid);
+      const amount = firstOrder.type === 'ask'
+        ? firstOrder.order?.amount
+        : firstOrder.contract?.amount;
+      dispatch(setOrder(firstOrder.txid, firstOrder.price, amount, firstOrder.type, firstOrder.market, 'execute'));
+    }
+  }, [
+    dispatch,
+    orderMethod,
+    orderInQuestion.amount,
+    orderInQuestion.price,
+    orderInQuestion.txid,
+    availableOrders,
+  ]);
+
+  // Fetch the owned accounts/tokens once per market and order method. Balance
+  // filtering is done separately so it does not re-trigger network calls.
+  useEffect(() => {
+    let cancelled = false;
+
     async function fetchAccounts() {
+      setAccountsLoading(true);
       try {
-        
-        const params = {
-          sort: 'balance',
-          order: 'desc',
-        };
+        const [result, tokens] = await Promise.all([
+          apiCall('finance/list/account/balance,ticker,address', {
+            sort: 'balance',
+            order: 'desc',
+          }),
+          apiCall('finance/list/token/balance,ticker,address'),
+        ]);
 
-        if (orderMethod === 'execute') {
-          setQuoteAmount(orderInQuestion.amount);
-          setBaseAmount(orderInQuestion.amount / orderInQuestion.price);
-          setPrice(orderInQuestion.price);
-          
-          // If there are available orders at this price, auto-select the first one
-          if (availableOrders && availableOrders.length > 0 && !orderInQuestion.txid) {
-            const firstOrder = availableOrders[0];
-            setSelectedOrderId(firstOrder.txid);
-            const amount = firstOrder.type === 'ask' ? firstOrder.order.amount : firstOrder.contract.amount;
-            dispatch(setOrder(firstOrder.txid, firstOrder.price, amount, firstOrder.type, firstOrder.market, 'execute'));
-          }
-        }
+        if (cancelled) return;
 
-        const result = await apiCall('finance/list/account/balance,ticker,address', params);
-        const tokens = await apiCall('finance/list/token/balance,ticker,address');
-        
-        let quoteAccounts = [];
-        let baseAccounts = [];
-
-        if (orderMethod === 'bid' || (orderMethod === 'execute' && orderInQuestion.type === 'ask') || (orderMethod === 'market' && marketFillType === 'buy')) {
-
-          const minQuoteBalance = orderMethod === 'market' ? marketFillMaxAmount : quoteAmount;
-          const quoteTokenOwned = tokens
-            ?.filter((token) => token.address === quoteTokenAddress && token.balance >= minQuoteBalance);
-          const quoteAccounts1 = result.filter((acct) => acct.ticker === quoteToken && acct.balance >= minQuoteBalance);
-          if (quoteTokenOwned.length > 0) {
-            quoteAccounts = [...quoteAccounts1, ...quoteTokenOwned];
-          } else {
-            quoteAccounts = quoteAccounts1;
-          }
-
-          const baseTokenOwned = tokens
-            ?.filter((token) => token.address === baseTokenAddress);
-          const baseAccounts1 = result
-            .filter((acct) => acct.ticker === baseToken);
-          if (baseTokenOwned.length > 0) {
-            baseAccounts = [...baseAccounts1, ...baseTokenOwned];
-          } else {
-            baseAccounts = baseAccounts1;
-          }
-          
-          setAccounts({ quoteAccounts, baseAccounts });
-
-        } else if (orderMethod === 'ask' || (orderMethod === 'execute' && orderInQuestion.type === 'bid') || (orderMethod === 'market' && marketFillType === 'sell')) {
-
-          const quoteTokenOwned = tokens
-            ?.filter((token) => token.address === quoteTokenAddress );
-          const quoteAccounts1 = result.filter((acct) => acct.ticker === quoteToken);
-          const quoteAccounts = [...quoteAccounts1, ...quoteTokenOwned];
-          
-          const minBaseBalance = orderMethod === 'market' ? marketFillMaxAmount : baseAmount;
-          const baseTokenOwned = tokens
-            ?.filter((token) => token.address === baseTokenAddress && token.balance >= minBaseBalance );
-          const baseAccounts1 = result.filter((acct) => acct.ticker === baseToken && acct.balance >= minBaseBalance);
-          const baseAccounts = [...baseAccounts1, ...baseTokenOwned];
-
-          setAccounts({ quoteAccounts, baseAccounts });
-
-        } else {
-
-          setAccounts({ quoteAccounts, baseAccounts });
-
-        }
-
+        setOwnedAccounts({
+          accounts: Array.isArray(result) ? result : [],
+          tokens: Array.isArray(tokens) ? tokens : [],
+        });
       } catch (error) {
-        dispatch(showErrorDialog({
+        if (cancelled) return;
+        setOwnedAccounts({ accounts: [], tokens: [] });
+        showErrorDialog({
           message: 'Error fetching account information',
-          note: error?.message || 'Unknown error occurred'
-        }));
-      
+          note: error?.message || 'Unknown error occurred',
+        });
+      } finally {
+        if (!cancelled) setAccountsLoading(false);
       }
     }
 
     fetchAccounts();
 
-  }, [dispatch, orderMethod, orderInQuestion, marketPair, quoteAmount, baseAmount, marketFillType, marketFillMaxAmount]);
+    return () => {
+      cancelled = true;
+    };
+  }, [orderMethod, marketPair]);
 
+  // Select which accounts can pay / receive for the current order method, and
+  // hide the ones that do not hold enough balance for the entered amount.
+  const accounts = useMemo(() => {
+    const { accounts: accountList, tokens: tokenList } = ownedAccounts;
+    const isBuySide =
+      orderMethod === 'bid' ||
+      (orderMethod === 'execute' && orderInQuestion.type === 'ask') ||
+      (orderMethod === 'market' && marketFillType === 'buy');
+    const isSellSide =
+      orderMethod === 'ask' ||
+      (orderMethod === 'execute' && orderInQuestion.type === 'bid') ||
+      (orderMethod === 'market' && marketFillType === 'sell');
+
+    if (!isBuySide && !isSellSide) {
+      return { quoteAccounts: [], baseAccounts: [] };
+    }
+
+    const minQuoteBalance = isBuySide
+      ? (orderMethod === 'market' ? marketFillMaxAmount : quoteAmount) || 0
+      : 0;
+    const minBaseBalance = isSellSide
+      ? (orderMethod === 'market' ? marketFillMaxAmount : baseAmount) || 0
+      : 0;
+
+    const quoteAccounts = [
+      ...accountList.filter((acct) => acct.ticker === quoteToken && acct.balance >= minQuoteBalance),
+      ...tokenList.filter((token) => token.address === quoteTokenAddress && token.balance >= minQuoteBalance),
+    ];
+    const baseAccounts = [
+      ...accountList.filter((acct) => acct.ticker === baseToken && acct.balance >= minBaseBalance),
+      ...tokenList.filter((token) => token.address === baseTokenAddress && token.balance >= minBaseBalance),
+    ];
+
+    return { quoteAccounts, baseAccounts };
+  }, [
+    ownedAccounts,
+    orderMethod,
+    orderInQuestion.type,
+    marketFillType,
+    marketFillMaxAmount,
+    quoteAmount,
+    baseAmount,
+    quoteToken,
+    quoteTokenAddress,
+    baseToken,
+    baseTokenAddress,
+  ]);
+
+  // Keep the base amount in sync with price * quote amount, without dividing by zero
   useEffect(() => {
-    setBaseAmount(quoteAmount / price);
+    const numericPrice = parseFloat(price);
+    const numericQuoteAmount = parseFloat(quoteAmount);
+    if (!numericPrice || !Number.isFinite(numericPrice) || !Number.isFinite(numericQuoteAmount)) {
+      setBaseAmount(0);
+      return;
+    }
+    setBaseAmount(numericQuoteAmount / numericPrice);
   }, [quoteAmount, price]);
 
   // Handle order selection from dropdown
@@ -418,7 +437,6 @@ export default function TradeForm() {
   // decouple order action from data refresh to avoid middleware errors
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let result;
     if (orderMethod === 'execute') {
       // Find the full order object from availableOrders to get contract and order amounts
       const fullOrder = availableOrders?.find(order => order.txid === orderInQuestion.txid);
@@ -437,7 +455,7 @@ export default function TradeForm() {
         }
       }
       
-      result = await dispatch(
+      await dispatch(
         executeOrder(orderInQuestion.txid, fromAccount, toAccount, calculatedQuoteAmount, calculatedBaseAmount)
       );
       dispatch(setOrder('', 0, 0, '', '', 'execute'));
@@ -445,7 +463,7 @@ export default function TradeForm() {
       // Market fill is handled by separate button
       return;
     } else if (orderMethod === 'bid' || orderMethod === 'ask') {
-      result = await dispatch(
+      await dispatch(
         createOrder(orderMethod, price, quoteAmount, fromAccount, toAccount)
       );
       dispatch(setOrder('', 0, 0, orderMethod, '', orderMethod));
@@ -455,12 +473,6 @@ export default function TradeForm() {
       setFromAccount('');
       setToAccount('');
     }
-    // Refresh market data after successful operation with a small delay
-    /*if (result && result.success) {
-      setTimeout(() => {
-        dispatch(fetchMarketData());
-      }, 100);
-    }*/
   };
 
   function renderAmountField() {
@@ -485,11 +497,7 @@ export default function TradeForm() {
           type="number"
           step={Math.pow(10, -quoteTokenDecimals).toString()}
           value={quoteAmount}
-          onChange={(e) => {
-            setQuoteAmount(e.target.value);
-            //setBaseAmount(e.target.value / price);
-            }
-          }
+          onChange={handleQuoteAmountChange}
         />
       );
     }
@@ -519,10 +527,28 @@ export default function TradeForm() {
           type="number"
           step={Math.pow(10, -quoteTokenDecimals).toString()}
           value={price}
-          onChange={(e) => setPrice(e.target.value)}
+          onChange={handlePriceChange}
         />
       );
     }
+  }
+
+  function renderAccountsStatus() {
+    if (accountsLoading) {
+      return (
+        <div className='mt1' style={{ fontSize: '12px', color: '#9ca3af' }}>
+          Loading accounts...
+        </div>
+      );
+    }
+    if (accounts.quoteAccounts.length === 0 && accounts.baseAccounts.length === 0) {
+      return (
+        <div className='mt1' style={{ fontSize: '12px', color: '#f59e0b' }}>
+          No accounts with sufficient balance for this order.
+        </div>
+      );
+    }
+    return null;
   }
 
   let receivingOptions;
@@ -579,14 +605,14 @@ export default function TradeForm() {
                 <div style={{ display: 'flex', gap: '16px' }}>
                   <BidButton
                     orderMethod={marketFillType === 'buy' ? 'bid' : ''}
-                    onClick={() => setMarketFillType('buy')}
+                    onClick={() => handleMarketFillTypeChange('buy')}
                     style={{ fontSize: '13px', padding: '6px 12px' }}
                   >
                     Buy
                   </BidButton>
                   <AskButton
                     orderMethod={marketFillType === 'sell' ? 'ask' : ''}
-                    onClick={() => setMarketFillType('sell')}
+                    onClick={() => handleMarketFillTypeChange('sell')}
                     style={{ fontSize: '13px', padding: '6px 12px' }}
                   >
                     Sell
@@ -598,7 +624,7 @@ export default function TradeForm() {
                   type="number"
                   step={Math.pow(10, -(marketFillType === 'buy' ? quoteTokenDecimals : baseTokenDecimals)).toString()}
                   value={marketFillMaxAmount}
-                  onChange={(e) => setMarketFillMaxAmount(parseFloat(e.target.value))}
+                  onChange={handleMarketFillMaxAmountChange}
                   placeholder="Enter maximum payment amount"
                 />
               </FormField>
@@ -617,23 +643,26 @@ export default function TradeForm() {
             </TradeFormContainer>
           )}
           {orderMethod === 'market' && (
-            <TradeFormContainer>
-              <FormField label={('Payment Account ' + formatTokenName(marketFillType === 'buy' ? quoteToken : baseToken))}>
-                <Select
-                  value={fromAccount}
-                  onChange={(val) => setFromAccount(val)}
-                  options={marketFillType === 'buy' ? quoteAccountOptions : baseAccountOptions}
-                />
-              </FormField>
+            <>
+              <TradeFormContainer>
+                <FormField label={('Payment Account ' + formatTokenName(marketFillType === 'buy' ? quoteToken : baseToken))}>
+                  <Select
+                    value={fromAccount}
+                    onChange={handleFromAccountChange}
+                    options={marketFillType === 'buy' ? quoteAccountOptions : baseAccountOptions}
+                  />
+                </FormField>
 
-              <FormField label={('Receiving Account ' + formatTokenName(marketFillType === 'buy' ? baseToken : quoteToken))}>
-                <Select
-                  value={toAccount}
-                  onChange={(option) => setToAccount(option)}
-                  options={marketFillType === 'buy' ? baseAccountOptions : quoteAccountOptions}
-                />
-              </FormField>
-            </TradeFormContainer>
+                <FormField label={('Receiving Account ' + formatTokenName(marketFillType === 'buy' ? baseToken : quoteToken))}>
+                  <Select
+                    value={toAccount}
+                    onChange={handleToAccountChange}
+                    options={marketFillType === 'buy' ? baseAccountOptions : quoteAccountOptions}
+                  />
+                </FormField>
+              </TradeFormContainer>
+              {renderAccountsStatus()}
+            </>
           )}
           {orderMethod === 'market' && (
             <div className='mt2 text-center'>
@@ -652,25 +681,26 @@ export default function TradeForm() {
             </FormField>
           )}
           {orderMethod !== 'market' && (
-            <TradeFormContainer>
-              <FormField label={('Payment Account ' + formatTokenName(payToken))}>
-                <Select
-                  value={fromAccount}
-                  onChange={(val) => setFromAccount(val)}
-                  options={paymentOptions}
-                />
-              </FormField>
+            <>
+              <TradeFormContainer>
+                <FormField label={('Payment Account ' + formatTokenName(payToken))}>
+                  <Select
+                    value={fromAccount}
+                    onChange={handleFromAccountChange}
+                    options={paymentOptions}
+                  />
+                </FormField>
 
-              <FormField label={('Receiving Account ' + formatTokenName(receiveToken))}>
-                <Select
-                  value={toAccount}
-                  onChange={(option) => setToAccount(option)}
-                  options={
-                    receivingOptions
-                  }
-                />
-              </FormField>
-            </TradeFormContainer>
+                <FormField label={('Receiving Account ' + formatTokenName(receiveToken))}>
+                  <Select
+                    value={toAccount}
+                    onChange={handleToAccountChange}
+                    options={receivingOptions}
+                  />
+                </FormField>
+              </TradeFormContainer>
+              {renderAccountsStatus()}
+            </>
           )}
           <div className='mt2'>
             {orderMethod === 'execute' ? (
@@ -702,9 +732,6 @@ export default function TradeForm() {
             </div>
           )}
       </FieldSet>
-      {console.log('confirmationOrder state:', confirmationOrder)}
-      {console.log('confirmationOrder?.order:', confirmationOrder?.order)}
-      {console.log('confirmationOrder?.order?.txid:', confirmationOrder?.order?.txid)}
       {confirmationOrder && confirmationOrder.order && confirmationOrder.order.txid && (
         <div
           style={{
@@ -735,10 +762,6 @@ export default function TradeForm() {
             onClick={(e) => e.stopPropagation()}
           >
           <FieldSet legend="Confirm Order Execution">
-              {console.log('Order for confirmation:', confirmationOrder.order)}
-              {console.log('Order type:', confirmationOrder.order.type)}
-              {console.log('contract.amount:', confirmationOrder.order.contract?.amount, 'contract.ticker:', confirmationOrder.order.contract?.ticker)}
-              {console.log('order.amount:', confirmationOrder.order.order?.amount, 'order.ticker:', confirmationOrder.order.order?.ticker)}
               <div style={{ marginBottom: '10px' }}>
                 <strong>Order ID:</strong> {confirmationOrder.order.txid.slice(0, 10)}...{confirmationOrder.order.txid.slice(-10)}
               </div>

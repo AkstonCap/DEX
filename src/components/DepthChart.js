@@ -32,27 +32,23 @@ export default function DepthChart() {
     const bids = Array.isArray(orderBook?.bids) ? orderBook.bids : [];
     const asks = Array.isArray(orderBook?.asks) ? orderBook.asks : [];
 
-    // Process bids (buy orders) - sorted descending by price
-    const bidPrices = new Map();
-    bids.forEach(order => {
-      const price = parseFloat(order.price);
-      const baseAmount = parseFloat(order.order?.amount || 0);
-      if (!bidPrices.has(price)) {
-        bidPrices.set(price, 0);
-      }
-      bidPrices.set(price, bidPrices.get(price) + baseAmount);
-    });
+    // Depth is measured in base token on both sides. For a bid the base token
+    // is what the buyer receives (order.amount); for an ask it is what the
+    // seller gives up (contract.amount) - using order.amount there charted
+    // quote units against base units on the same axis.
+    const accumulateByPrice = (orders, getBaseAmount) => {
+      const levels = new Map();
+      orders.forEach(order => {
+        const price = parseFloat(order.price);
+        const baseAmount = parseFloat(getBaseAmount(order) || 0);
+        if (!Number.isFinite(price) || !Number.isFinite(baseAmount)) return;
+        levels.set(price, (levels.get(price) || 0) + baseAmount);
+      });
+      return levels;
+    };
 
-    // Process asks (sell orders) - sorted ascending by price
-    const askPrices = new Map();
-    asks.forEach(order => {
-      const price = parseFloat(order.price);
-      const baseAmount = parseFloat(order.order?.amount || 0);
-      if (!askPrices.has(price)) {
-        askPrices.set(price, 0);
-      }
-      askPrices.set(price, askPrices.get(price) + baseAmount);
-    });
+    const bidPrices = accumulateByPrice(bids, (order) => order.order?.amount);
+    const askPrices = accumulateByPrice(asks, (order) => order.contract?.amount);
 
     // Sort and accumulate bids (descending price, accumulate from highest to lowest)
     const sortedBids = Array.from(bidPrices.entries())
@@ -246,7 +242,7 @@ export default function DepthChart() {
         </div>
         {midPrice && (
           <div style={{ marginLeft: '20px' }}>
-            Spread: {formatNumberWithLeadingZeros(midPrice, 3, quoteTokenDecimals)} {formatTokenName(quoteToken)}
+            Mid price: {formatNumberWithLeadingZeros(midPrice, 3, quoteTokenDecimals)} {formatTokenName(quoteToken)}
           </div>
         )}
       </div>

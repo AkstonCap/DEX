@@ -3,7 +3,7 @@ import { apiCall,
     showSuccessDialog,
     secureApiCall
 } from 'nexus-module';
-import { addUnconfirmedOrder, removeUnconfirmedOrder, addCancellingOrder, addUnconfirmedTrade } from './actionCreators';
+import { addUnconfirmedOrder, addCancellingOrder, addUnconfirmedTrade } from './actionCreators';
 // import fetchMarketData separately in components to avoid nested dispatch issues
 
 // create order
@@ -29,7 +29,6 @@ export const createOrder = (
     const marketPair = state.ui.market.marketPairs.marketPair;
     const quoteToken = state.ui.market.marketPairs.quoteToken;
     const baseToken = state.ui.market.marketPairs.baseToken;
-    const quoteTokenDecimals = state.ui.market.marketPairs.quoteTokenDecimals || 6;
     const baseTokenDecimals = state.ui.market.marketPairs.baseTokenDecimals || 6;
     // calculate baseAmount and round if it has more decimals than allowed
     const rawBaseAmount = quoteAmount / price;
@@ -69,16 +68,12 @@ export const createOrder = (
         const infoFromAccountTest = await apiCall(
             'finance/get/account', 
             {address: fromAccount}
-        ).catch((error) => {
-            return [];
-        });
+        ).catch(() => [] );
 
         const infoFromTokenTest = await apiCall(
             'register/get/finance:token', 
             {address: fromAccount}
-        ).catch((error) => {
-            return [];
-        });
+        ).catch(() => [] );
 
         let infoFromAccount = [];
         if ( infoFromAccountTest?.address === fromAccount ) {
@@ -90,16 +85,12 @@ export const createOrder = (
         const infoToAccountTest = await apiCall(
             'finance/get/account', 
             {address: toAccount}
-        ).catch((error) => {
-            return [];
-        });
+        ).catch(() => [] );
 
         const infoToTokenTest = await apiCall(
             'register/get/finance:token', 
             {address: toAccount}
-        ).catch((error) => {
-            return [];
-        });
+        ).catch(() => [] );
 
         let infoToAccount = [];
         if ( infoToAccountTest?.address === toAccount ) {
@@ -311,18 +302,14 @@ export const executeOrder = (
         const infoFromAccountTest = await apiCall(
             'finance/get/account', 
             {address: fromAccount}
-        ).catch((error) => {
-            return [];
-        });
+        ).catch(() => [] );
 
         const infoFromTokenTest = await apiCall(
             'register/get/finance:token', 
             {address: fromAccount}
-        ).catch((error) => {
-            return [];
-        });
+        ).catch(() => [] );
 
-        let infoFromAccount;
+        let infoFromAccount = {};
         if ( infoFromAccountTest?.address === fromAccount ) {
             infoFromAccount = infoFromAccountTest;
         } else if ( infoFromTokenTest?.address === fromAccount ) {
@@ -332,18 +319,14 @@ export const executeOrder = (
         const infoToAccountTest = await apiCall(
             'finance/get/account', 
             {address: toAccount}
-        ).catch((error) => {
-            return [];
-        });
+        ).catch(() => [] );
 
         const infoToTokenTest = await apiCall(
             'register/get/finance:token', 
             {address: toAccount}
-        ).catch((error) => {
-            return [];
-        });
+        ).catch(() => [] );
 
-        let infoToAccount;
+        let infoToAccount = {};
         if ( infoToAccountTest?.address === toAccount ) {
             infoToAccount = infoToAccountTest;
         } else if ( infoToTokenTest?.address === toAccount ) {

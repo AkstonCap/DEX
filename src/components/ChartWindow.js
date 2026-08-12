@@ -51,6 +51,7 @@ const INDICATORS = {
 // Calculate Simple Moving Average
 const calculateSMA = (data, period) => {
   const result = [];
+  if (!Array.isArray(data) || data.length < period) return result;
   for (let i = period - 1; i < data.length; i++) {
     let sum = 0;
     for (let j = 0; j < period; j++) {
@@ -67,8 +68,9 @@ const calculateSMA = (data, period) => {
 // Calculate Exponential Moving Average
 const calculateEMA = (data, period) => {
   const result = [];
+  if (!Array.isArray(data) || data.length < period) return result;
   const multiplier = 2 / (period + 1);
-  
+
   // Start with SMA for first value
   let sum = 0;
   for (let i = 0; i < period; i++) {
@@ -181,7 +183,9 @@ const ChartWindow = () => {
   // Drawing state
   const [drawingTool, setDrawingTool] = useState('none');
   const [drawings, setDrawings] = useState([]);
-  const [drawingSeries, setDrawingSeries] = useState([]);
+  // Handles for the drawings currently on the chart, kept in a ref so cleanup
+  // always sees the live list rather than a captured one.
+  const drawingSeriesRef = useRef([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawingStart, setDrawingStart] = useState(null);
   const drawingIdRef = useRef(0);
@@ -199,7 +203,6 @@ const ChartWindow = () => {
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const quoteToken = useSelector((state) => state.ui.market.marketPairs.quoteToken);
   const quoteTokenDecimals = useSelector((state) => state.ui.market.marketPairs.quoteTokenDecimals);
-  const baseTokenDecimals = useSelector((state) => state.ui.market.marketPairs.baseTokenDecimals);
 
   // Fetch historical data
   const fetchHistoricalData = async () => {
@@ -630,10 +633,10 @@ const ChartWindow = () => {
     Object.values(indicatorSeries).forEach(series => {
       if (Array.isArray(series)) {
         series.forEach(s => {
-          try { chart.removeSeries(s); } catch (e) {}
+          try { chart.removeSeries(s); } catch (e) { /* already removed */ }
         });
       } else {
-        try { chart.removeSeries(series); } catch (e) {}
+        try { chart.removeSeries(series); } catch (e) { /* already removed */ }
       }
     });
     
@@ -718,11 +721,17 @@ const ChartWindow = () => {
   const renderDrawings = useCallback(() => {
     if (!chart || !mainSeries) return;
     
-    // Remove old drawing series
-    drawingSeries.forEach(series => {
-      try { chart.removeSeries(series); } catch (e) {}
+    // Drawing entries are wrappers ({ type, line | series }), not series objects.
+    // Passing them straight to removeSeries always threw, so old drawings were
+    // never cleaned up and stacked on top of each other.
+    drawingSeriesRef.current.forEach(item => {
+      if (item?.type === 'priceLine' && mainSeries) {
+        try { mainSeries.removePriceLine(item.line); } catch (e) { /* already gone */ }
+      } else if (item?.type === 'series') {
+        try { chart.removeSeries(item.series); } catch (e) { /* already gone */ }
+      }
     });
-    
+
     const newDrawingSeries = [];
     
     drawings.forEach(drawing => {
@@ -777,7 +786,7 @@ const ChartWindow = () => {
           const lowPrice = Math.min(drawing.startPrice, drawing.endPrice);
           const priceRange = highPrice - lowPrice;
           
-          FIB_LEVELS.forEach((level, index) => {
+          FIB_LEVELS.forEach((level) => {
             const price = highPrice - priceRange * level;
             const priceLine = mainSeries.createPriceLine({
               price: price,
@@ -797,7 +806,7 @@ const ChartWindow = () => {
       }
     });
     
-    setDrawingSeries(newDrawingSeries);
+    drawingSeriesRef.current = newDrawingSeries;
   }, [chart, mainSeries, drawings]);
 
   // Re-render drawings when they change
@@ -858,18 +867,18 @@ const ChartWindow = () => {
   // Clear all drawings
   const clearDrawings = useCallback(() => {
     // Remove price lines from main series
-    drawingSeries.forEach(item => {
+    drawingSeriesRef.current.forEach(item => {
       if (item.type === 'priceLine' && mainSeries) {
-        try { mainSeries.removePriceLine(item.line); } catch (e) {}
+        try { mainSeries.removePriceLine(item.line); } catch (e) { /* already removed */ }
       } else if (item.type === 'series' && chart) {
-        try { chart.removeSeries(item.series); } catch (e) {}
+        try { chart.removeSeries(item.series); } catch (e) { /* already removed */ }
       }
     });
+    drawingSeriesRef.current = [];
     setDrawings([]);
-    setDrawingSeries([]);
     setIsDrawing(false);
     setDrawingStart(null);
-  }, [chart, mainSeries, drawingSeries]);
+  }, [chart, mainSeries]);
 
   // Cancel current drawing
   const cancelDrawing = useCallback(() => {
@@ -922,8 +931,8 @@ const ChartWindow = () => {
   const hasData = chartData.candlestickData.length > 0;
   const latestPrice = hasData ? chartData.candlestickData[chartData.candlestickData.length - 1].close : 0;
   
-  // Calculate 24h volume (sum of last day's volume)
-  const last24hVolume = hasData && chartData.volumeData.length > 0 
+  // Volume of the most recent candle, which spans the selected interval
+  const lastIntervalVolume = hasData && chartData.volumeData.length > 0
     ? chartData.volumeData[chartData.volumeData.length - 1]?.value || 0
     : 0;
 
@@ -954,17 +963,19 @@ const ChartWindow = () => {
               </span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ color: '#9ca3af', fontSize: '12px', fontWeight: '500' }}>24H VOLUME</span>
+              <span style={{ color: '#9ca3af', fontSize: '12px', fontWeight: '500' }}>
+                {selectedInterval.toUpperCase()} VOLUME
+              </span>
               <span style={{ color: '#d1d5db', fontSize: '16px', fontWeight: '500' }}>
-                {last24hVolume > 0 ? 
-                  formatNumberWithLeadingZeros(last24hVolume, 3, quoteTokenDecimals) : '0'
+                {lastIntervalVolume > 0 ?
+                  formatNumberWithLeadingZeros(lastIntervalVolume, 3, quoteTokenDecimals) : '0'
                 } {formatTokenName(quoteToken)}
               </span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ color: '#9ca3af', fontSize: '12px', fontWeight: '500' }}>PERIOD</span>
+              <span style={{ color: '#9ca3af', fontSize: '12px', fontWeight: '500' }}>CANDLES</span>
               <span style={{ color: '#d1d5db', fontSize: '16px', fontWeight: '500' }}>
-                {chartData.candlestickData.length} Days
+                {chartData.candlestickData.length} &times; {selectedInterval}
               </span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>

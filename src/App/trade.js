@@ -1,14 +1,12 @@
 //import { useSelector } from 'react-redux';
 import OrderBookComp from 'components/OrderBookComp';
 import TradeForm from 'components/TradeForm';
-import TradeHistory from 'components/TradeHistory';
 import PersonalTradeHistory from 'components/PersonalTradeHistory';
 import PersonalOpenOrders from 'components/PersonalOpenOrders';
-import { 
-  PageLayout, 
-  TopRow, 
-  BottomRow,
-  TradeBottomRow, 
+import {
+  PageLayout,
+  TopRow,
+  TradeBottomRow,
 } from 'components/styles';
 
 export default function Trade() {
@@ -21,7 +19,6 @@ export default function Trade() {
         <OrderBookComp num={6}/>
       </TopRow>
       <TradeBottomRow>
-        {/*<TradeHistory num={6}/>*/}
         <PersonalTradeHistory />
         <PersonalOpenOrders />
       </TradeBottomRow>

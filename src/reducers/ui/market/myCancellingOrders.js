@@ -16,6 +16,7 @@ export default (state = initialState, action) => {
             };
         
         case TYPE.REMOVE_CANCELLING_ORDER:
+            if (!action.payload?.txid) return state;
             return {
                 cancellingOrders: (state.cancellingOrders || []).filter(order => order.txid !== action.payload.txid)
             };

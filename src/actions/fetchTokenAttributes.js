@@ -32,6 +32,9 @@ export const refreshMarket = (baseToken, quoteToken) => async dispatch => {
       ));
 
     } catch (error) {
-      dispatch(showErrorDialog('Error refreshing token data', error));
+      showErrorDialog({
+        message: 'Error refreshing token data',
+        note: error?.message || 'Unknown error',
+      });
     }
   };

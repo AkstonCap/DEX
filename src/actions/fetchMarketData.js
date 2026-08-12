@@ -3,23 +3,18 @@ import { fetchOrderBook } from 'actions/fetchOrderBook';
 import { fetchExecuted } from 'actions/fetchExecuted';
 //import { useDispatch } from 'react-redux';
 
-export const fetchMarketData = () => async (dispatch, getState) => {
-  const state = getState();
-  const marketPair = state.ui.market.marketPairs.marketPair;
-
+export const fetchMarketData = () => async (dispatch) => {
   try {
-    
-    await dispatch(fetchOrderBook(marketPair));
+    // Both thunks read the current market pair straight from the store
+    await dispatch(fetchOrderBook());
     await dispatch(fetchExecuted());
     return true; // Return success indicator
   
   } catch (error) {
-    dispatch(
-      showErrorDialog({
-        message: 'Cannot fetch market data (fetchMarketData)',
-        note: error?.message || 'Unknown error',
-      })
-    );
+    showErrorDialog({
+      message: 'Cannot fetch market data (fetchMarketData)',
+      note: error?.message || 'Unknown error',
+    });
     return null; // Return null for error
   }
 };

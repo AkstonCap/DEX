@@ -17,7 +17,7 @@ export default (state = initialState, action) => {
             };
         
         case TYPE.REMOVE_UNCONFIRMED_ORDER:
-            console.log('REMOVE_UNCONFIRMED_ORDER reducer called with state:', state, 'payload:', action.payload);
+            if (!action.payload?.txid) return state;
             return {
                 unconfirmedOrders: (state.unconfirmedOrders || []).filter(order => order.txid !== action.payload.txid)
             };

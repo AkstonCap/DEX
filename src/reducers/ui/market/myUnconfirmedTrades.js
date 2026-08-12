@@ -17,6 +17,9 @@ export default (state = initialState, action) => {
             };
         
         case TYPE.REMOVE_UNCONFIRMED_TRADE:
+            // Ignore a removal without a txid, which would otherwise drop every
+            // entry that has no txid yet instead of doing nothing.
+            if (!action.payload?.txid) return state;
             return {
                 unconfirmedTrades: (state.unconfirmedTrades || []).filter(trade => trade.txid !== action.payload.txid)
             };
