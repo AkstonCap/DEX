@@ -3,13 +3,19 @@ import { setMarketPair } from 'actions/actionCreators';
 
 export const refreshMarket = (baseToken, quoteToken) => async dispatch => {
     try {
+      // Validate tokens before making API calls
+      if (!baseToken || !quoteToken || baseToken === '' || quoteToken === '') {
+        console.warn('refreshMarket called with invalid tokens:', { baseToken, quoteToken });
+        return;
+      }
+
       const baseTokenData = baseToken !== 'NXS' 
         ? await apiCall('register/get/finance:token/decimals,currentsupply,maxsupply,address', { name: baseToken })
-        : { decimals: 8, currentsupply: 0, maxsupply: 0, address: '0' };
+        : { decimals: 6, currentsupply: 0, maxsupply: 0, address: '0' };
         
       const quoteTokenData = quoteToken !== 'NXS'
         ? await apiCall('register/get/finance:token/decimals,currentsupply,maxsupply,address', { name: quoteToken })
-        : { decimals: 8, currentsupply: 0, maxsupply: 0, address: '0' };
+        : { decimals: 6, currentsupply: 0, maxsupply: 0, address: '0' };
   
       dispatch(setMarketPair(
         `${baseToken}/${quoteToken}`,

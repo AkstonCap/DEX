@@ -1,6 +1,7 @@
 import { 
   setExecutedOrders,
   setMyTrades,
+  removeUnconfirmedTrade,
 } from './actionCreators';
 import { 
   showErrorDialog, 
@@ -86,8 +87,10 @@ export const fetchExecuted = (
     dispatch(setExecutedOrders(data1));
 
     let myTrades = {executed: []};
+    let myTradesError = null;
     
-    if (baseToken !== 'NXS') {
+    // Only fetch my trades if baseToken is valid and not NXS
+    if (baseToken && baseToken !== 'NXS') {
 
       myTrades = await apiCall(
         'market/user/executed', 
@@ -99,16 +102,14 @@ export const fetchExecuted = (
         }
 
       ).catch((error) => {
-
-        dispatch(showErrorDialog({
-          message: 'Cannot get my trades from apiCall (fetchExecuted)',
-          note: error?.message || 'Unknown error',
-        }));
-        const defaultTrades = {executed: []};
-        dispatch(setMyTrades(defaultTrades));
-        return defaultTrades; // Return default data
+        // Silent error - just log and return empty, don't show popup
+        console.warn('Cannot get my trades from apiCall (fetchExecuted):', error?.message || 'Unknown error');
+        myTradesError = error?.message || 'Unable to load trade history';
+        return {executed: [], error: myTradesError};
 
       });
+    } else {
+      myTrades = {executed: []};
     }
 
     // Add length check
@@ -152,7 +153,29 @@ export const fetchExecuted = (
       });
     }
 
+    // Preserve error if it exists
+    if (myTradesError) {
+      myTrades1.error = myTradesError;
+    }
+
     dispatch(setMyTrades(myTrades1));
+    
+    // Remove any unconfirmed trades that now appear in confirmed trade history
+    const currentState = getState();
+    const unconfirmedTrades = currentState.ui.market.myUnconfirmedTrades?.unconfirmedTrades || [];
+    
+    unconfirmedTrades.forEach(unconfirmedTrade => {
+      const isConfirmed = myTrades1.executed.find(trade => 
+        trade.txid === unconfirmedTrade.txid ||
+        (trade.timestamp === unconfirmedTrade.timestamp && 
+         trade.amount === unconfirmedTrade.amount &&
+         trade.total === unconfirmedTrade.total)
+      );
+      if (isConfirmed) {
+        dispatch(removeUnconfirmedTrade(unconfirmedTrade.txid || `${unconfirmedTrade.timestamp}-${unconfirmedTrade.amount}`));
+      }
+    });
+    
     return true; // Return success indicator
 
   } catch (error) {

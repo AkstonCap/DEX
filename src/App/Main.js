@@ -14,6 +14,8 @@ import Chart from './chart';
 import MarketDepth from './marketDepth';
 import Markets from './markets';
 import Portfolio from './portfolio';
+import StablecoinSwap from './stablecoinSwap';
+import NFTMarketplace from './nftMarketplace';
 
 import { switchTab, setMarketPair } from 'actions/actionCreators';
 import RefreshButton from './RefreshButton';
@@ -22,6 +24,15 @@ import { refreshMarket } from 'actions/fetchTokenAttributes';
 
 const TokenTextField = styled(TextField)({
   maxWidth: 200,
+  '& input': {
+    fontWeight: 600,
+  },
+  '& input::placeholder': {
+    color: '#555',
+    opacity: 1,
+    fontWeight: 400,
+    fontStyle: 'italic',
+  },
 });
 
 const ButtonContainer = styled.div`
@@ -60,15 +71,17 @@ export default function Main() {
     const fetchData = () => {
       
       dispatch(fetchMarketData());
-      dispatch(refreshMarket(baseToken, quoteToken));
+      if (baseToken && quoteToken && baseToken !== '' && quoteToken !== '') {
+        dispatch(refreshMarket(baseToken, quoteToken));
+      }
     
     };
   
     // Fetch data immediately
     fetchData();
   
-    // Set interval to fetch data every 10 seconds
-    const intervalId = setInterval(fetchData, 5000);
+    // Set interval to fetch data every 15 seconds
+    const intervalId = setInterval(fetchData, 15000);
   
     // Cleanup interval on unmount
     return () => clearInterval(intervalId);
@@ -105,8 +118,21 @@ export default function Main() {
           </ButtonContainer>
         </div>
       }
-      title={"Distordia DEX Module"} 
-      icon={{ url: 'dist/distordia-large.svg', id: 'icon' }}>
+      title={
+        <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <img src="distordia-logo.svg" alt="" style={{ width: '28px', height: '28px' }} />
+          <span style={{ 
+            background: 'linear-gradient(135deg, #ef4568 0%, #f0aa21 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            fontWeight: 700,
+            fontSize: '1.1em',
+            letterSpacing: '0.5px',
+            textShadow: '0 0 20px rgba(240, 170, 33, 0.3)'
+          }}>Distordia DEX Module</span>
+        </span>
+      }>
       <div className="text-center">
         <HorizontalTab.TabBar>
           <HorizontalTab
@@ -145,6 +171,20 @@ export default function Main() {
           >
             Portfolio
           </HorizontalTab>
+          <HorizontalTab
+            active={activeTab === 'NFTArt'}
+            onClick={() => handleSwitchTab('NFTArt')}
+          >
+            NFT Art
+          </HorizontalTab>
+          {/* Stablecoin Swap tab hidden until ready for release
+          <HorizontalTab
+            active={activeTab === 'StablecoinSwap'}
+            onClick={() => handleSwitchTab('StablecoinSwap')}
+          >
+            Stablecoin Swap
+          </HorizontalTab>
+          */}
         </HorizontalTab.TabBar>
       </div>
 
@@ -154,6 +194,10 @@ export default function Main() {
       <div>{activeTab === 'MarketDepth' && <MarketDepth />}</div>
       <div>{activeTab === 'Markets' && <Markets />}</div>
       <div>{activeTab === 'Portfolio' && <Portfolio />}</div>
+      <div>{activeTab === 'NFTArt' && <NFTMarketplace />}</div>
+      {/* Stablecoin Swap component hidden until ready for release
+      <div>{activeTab === 'StablecoinSwap' && <StablecoinSwap />}</div>
+      */}
     </Panel>
   );
 }

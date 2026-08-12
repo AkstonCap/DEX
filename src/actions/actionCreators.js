@@ -56,6 +56,15 @@ export const setOrder = (txid, price, amount, type, marketPair, orderMethod) => 
   },
 });
 
+export const setAvailableOrdersAtPrice = (orders, price, type) => ({
+  type: TYPE.SET_AVAILABLE_ORDERS_AT_PRICE,
+  payload: {
+    orders,
+    price,
+    type,
+  },
+});
+
 export const setMyOrders = (myOrders) => ({
   type: TYPE.SET_MY_ORDERS,
   payload: myOrders,
@@ -71,28 +80,72 @@ export const setTimeSpan = (timeSpan) => ({
   payload: timeSpan,
 });
 
-export const setUnconfirmedOrders = (txid, price, amount, type, marketPair) => ({
+export const setUnconfirmedOrders = (unconfirmedOrders) => ({
   type: TYPE.SET_MY_UNCONFIRMEDORDERS,
   payload: {
-    txid,
-    price,
-    amount,
-    type,
-    marketPair,
+    unconfirmedOrders,
   },
 });
 
-/*export const removeUnconfirmedOrder = (txid) => ({
-  type: TYPE.REMOVE_UNCONFIRMED_ORDER,
-  payload: txid,
+export const addUnconfirmedOrder = (order) => ({
+  type: TYPE.ADD_UNCONFIRMED_ORDER,
+  payload: order,
 });
-*/
-/*
-export const updateInput = (orderToken, baseToken) => ({
-  type: TYPE.UPDATE_INPUT,
+
+export const removeUnconfirmedOrder = (txid) => ({
+  type: TYPE.REMOVE_UNCONFIRMED_ORDER,
+  payload: { txid },
+});
+
+export const addCancellingOrder = (txid, cancellationTxid) => ({
+  type: TYPE.ADD_CANCELLING_ORDER,
+  payload: { txid, cancellationTxid },
+});
+
+export const removeCancellingOrder = (txid) => ({
+  type: TYPE.REMOVE_CANCELLING_ORDER,
+  payload: { txid },
+});
+
+export const setUnconfirmedTrades = (unconfirmedTrades) => ({
+  type: TYPE.SET_MY_UNCONFIRMEDTRADES,
   payload: {
-    orderToken,
-    baseToken
+    unconfirmedTrades,
   },
 });
-*/
+
+export const addUnconfirmedTrade = (trade) => ({
+  type: TYPE.ADD_UNCONFIRMED_TRADE,
+  payload: trade,
+});
+
+export const removeUnconfirmedTrade = (txid) => ({
+  type: TYPE.REMOVE_UNCONFIRMED_TRADE,
+  payload: { txid },
+});
+
+// NFT Art Marketplace
+export const setNftListings = (listings) => ({
+  type: TYPE.SET_NFT_LISTINGS,
+  payload: listings,
+});
+
+export const setNftSelected = (nft) => ({
+  type: TYPE.SET_NFT_SELECTED,
+  payload: nft,
+});
+
+export const setNftMyAssets = (assets) => ({
+  type: TYPE.SET_NFT_MY_ASSETS,
+  payload: assets,
+});
+
+export const setNftLoading = (loading) => ({
+  type: TYPE.SET_NFT_LOADING,
+  payload: loading,
+});
+
+export const setNftFilter = (filter) => ({
+  type: TYPE.SET_NFT_FILTER,
+  payload: filter,
+});

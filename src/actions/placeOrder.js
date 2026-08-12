@@ -3,6 +3,7 @@ import { apiCall,
     showSuccessDialog,
     secureApiCall
 } from 'nexus-module';
+import { addUnconfirmedOrder, removeUnconfirmedOrder, addCancellingOrder, addUnconfirmedTrade } from './actionCreators';
 // import fetchMarketData separately in components to avoid nested dispatch issues
 
 // create order
@@ -13,11 +14,12 @@ export const createOrder = (
 ) => {
 
     // Validate parameters
-    if (!orderType || !price || !quoteAmount || !fromAccount || !toAccount) {
-        dispatch(showErrorDialog({
+    if (!orderType || !price || !quoteAmount || !fromAccount || !toAccount || 
+        fromAccount === '' || toAccount === '') {
+        showErrorDialog({
             message: 'Missing required parameters',
             note: 'Please fill in all required fields'
-        }));
+        });
         return null;
     }
     
@@ -106,47 +108,47 @@ export const createOrder = (
             infoToAccount = infoToTokenTest;
         }
 
-    // check account token type and balance
+        // check account token type and balance
         if (orderType === 'bid' && infoFromAccount.ticker !== quoteToken) {
-            dispatch(showErrorDialog({
+            showErrorDialog({
                 message: 'Invalid payment account (wrong token)',
                 note: `Expected ${quoteToken} account for bid order`
-            }));
+            });
             return null;
         } else if (orderType === 'ask' && infoFromAccount.ticker !== baseToken) {
-            dispatch(showErrorDialog({
+            showErrorDialog({
                 message: 'Invalid payment account (wrong token)',
                 note: `Expected ${baseToken} account for ask order`
-            }));
+            });
             return null;
         } else if (
             (orderType === 'bid' && infoFromAccount.balance < quoteAmount) || 
             (orderType === 'ask' && infoFromAccount.balance < baseAmount)
         ) {
-            dispatch(showErrorDialog({
+            showErrorDialog({
                 message: 'Not enough balance',
                 note: 'Account balance is insufficient for this order'
-            }));
+            });
             return null;
         }
         if (orderType === 'bid' && infoToAccount.ticker !== baseToken) {
-            dispatch(showErrorDialog({
+            showErrorDialog({
                 message: 'Invalid receival account (wrong token)',
                 note: `Expected ${baseToken} account to receive tokens`
-            }));
+            });
             return null;
         } else if (orderType === 'ask' && infoToAccount.ticker !== quoteToken) {
-            dispatch(showErrorDialog({
+            showErrorDialog({
                 message: 'Invalid receival account (wrong token)',
                 note: `Expected ${quoteToken} account to receive tokens`
-            }));
+            });
             return null;
         }
     } catch (error) {
-        dispatch(showErrorDialog({
+        showErrorDialog({
             message: 'Error fetching account information',
             note: error?.message || 'Unknown error occurred'
-        }));
+        });
         return null;
     }
 
@@ -154,26 +156,73 @@ export const createOrder = (
     try {
         const result = await secureApiCall('market/create/' + orderType, params);
         
+        // Handle case where user cancels the secure API call
+        if (!result) {
+            // User cancelled, don't show error - just return null silently
+            return null;
+        }
+        
         if (result.success) {
-            dispatch(showSuccessDialog({
+            // Add to unconfirmed orders immediately with proper structure to match confirmed orders
+            const unconfirmedOrder = {
+                txid: result.txid,
+                address: result.address,
+                type: orderType,
+                price: parseFloat(price),
+                timestamp: Date.now() / 1000
+            };
+            
+            if (orderType === 'bid') {
+                // For bid: buying BASE with QUOTE
+                // contract = what you're SENDING (quote token)
+                // order = what you want to RECEIVE (base token)
+                unconfirmedOrder.contract = {
+                    amount: parseFloat(quoteAmount),
+                    ticker: quoteToken
+                };
+                unconfirmedOrder.order = {
+                    amount: parseFloat(baseAmount),
+                    ticker: baseToken
+                };
+            } else { // ask
+                // For ask: selling BASE for QUOTE
+                // contract = what you're SENDING (base token)
+                // order = what you want to RECEIVE (quote token)
+                unconfirmedOrder.contract = {
+                    amount: parseFloat(baseAmount),
+                    ticker: baseToken
+                };
+                unconfirmedOrder.order = {
+                    amount: parseFloat(quoteAmount),
+                    ticker: quoteToken
+                };
+            }
+            
+            dispatch(addUnconfirmedOrder(unconfirmedOrder));
+            
+            // Ensure we only pass serializable strings to the dialog
+            const transactionId = String(result.txid || '');
+            const orderAddress = String(result.address || '');
+            
+            showSuccessDialog({
                 message: 'Order placed successfully',
-                note: `Transaction ID: ${result.txid}\nOrder address: ${result.address}`
-            }));
+                note: 'Transaction ID: ' + transactionId + '\nOrder address: ' + orderAddress
+            });
             // Note: fetchMarketData will be called separately to avoid nested dispatch issues
             return result;
         } else {
-            dispatch(showErrorDialog({
+            showErrorDialog({
                 message: 'Error placing order (success = false)',
                 note: result?.message || 'Unknown error'
-            }));
+            });
             return null;
         }
 
     } catch (error) {
-        dispatch(showErrorDialog({
+        showErrorDialog({
             message: 'Error placing order',
             note: error?.message || 'Unknown error occurred'
-        }));
+        });
         return null;
     }
 };
@@ -185,11 +234,12 @@ export const executeOrder = (
     dispatch, getState
 ) => {
 
-    if (!txid || !fromAccount || !toAccount) {
-        dispatch(showErrorDialog({
+    if (!txid || !fromAccount || !toAccount || 
+        txid === '' || fromAccount === '' || toAccount === '') {
+        showErrorDialog({
             message: 'Missing required parameters',
             note: 'Please fill in all required fields'
-        }));
+        });
         return null;
     }
 
@@ -197,6 +247,11 @@ export const executeOrder = (
     const quoteToken = state.ui.market.marketPairs.quoteToken;
     const baseToken = state.ui.market.marketPairs.baseToken;
     const marketPair = state.ui.market.marketPairs.marketPair;
+
+    // Declare these outside try-catch so they're available in both blocks
+    let orderType = null;
+    let orderInfo = null;
+    let amount = null;
 
     // set params for api call
     const params = {
@@ -206,31 +261,51 @@ export const executeOrder = (
     };
 
     try {
-        const orderInfo = await apiCall(
-            'market/list/order', 
+        // Get all orders for the market and find the one with matching txid
+        const orderListResponse = await apiCall(
+            'market/list/order/txid,owner,price,type,contract.amount,contract.ticker,order.amount,order.ticker', 
             {
                 market: marketPair,
-                where: 'results.txid=' + txid,
+                limit: 1000
             }
         ).catch((error) => {
-            dispatch(showErrorDialog({
+            showErrorDialog({
                 message: 'Error fetching order information',
                 note: error?.message || 'Unknown error occurred'
-            }));
+            });
             return null;
         });
 
-        if (!orderInfo) {
+        if (!orderListResponse) {
             return null;
         }
 
-        const orderType = orderInfo.type;
-        let amount;
+        // Search through bids and asks for the order with matching txid
+        orderInfo = null;
+        if (orderListResponse.bids) {
+            orderInfo = orderListResponse.bids.find(order => order.txid === txid);
+        }
+        if (!orderInfo && orderListResponse.asks) {
+            orderInfo = orderListResponse.asks.find(order => order.txid === txid);
+        }
 
+        if (!orderInfo) {
+            showErrorDialog({
+                message: 'Order not found',
+                note: `No order found with transaction ID: ${txid}`
+            });
+            return null;
+        }
+
+        orderType = orderInfo.type;
+
+        // Set the amount you actually pay when executing the order
+        // When executing a bid: you pay base token (what the bidder wants to buy)
+        // When executing an ask: you pay quote token (what the asker wants to receive)
         if (orderType === 'bid') {
-            amount = quoteAmount;
+            amount = baseAmount;  // Executing bid: pay base
         } else if (orderType === 'ask') {
-            amount = baseAmount;
+            amount = quoteAmount; // Executing ask: pay quote
         }
 
         const infoFromAccountTest = await apiCall(
@@ -275,45 +350,44 @@ export const executeOrder = (
             infoToAccount = infoToTokenTest;
         }
 
-    
         // check account token type and balance
-        if (orderType === 'bid' && infoFromAccount.ticker !== quoteToken) {
-            dispatch(showErrorDialog({
+        if (orderType === 'bid' && infoFromAccount.ticker !== baseToken) {
+            showErrorDialog({
                 message: 'Invalid payment account (wrong token)',
-                note: `Expected ${quoteToken} account for bid execution`
-            }));
+                note: `Expected ${baseToken} account for bid execution`
+            });
             return null;
-        } else if (orderType === 'ask' && infoFromAccount.ticker !== baseToken) {
-            dispatch(showErrorDialog({
+        } else if (orderType === 'ask' && infoFromAccount.ticker !== quoteToken) {
+            showErrorDialog({
                 message: 'Invalid payment account (wrong token)',
-                note: `Expected ${baseToken} account for ask execution`
-            }));
+                note: `Expected ${quoteToken} account for ask execution`
+            });
             return null;
         } else if (infoFromAccount.balance < amount) {
-            dispatch(showErrorDialog({
+            showErrorDialog({
                 message: 'Not enough balance',
                 note: 'Account balance is insufficient for this execution'
-            }));
+            });
             return null;
         }
-        if (orderType === 'bid' && infoToAccount.ticker !== baseToken) {
-            dispatch(showErrorDialog({
-                message: 'Invalid receival account (wrong token)',
-                note: `Expected ${baseToken} account to receive tokens`
-            }));
-            return null;
-        } else if (orderType === 'ask' && infoToAccount.ticker !== quoteToken) {
-            dispatch(showErrorDialog({
+        if (orderType === 'bid' && infoToAccount.ticker !== quoteToken) {
+            showErrorDialog({
                 message: 'Invalid receival account (wrong token)',
                 note: `Expected ${quoteToken} account to receive tokens`
-            }));
+            });
+            return null;
+        } else if (orderType === 'ask' && infoToAccount.ticker !== baseToken) {
+            showErrorDialog({
+                message: 'Invalid receival account (wrong token)',
+                note: `Expected ${baseToken} account to receive tokens`
+            });
             return null;
         }
     } catch (error) {
-        dispatch(showErrorDialog({
+        showErrorDialog({
             message: 'Error fetching account/order information',
             note: error?.message || 'Unknown error occurred'
-        }));
+        });
         return null;
     }
 
@@ -325,32 +399,54 @@ export const executeOrder = (
         );
 
         if (!result) {
-            dispatch(showErrorDialog({
+            showErrorDialog({
                 message: 'Error executing order',
                 note: 'No response received from chain'
-            }));
+            });
             return null;
         }
 
         if (result.success) {
-            dispatch(showSuccessDialog({
+            // Add to unconfirmed trades immediately with proper structure to match confirmed trades
+            const unconfirmedTrade = {
+                txid: result.txid,
+                type: orderType,
+                price: parseFloat(orderInfo.price || 0),
+                timestamp: Date.now() / 1000,
+                contract: {
+                    amount: orderType === 'bid' ? parseFloat(baseAmount || 0) : parseFloat(baseAmount || 0),
+                    ticker: baseToken
+                },
+                order: {
+                    amount: orderType === 'bid' ? parseFloat(quoteAmount || 0) : parseFloat(quoteAmount || 0),
+                    ticker: quoteToken
+                }
+            };
+            
+            dispatch(addUnconfirmedTrade(unconfirmedTrade));
+            
+            // Ensure we only pass serializable strings to the dialog
+            const transactionId = String(result.txid || '');
+            const orderAddress = String(result.address || '');
+            
+            showSuccessDialog({
                 message: 'Order executed successfully',
-                note: `Transaction ID: ${result.txid}\nOrder address: ${result.address}`
-            }));
+                note: 'Transaction ID: ' + transactionId + '\nOrder address: ' + orderAddress
+            });
             // Note: fetchMarketData will be called separately to avoid nested dispatch issues
             return result;
         } else {
-            dispatch(showErrorDialog({
+            showErrorDialog({
                 message: 'Error executing order (success = false)',
                 note: result?.message || 'Unknown error'
-            }));
+            });
             return null;
         }        
     } catch (error) {
-        dispatch(showErrorDialog({
+        showErrorDialog({
             message: 'Error executing order',
             note: error?.message || 'Unknown error occurred'
-        }));
+        });
         return null;
     }
 };
@@ -373,32 +469,39 @@ export const cancelOrder = (
         );
         
         if (!result) {
-            dispatch(showErrorDialog({
+            showErrorDialog({
                 message: 'Error cancelling order',
                 note: 'No response received from chain'
-            }));
+            });
             return null;
         }
         
         if (result.success) {
-            dispatch(showSuccessDialog({
-                message: 'Order cancelled successfully',
-                note: `Transaction ID: ${result.txid}\nOrder address: ${result.address}`
-            }));
+            // Mark the order as being cancelled
+            dispatch(addCancellingOrder(txid, result.txid));
+
+            // Ensure we only pass serializable strings to the dialog
+            const cancellationId = String(result.txid || '');
+            const orderTxid = String(txid || '');
+            
+            showSuccessDialog({
+                message: 'Order cancellation submitted',
+                note: 'Cancellation ID: ' + cancellationId + '\nOrder ' + orderTxid + ' is being cancelled'
+            });
             // Note: fetchMarketData will be called separately to avoid nested dispatch issues
             return result;
         } else {
-            dispatch(showErrorDialog({
+            showErrorDialog({
                 message: 'Error cancelling order (success = false)',
                 note: result?.message || 'Unknown error'
-            }));
+            });
             return null;
         }
     } catch (error) {
-        dispatch(showErrorDialog({
+        showErrorDialog({
             message: 'Error cancelling order',
             note: error?.message || 'Unknown error occurred'
-        }));
+        });
         return null;
     }
 };

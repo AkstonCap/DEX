@@ -2,7 +2,7 @@
 import { keyframes } from '@emotion/react';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { Icon, Tooltip, Button } from 'nexus-module';
+import { Tooltip, Button } from 'nexus-module';
 import { cancelOrder } from 'actions/placeOrder';
 import { fetchMarketData } from 'actions/fetchMarketData';
 
@@ -46,11 +46,17 @@ export default function DeleteButton({ txid }) {
         style={{
           width: '24px',
           height: '24px',
-          padding: '4px'
+          padding: '4px',
+          background: 'transparent',
+          border: 'none',
+          outline: 'none',
+          boxShadow: 'none',
         }}
       >
-        <Icon
-          icon={{ url: 'delete-simple.svg', id: 'icon' }}
+        <img 
+          src="delete-simple.svg" 
+          alt="Delete" 
+          style={{ width: '16px', height: '16px' }}
         />
       </Button>
     </Tooltip.Trigger>

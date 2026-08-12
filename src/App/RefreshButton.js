@@ -21,6 +21,9 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
   
   // Helper to get token attributes by name or address
   const getTokenAttributes = async (field, isGlobal) => {
+    if (!field || field === '') {
+      return null;
+    }
     if (field === 'NXS') {
       return {
         decimals: 6,
@@ -46,6 +49,9 @@ function useRefreshMarket(baseTokenField, quoteTokenField) {
 
   // Helper to check if token exists (global or non-global)
   const checkToken = async (field) => {
+    if (!field || field === '') {
+      return { exists: false, isGlobal: false };
+    }
     if (field === 'NXS') return { exists: true, isGlobal: true };
     try {
       const globalCheck = await apiCall('register/get/finance:token', { name: field });

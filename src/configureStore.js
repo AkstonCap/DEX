@@ -9,19 +9,27 @@ export default function configureStore() {
   //ie state.settings will be stored on disk and will save every time state.settings is changed.
   const middlewares = [
     storageMiddleware(({ settings }) => ({ settings })), //Data saved to disk
-    stateMiddleware(({ ui }) => ({ ui })), //Data saved to session
+    stateMiddleware(({ ui }) => {
+      // Exclude temporary order states from session storage
+      if (!ui || !ui.market) {
+        return { ui };
+      }
+      
+      const { myUnconfirmedOrders, myCancellingOrders, myUnconfirmedTrades, ...restUiMarket } = ui.market;
+      return { 
+        ui: {
+          ...ui,
+          market: {
+            ...restUiMarket
+          }
+        }
+      };
+    }), //Data saved to session
     thunk
   ];
   const enhancers = [applyMiddleware(...middlewares)];
 
-  const composeEnhancers =
-    process.env.NODE_ENV !== 'production' &&
-    typeof window === 'object' &&
-    window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
-      ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
-          shouldHotReload: false,
-        })
-      : compose;
+  const composeEnhancers = compose; // Disable Redux DevTools to prevent serialization errors
 
   const store = createStore(createReducer(), composeEnhancers(...enhancers));
 

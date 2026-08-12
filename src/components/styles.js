@@ -155,13 +155,15 @@ export const MyOrdersTable = styled.table`
 
 export const MyOrdersTableRow = styled.tr`
   cursor: pointer;
-  color: ${(props) => (props.orderType === 'ask' ? '#7cfc00' : 'red')};
+  color: ${(props) => (props.orderType === 'bid' ? '#7cfc00' : 'red')};
   padding-right: 8px;
 `;
 
 export const MyUnconfirmedOrdersTableRow = styled.tr`
   cursor: pointer;
-  color: ${(props) => (props.orderType === 'ask' ? '#7cfc00' : 'red')};
+  color: ${(props) => (props.orderType === 'bid' ? '#90EE90' : '#CD5C5C')};
+  opacity: 0.6;
+  background-color: rgba(128, 128, 128, 0.1);
   padding-right: 8px;
 `;
 
@@ -323,8 +325,12 @@ export const ExecuteButton = styled(Button)`
 export const MarketFillButton = styled(Button)`
   && {
     /* Double ampersand ensures higher specificity */
-    border: 2px solid #0ca4fb !important;
-    background-color: transparent !important;
+    border: 2px solid #ff8c00 !important;
+    background-color: ${({ orderMethod }) =>
+      orderMethod === 'market' ? '#ff8c00' : 'transparent'} !important;
+    color: ${({ orderMethod }) =>
+      orderMethod === 'market' ? 'white' : 'inherit'} !important;
+  }
   color: white;
   padding: 15px 32px;
   text-align: center;

@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { FieldSet } from 'nexus-module';
-import { setOrder } from 'actions/actionCreators';
+import { FieldSet, Modal } from 'nexus-module';
+import { setOrder, setAvailableOrdersAtPrice } from 'actions/actionCreators';
 import { OrderTable, OrderbookTableHeader, OrderbookTableRow, formatTokenName } from './styles';
 import { formatNumberWithLeadingZeros } from '../actions/formatNumber';
 
@@ -12,38 +13,69 @@ export default function OrderBookComp({ num }) {
   const baseToken = useSelector((state) => state.ui.market.marketPairs.baseToken);
   const baseTokenDecimals = useSelector((state) => state.ui.market.marketPairs.baseTokenDecimals);
   const quoteTokenDecimals = useSelector((state) => state.ui.market.marketPairs.quoteTokenDecimals);
+  const [orderSelectionDialog, setOrderSelectionDialog] = useState(null);
 
-  const handleOrderClick = (order) => {
+  const aggregateOrdersByPrice = (orders) => {
+    if (!Array.isArray(orders)) return [];
+    
+    const priceMap = new Map();
+    orders.forEach(order => {
+      const price = parseFloat(order.price);
+      if (!priceMap.has(price)) {
+        priceMap.set(price, {
+          price: price,
+          orders: [],
+          totalBase: 0,
+          totalQuote: 0,
+          type: order.type
+        });
+      }
+      const level = priceMap.get(price);
+      level.orders.push(order);
+      level.totalBase += parseFloat(order.type === 'bid' ? order.order.amount : order.contract.amount);
+      level.totalQuote += parseFloat(order.type === 'bid' ? order.contract.amount : order.order.amount);
+    });
+    
+    return Array.from(priceMap.values());
+  };
+
+  const handlePriceLevelClick = (priceLevel) => {
+    // Set available orders at this price level for dropdown selection in TradeForm
+    dispatch(setAvailableOrdersAtPrice(priceLevel.orders, priceLevel.price, priceLevel.type));
+  };
+
+  const handleOrderSelect = (order) => {
     if (order.type === 'ask') {
       dispatch(setOrder(order.txid, order.price, order.order.amount, order.type, order.market, 'execute'));
     } else if (order.type === 'bid') {
       dispatch(setOrder(order.txid, order.price, order.contract.amount, order.type, order.market, 'execute'));
     }
+    setOrderSelectionDialog(null);
   };
 
   const renderTableBids = (data) => {
     if (!Array.isArray(data)) {
       return null;
     }
-    const len = data.length;
-    return data.slice(0, Math.min(num, len)).map((item, index) => (
+    const aggregated = aggregateOrdersByPrice(data);
+    const len = aggregated.length;
+    return aggregated.slice(0, Math.min(num, len)).map((priceLevel, index) => (
       <OrderbookTableRow
       key={index}
-      onClick={() => handleOrderClick(item)}
-      orderType={item.type}
+      onClick={() => handlePriceLevelClick(priceLevel)}
+      orderType={priceLevel.type}
       >
       <td>
-        {/*parseFloat(item.price).toFixed(Math.min(4, quoteTokenDecimals))*/}
         {formatNumberWithLeadingZeros(
-          parseFloat(item.price), 
+          priceLevel.price, 
           3,
           quoteTokenDecimals
-          )
-        }
+          )}
+        {priceLevel.orders.length > 1 && ` (${priceLevel.orders.length})`}
       </td>
       <td>
         {formatNumberWithLeadingZeros(
-          parseFloat(item.order.amount), 
+          priceLevel.totalBase, 
           3,
           baseTokenDecimals
           )
@@ -51,7 +83,7 @@ export default function OrderBookComp({ num }) {
       </td>
       <td>
         {formatNumberWithLeadingZeros(
-          parseFloat(item.contract.amount), 
+          priceLevel.totalQuote, 
           3,
           quoteTokenDecimals
           )
@@ -65,25 +97,25 @@ export default function OrderBookComp({ num }) {
     if (!Array.isArray(data)) {
       return null;
     }
-    const len = data.length;
-    return data.slice(Math.max(len-num, 0), len).map((item, index) => (
+    const aggregated = aggregateOrdersByPrice(data);
+    const len = aggregated.length;
+    return aggregated.slice(Math.max(len-num, 0), len).map((priceLevel, index) => (
       <OrderbookTableRow
       key={index}
-      onClick={() => handleOrderClick(item)}
-      orderType={item.type}
+      onClick={() => handlePriceLevelClick(priceLevel)}
+      orderType={priceLevel.type}
     >
       <td>
-        {/*parseFloat(item.price).toFixed(Math.min(4, quoteTokenDecimals))*/}
         {formatNumberWithLeadingZeros(
-          parseFloat(item.price), 
+          priceLevel.price, 
           3,
           quoteTokenDecimals
-          )
-        }
+          )}
+        {priceLevel.orders.length > 1 && ` (${priceLevel.orders.length})`}
       </td>
       <td>
         {formatNumberWithLeadingZeros(
-          parseFloat(item.contract.amount), 
+          priceLevel.totalBase, 
           3,
           baseTokenDecimals
           )
@@ -91,7 +123,7 @@ export default function OrderBookComp({ num }) {
       </td>
       <td>
         {formatNumberWithLeadingZeros(
-          parseFloat(item.order.amount), 
+          priceLevel.totalQuote, 
           3,
           quoteTokenDecimals
           )

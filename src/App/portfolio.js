@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   PageLayout, 
   TopRow, 
@@ -12,10 +12,14 @@ import { apiCall, FieldSet } from 'nexus-module';
 
 import { formatTokenName } from 'components/styles';
 import { formatNumberWithLeadingZeros } from 'actions/formatNumber';
+import { cachedApiCall } from 'utils/apiCache';
+
+const PORTFOLIO_CACHE_TTL = 15000; // 15 seconds cache for portfolio data
 
 export default function Portfolio() {
   //const marketPair = useSelector((state) => state.ui.market.marketPairs.marketPair);
   const [tokenList, setTokenList] = useState([]);
+  const [hideZeroBalances, setHideZeroBalances] = useState(false);
   const dispatch = useDispatch();
 
   // Fetch tokens and their NXS value
@@ -29,7 +33,7 @@ export default function Portfolio() {
 
       // Check if each ticker is a global ticker
       const accountsWithGlobalCheck = await Promise.all(accounts.map(async acc => {
-        if (!acc.ticker) return { ...acc, ticker: '' };
+        if (!acc.ticker || acc.ticker === '') return { ...acc, ticker: '' };
         if (acc.ticker !== 'NXS') {
           const res = await apiCall('register/get/finance:token', { name: acc.ticker }).catch(() => null);
           if (res && res.address) {
@@ -51,15 +55,18 @@ export default function Portfolio() {
           tokenMap[key].balance += parseFloat(acc.balance);
         }
       }
-      // Fetch last NXS price for each token and calculate 24h change
+      // Fetch last NXS price for each token and calculate 24h change and P&L
       const tokens = await Promise.all(Object.values(tokenMap).map(async (token) => {
         let nxsValue = 0;
         let lastPrice = 0;
         let change24h = null;
+        let totalPnL = null;
+        let costBasis = null;
+        
         if (token.ticker !== 'NXS') {
           try {
-            const market = `${token.token}/NXS`;
-            const executed = await apiCall('market/list/executed', { market, sort: 'timestamp', order: 'desc', limit: 5 });
+            const market = `${token.ticker}/NXS`;
+            const executed = await cachedApiCall(apiCall, 'market/list/executed', { market, sort: 'timestamp', order: 'desc', limit: 5 }, PORTFOLIO_CACHE_TTL);
             let latest = null;
             let latestType = null;
             if (executed && typeof executed === 'object') {
@@ -83,16 +90,90 @@ export default function Portfolio() {
             if (lastPrice > 0) {
               nxsValue = token.balance * lastPrice;
             }
+            
+            // Fetch user's executed trades for this token to calculate P&L
+            try {
+              const userTrades = await cachedApiCall(apiCall, 'market/user/executed', { 
+                token: token.ticker,
+                limit: 500  // Reduced from 1000 for better performance
+              }, PORTFOLIO_CACHE_TTL);
+              
+              if (userTrades && typeof userTrades === 'object') {
+                const userExecuted = Array.isArray(userTrades.executed) ? userTrades.executed : 
+                                     Array.isArray(userTrades) ? userTrades : [];
+                
+                // Calculate total cost basis from buy trades and revenue from sell trades
+                // NOTE: market/user/executed returns market as NXS/<token>
+                // So bid = buying NXS with <token> = SELLING token
+                //    ask = selling NXS for <token> = BUYING token
+                let totalNxsSpent = 0;  // NXS spent buying this token
+                let totalNxsReceived = 0;  // NXS received selling this token
+                let totalTokensBought = 0;
+                let totalTokensSold = 0;
+                
+                for (const trade of userExecuted) {
+                  if (!trade.contract || !trade.order) continue;
+                  
+                  const tradeType = trade.type;
+                  let tokenAmount = 0;
+                  let nxsAmount = 0;
+                  
+                  // For bid orders on NXS/<token>: user is buying NXS with <token>
+                  // This means user is SELLING the token and RECEIVING NXS
+                  // contract = <token> being spent, order = NXS being received
+                  if (tradeType === 'bid') {
+                    tokenAmount = parseFloat(trade.contract.amount);
+                    nxsAmount = parseFloat(trade.order.amount);
+                    // Convert NXS from divisible units
+                    if (trade.order.ticker === 'NXS') {
+                      nxsAmount = nxsAmount / 1e6;
+                    }
+                    totalNxsReceived += nxsAmount;
+                    totalTokensSold += tokenAmount;
+                  }
+                  // For ask orders on NXS/<token>: user is selling NXS for <token>
+                  // This means user is BUYING the token and SPENDING NXS
+                  // contract = NXS being spent, order = <token> being received
+                  else if (tradeType === 'ask') {
+                    nxsAmount = parseFloat(trade.contract.amount);
+                    tokenAmount = parseFloat(trade.order.amount);
+                    // Convert NXS from divisible units
+                    if (trade.contract.ticker === 'NXS') {
+                      nxsAmount = nxsAmount / 1e6;
+                    }
+                    totalNxsSpent += nxsAmount;
+                    totalTokensBought += tokenAmount;
+                  }
+                }
+                
+                // Net tokens acquired through trading
+                const netTokensFromTrading = totalTokensBought - totalTokensSold;
+                // Net NXS cost (spent - received)
+                const netNxsCost = totalNxsSpent - totalNxsReceived;
+                
+                // Only calculate P&L if user has traded this token
+                if (totalTokensBought > 0 || totalTokensSold > 0) {
+                  costBasis = netNxsCost;
+                  // P&L = Current Value - Cost Basis
+                  // If user has sold more than bought (net negative tokens), 
+                  // we need to account for current holdings value
+                  totalPnL = nxsValue - costBasis;
+                }
+              }
+            } catch (e) {
+              // User trades fetch failed, P&L will be null
+            }
+            
             // Fetch price 24h ago
             const now = Math.floor(Date.now() / 1000);
             const dayAgo = now - 24 * 60 * 60;
-            const executed24h = await apiCall('market/list/executed', {
+            const executed24h = await cachedApiCall(apiCall, 'market/list/executed', {
               market,
               sort: 'timestamp',
               order: 'desc',
-              limit: 50,
+              limit: 20,  // Reduced from 50 for better performance
               where: `results.timestamp<${dayAgo}`
-            }).catch(() => ({}));
+            }, PORTFOLIO_CACHE_TTL).catch(() => ({}));
             let price24h = null;
             if (executed24h && typeof executed24h === 'object') {
               const bids24 = Array.isArray(executed24h.bids) ? executed24h.bids : [];
@@ -125,7 +206,7 @@ export default function Portfolio() {
           change24h = null;
           token.balance = token.balance + trustBalance.balance + trustStake.stake;
         }
-        return { ...token, nxsValue, lastPrice, change24h };
+        return { ...token, nxsValue, lastPrice, change24h, totalPnL, costBasis };
       }));
       setTokenList(tokens);
     } catch (error) {
@@ -174,10 +255,38 @@ export default function Portfolio() {
   // Calculate total NXS value
   const totalNxsValue = tokenList.reduce((sum, token) => sum + (token.nxsValue || 0), 0);
 
+  // Filter tokens based on hideZeroBalances checkbox
+  const filteredTokenList = hideZeroBalances 
+    ? tokenList.filter(token => token.balance > 0)  
+    : tokenList;
+
   return (
     <PageLayout>
       <TopRow>
         <FieldSet legend="My Holdings">
+          <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input 
+              type="checkbox" 
+              id="hideZeroBalances"
+              checked={hideZeroBalances}
+              onChange={(e) => setHideZeroBalances(e.target.checked)}
+              style={{ 
+                accentColor: '#00e6d8',
+                transform: 'scale(1.2)',
+              }}
+            />
+            <label 
+              htmlFor="hideZeroBalances" 
+              style={{ 
+                color: '#e0e0e0', 
+                fontSize: '0.95rem', 
+                cursor: 'pointer',
+                userSelect: 'none'
+              }}
+            >
+              Hide zero balances
+            </label>
+          </div>
           <table style={{ width: '100%', borderCollapse: 'collapse', background: '#181c24', color: '#e0e0e0', borderRadius: '8px', overflow: 'hidden', fontSize: '1rem' }}>
             <thead>
               <tr style={{ background: '#232837', color: '#fff' }}>
@@ -186,12 +295,13 @@ export default function Portfolio() {
                 <th style={{ padding: '10px 8px', textAlign: 'right' }}>24h Change</th>
                 <th style={{ padding: '10px 8px', textAlign: 'right' }}>Balance</th>
                 <th style={{ padding: '10px 8px', textAlign: 'right' }}>Value [NXS]</th>
+                <th style={{ padding: '10px 8px', textAlign: 'right' }}>Total P&L [NXS]</th>
               </tr>
             </thead>
             <tbody>
               {[
-                ...tokenList.filter(token => token.ticker === 'NXS'),
-                ...tokenList
+                ...filteredTokenList.filter(token => token.ticker === 'NXS'),
+                ...filteredTokenList
                   .filter(token => token.ticker !== 'NXS')
                   .sort((a, b) => (b.nxsValue || 0) - (a.nxsValue || 0))
               ].map((token, idx) => (
@@ -244,6 +354,18 @@ export default function Portfolio() {
                   </td>
                   <td style={{ padding: '8px 8px', textAlign: 'right' }}>{typeof token.balance === 'number' ? formatNumberWithLeadingZeros(token.balance, 3, 6) : token.balance}</td>
                   <td style={{ padding: '8px 8px', textAlign: 'right', fontWeight: 600 }}>{typeof token.nxsValue === 'number' && !isNaN(token.nxsValue) ? token.nxsValue.toFixed(6) : '-'}</td>
+                  <td style={{ 
+                    padding: '8px 8px', 
+                    textAlign: 'right', 
+                    fontWeight: 600,
+                    color: typeof token.totalPnL === 'number' && !isNaN(token.totalPnL)
+                      ? (token.totalPnL > 0 ? '#00e676' : token.totalPnL < 0 ? '#ff5252' : '#e0e0e0')
+                      : '#e0e0e0'
+                  }}>
+                    {typeof token.totalPnL === 'number' && !isNaN(token.totalPnL)
+                      ? `${token.totalPnL >= 0 ? '+' : ''}${token.totalPnL.toFixed(4)}`
+                      : '-'}
+                  </td>
                 </tr>
               ))}
             </tbody>
