@@ -175,11 +175,21 @@ corrected, and the artefacts they referred to are listed under
 
 ## 8. DevOps & CI/CD
 
-### a. Continuous integration — ❌ Not started
-- `.github/` contains only `copilot-instructions.md`; there are no workflows.
-- Now worth doing, because `npm run lint`, `npm test` and `npm run build` all
-  work: a workflow running the three on PRs would have caught the broken
-  `useMemo` described below before it reached master.
+### a. Continuous integration — ✅ Done
+- `.github/workflows/ci.yml` runs on every pull request and on pushes to
+  `master`: `npm ci` → `npm run lint` → `npm test -- --ci --coverage` →
+  `npm run build`, on Node 20 with the npm cache enabled.
+- The built `dist/js/app.js` is uploaded as an artifact. `dist/js` is
+  gitignored, so this is the only way to inspect the bundle a PR produces.
+- In-flight runs are cancelled when a PR is pushed to again
+  (`concurrency.cancel-in-progress`).
+- This would have caught the broken `useMemo` described in §9a before it
+  reached master.
+- **Not yet enforced:** ESLint warnings do not fail the run (there are 42, most
+  of them in `stablecoinSwap.js`). Once that file is resolved (§20), add
+  `--max-warnings 0` to the `lint` script to stop new ones accumulating.
+- Possible additions: `npm audit` as a non-blocking step (§4a), and a coverage
+  threshold in `jest.config.js` once the suite is broader (§2a).
 
 ### b. Automated releases — ❌ Not started
 - Versions in `package.json` and `nxs_package.json` (0.4.2) are bumped by hand
@@ -360,13 +370,14 @@ exist in the repository at any commit on this branch:
 
 ## Implementation priority
 
-**Now unblocked (highest value):**
-1. Add a GitHub Actions workflow running `npm run lint`, `npm test`, `npm run
-   build` on PRs (§8a) — the lint/test/build commands all work now.
-2. Tests for `fetchOrderBook`'s fallback and normalization (§22) and for
-   `placeOrder`'s validation branches.
-3. Document the `contract`/`order` amount convention and the NXS 1e6 rule in
+**Highest value:**
+1. Tests for `fetchOrderBook`'s fallback and normalization (§22) and for
+   `placeOrder`'s validation branches. CI runs the suite on every PR now, so
+   each new test permanently protects a path.
+2. Document the `contract`/`order` amount convention and the NXS 1e6 rule in
    `ARCHITECTURE.md` (§7a).
+3. Resolve `stablecoinSwap.js` (§20), then turn on `--max-warnings 0` in the
+   `lint` script so CI holds the line on warnings too (§8a).
 
 **Medium:**
 4. `React.memo` + a `useMarketPair()` hook (§3a, §6a).
@@ -384,10 +395,11 @@ exist in the repository at any commit on this branch:
 ## Conclusion
 
 The module has a sound React/Redux structure and clean separation between
-actions, reducers and components. The main risk it carries is not architectural —
-it is that several of the "improvements" recorded here were never actually in the
+actions, reducers and components. The main risk it carried was not architectural —
+it was that several of the "improvements" recorded here were never actually in the
 tree, and one of them (the `useMemo` in `TradeForm`) shipped a crash to master.
-CI running the now-working lint and test commands is the single change that most
-reduces the chance of that recurring.
+CI now runs lint, tests and the build on every pull request, which is the single
+change that most reduces the chance of that recurring: from here on, a status
+check is the source of truth for what this document may claim.
 
 The fork referenced by the original document: https://github.com/distordialabs-brutus/DEX
