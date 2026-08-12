@@ -45,7 +45,7 @@ corrected, and the artefacts they referred to are listed under
   `identity-obj-proxy` were missing from `package.json`, so the existing
   `jest.config.js` and test file could not run at all).
 - Current suites: `apiCache`, `reducers`, `fetchExecuted`, `marketData` —
-  30 tests, all passing, run by CI on every pull request.
+  38 tests, all passing, run by CI on every pull request.
 - The `nexus-module` mock now exports named bindings; it previously only had a
   default export, so any component test would have received `undefined` for
   `apiCall`, `showErrorDialog`, etc.
@@ -369,6 +369,47 @@ document the convention in one place.
 **This is the pattern to watch for.** Both rules are silent: getting them wrong
 produces plausible-looking numbers rather than an error. Any new code path that
 touches a `market/*` response must go through `normalizeMarketEntries`.
+
+### 24. `fetchExecuted` called an endpoint that does not exist — ✅ Done
+Reported from the wallet as *"Cannot get executed transactions — unknown
+variable: results.timestamp>since"*. The request disagreed with every other
+market call in the module on four points at once:
+
+| | `fetchExecuted` | Every other market call |
+| --- | --- | --- |
+| endpoint | `market/executed/` | `market/list/executed` |
+| market parameter | `marketPair` | `market` |
+| filter parameter | `queryString` | `where` |
+| filter syntax | ``since(`1 year`)`` | `results.timestamp>1700000000` |
+
+The core's filter engine stopped parsing at the `(`, hence the error naming
+`results.timestamp>since` as a variable. `ChartWindow` and `portfolio` both use
+numeric Unix timestamps and render real data, so that is the form this core
+build accepts.
+
+**The failure was not new — only the popup was.** The previous catch block
+called `showErrorDialog('Cannot get executed transactions', error.message)`,
+passing two strings where the wallet expects `{ message, note }`, so the dialog
+never rendered. Fixing that call (§6c) surfaced a request that had been failing
+silently the whole time. The trade history and every Overview figure were
+falling back to an empty array.
+
+The same `since()` syntax was in `markets.js` three times, and every one of
+those calls has a silent `.catch(() => ({ amount: 0 }))` fallback — so the
+Markets tab has been showing **0 volume and 0 last price for every token**, and
+the "Top 10 by volume" ranking has been ordering zeros. All three converted.
+
+`market/user/executed` is now fetched separately for the user's own trades: the
+public executed list carries no per-user data, so `data.myTrades` — which the
+old code passed to `setMyTrades` — was always `undefined`. A failure there is
+reported into `myTrades.error` (§12) instead of taking the public history down
+with it.
+
+**Two lessons, both already in the roadmap.** A silent `.catch()` that
+substitutes a plausible default (`0`) hides a broken request indefinitely —
+prefer surfacing a distinguishable "unavailable" state. And endpoint strings and
+parameter names duplicated across components drift apart until one of them is
+simply wrong; that is the case for **A3**, the API client layer.
 
 ---
 

@@ -242,6 +242,13 @@ export default function Markets() {
 
   const fetchTokens = async () => {
 
+    // Numeric Unix timestamp rather than the core's since(`1 year`) helper,
+    // which this core build rejects with
+    // "unknown variable: results.timestamp>since". These calls all have silent
+    // .catch() fallbacks, so the failure showed up as 0 volume / 0 last price
+    // for every token rather than as an error.
+    const oneYearAgo = Math.floor(Date.now() / 1000) - 365 * 24 * 60 * 60;
+
     try {
       const tokens = await apiCall(
         'register/list/finance:token/token,ticker,maxsupply,currentsupply',
@@ -297,7 +304,7 @@ export default function Markets() {
               'market/list/executed/contract.amount/sum', 
               {
                 market,
-                where: 'results.timestamp>since(`1 year`); AND results.type=bid',
+                where: `results.timestamp>${oneYearAgo} AND results.type=bid`,
               },
               MARKETS_CACHE_TTL
             ).catch(() => ({ amount: 0 })
@@ -307,7 +314,7 @@ export default function Markets() {
               'market/list/executed/order.amount/sum', 
               {
                 market,
-                where: 'results.timestamp>since(`1 year`); AND results.type=ask',
+                where: `results.timestamp>${oneYearAgo} AND results.type=ask`,
               },
               MARKETS_CACHE_TTL
             ).catch(() => ({ amount: 0 })
@@ -320,7 +327,7 @@ export default function Markets() {
                 sort: 'timestamp',
                 order: 'desc',
                 limit: 5,
-                where: 'results.timestamp>since(`1 year`);',
+                where: `results.timestamp>${oneYearAgo}`,
               },
               MARKETS_CACHE_TTL
             ).catch(() => ({})
