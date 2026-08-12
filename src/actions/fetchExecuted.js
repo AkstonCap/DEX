@@ -4,9 +4,9 @@ import {
   removeUnconfirmedTrade,
 } from './actionCreators';
 import { 
-  showErrorDialog, 
-  apiCall 
+  showErrorDialog 
 } from 'nexus-module';
+import apiCallWithRetry from '../utils/apiCallWithRetry';
 
 export const fetchExecuted = (
 ) => async (
@@ -31,161 +31,38 @@ export const fetchExecuted = (
       queryString = 'results.timestamp>since(`1 week`);';
     } else if (timeSpan === '1d') {
       queryString = 'results.timestamp>since(`1 day`);';
-    } else {
-      queryString = '';
-    }
-     
-    const data1 = await apiCall( 
-      'market/list/executed/timestamp,price,type,contract.amount,contract.ticker,order.amount,order.ticker', 
-      {
-        market: marketPair,
-        sort: 'timestamp', 
-        order: 'desc', 
-        limit: 100,
-        where: queryString,
-      }
-    ).catch((error) => {
-      dispatch(showErrorDialog({
-        message: 'Cannot get executed transactions from apiCall (fetchExecuted)',
-        note: error?.message || 'Unknown error',
-      }));
-      const data={bids: [], asks: []};
-      dispatch(setExecutedOrders(data));
-      return data; // Return default data
-    });
-
-    if ( data1.bids?.length !== 0) {
-      data1.bids.forEach((element) => {
-        if (element.contract.ticker === 'NXS') {
-          element.contract.amount = element.contract.amount / 1e6;
-        } else if (element.order.ticker === 'NXS') {
-          element.order.amount = element.order.amount / 1e6;
-        }
-      });
-      data1.bids.forEach((element) => {
-        if (element.price !== (element.contract.amount / element.order.amount)) {
-          element.price = (element.contract.amount / element.order.amount);
-        }
-      });
+    } else if (timeSpan === '12h') {
+      queryString = 'results.timestamp>since(`12 hours`);';
+    } else if (timeSpan === '6h') {
+      queryString = 'results.timestamp>since(`6 hours`);';
+    } else if (timeSpan === '1h') {
+      queryString = 'results.timestamp>since(`1 hour`);';
+    } else if (timeSpan === '30m') {
+      queryString = 'results.timestamp>since(`30 minutes`);';
+    } else if (timeSpan === '15m') {
+      queryString = 'results.timestamp>since(`15 minutes`);';
+    } else if (timeSpan === '5m') {
+      queryString = 'results.timestamp>since(`5 minutes`);';
+    } else if (timeSpan === '1m') {
+      queryString = 'results.timestamp>since(`1 minute`);';
     }
 
-    if ( data1.asks?.length !== 0) {
-      data1.asks.forEach((element) => {
-        if (element.contract.ticker === 'NXS') {
-          element.contract.amount = element.contract.amount / 1e6;
-        } else if (element.order.ticker === 'NXS') {
-          element.order.amount = element.order.amount / 1e6;
-        }
-      });
-      data1.asks.forEach((element) => {
-        if (element.price !== (element.order.amount / element.contract.amount)) {
-          element.price = (element.order.amount / element.contract.amount);
-        }
-      });
-    }
-
-    dispatch(setExecutedOrders(data1));
-
-    let myTrades = {executed: []};
-    let myTradesError = null;
-    
-    // Only fetch my trades if baseToken is valid and not NXS
-    if (baseToken && baseToken !== 'NXS') {
-
-      myTrades = await apiCall(
-        'market/user/executed', 
-        {
-          token: baseToken,
-          sort: 'timestamp', 
-          order: 'desc', 
-          limit: 20
-        }
-
-      ).catch((error) => {
-        // Silent error - just log and return empty, don't show popup
-        console.warn('Cannot get my trades from apiCall (fetchExecuted):', error?.message || 'Unknown error');
-        myTradesError = error?.message || 'Unable to load trade history';
-        return {executed: [], error: myTradesError};
-
-      });
-    } else {
-      myTrades = {executed: []};
-    }
-
-    // Add length check
-
-    const myTrades1 = {
-      executed: myTrades.executed?.filter((element) => 
-        (
-          element.contract.ticker === baseToken && 
-          element.type === 'bid' && 
-          element.order.ticker === quoteToken
-        ) || (
-          element.order.ticker === baseToken &&
-          element.type === 'ask' &&
-          element.contract.ticker === quoteToken
-        )
-      )
+    const endpoint = 'market/executed/';
+    const params = {
+      marketPair,
+      queryString,
     };
 
-    if ( myTrades1.executed?.length !== 0) {
-      myTrades1.executed.forEach((element) => {
-
-        if (element.contract.ticker === 'NXS') {
-          element.contract.amount = element.contract.amount / 1e6;
-        } else if (element.order.ticker === 'NXS') {
-          element.order.amount = element.order.amount / 1e6;
-        }
-
-      });
-      myTrades1.executed.forEach((element) => {
-        if (element.price !== (element.contract.amount / element.order.amount) && element.type === 'ask') {
-          element.price = (element.contract.amount / element.order.amount);
-        } else if (element.price !== (element.order.amount / element.contract.amount) && element.type === 'bid') {
-          element.price = (element.order.amount / element.contract.amount);
-        }
-
-        if (element.market === quoteToken + '/' + baseToken) {
-          element.type = element.type === 'bid' ? 'ask' : 'bid';
-          element.market = marketPair;
-        }
-
-      });
+    const data = await apiCallWithRetry(endpoint, params);
+    if (!data) {
+      throw new Error('No data returned from apiCall');
     }
 
-    // Preserve error if it exists
-    if (myTradesError) {
-      myTrades1.error = myTradesError;
-    }
-
-    dispatch(setMyTrades(myTrades1));
-    
-    // Remove any unconfirmed trades that now appear in confirmed trade history
-    const currentState = getState();
-    const unconfirmedTrades = currentState.ui.market.myUnconfirmedTrades?.unconfirmedTrades || [];
-    
-    unconfirmedTrades.forEach(unconfirmedTrade => {
-      const isConfirmed = myTrades1.executed.find(trade => 
-        trade.txid === unconfirmedTrade.txid ||
-        (trade.timestamp === unconfirmedTrade.timestamp && 
-         trade.amount === unconfirmedTrade.amount &&
-         trade.total === unconfirmedTrade.total)
-      );
-      if (isConfirmed) {
-        dispatch(removeUnconfirmedTrade(unconfirmedTrade.txid || `${unconfirmedTrade.timestamp}-${unconfirmedTrade.amount}`));
-      }
-    });
-    
-    return true; // Return success indicator
-
+    dispatch(setExecutedOrders(data));
+    dispatch(setMyTrades(data.myTrades));
+    dispatch(removeUnconfirmedTrade());
   } catch (error) {
-    dispatch(showErrorDialog({
-      message: 'Cannot get executed transactions (fetchExecuted)',
-      note: error?.message || 'Unknown error',
-    }));
-
-    dispatch(setExecutedOrders({ bids: [], asks: [] }));
-    dispatch(setMyTrades({ executed: [] }));
-    return null; // Return null for error
+    console.error('Error in fetchExecuted:', error);
+    showErrorDialog('Cannot get executed transactions', error?.message || 'Unknown error');
   }
 };
