@@ -1,7 +1,9 @@
 # Suggested Improvements for AkstonCap/DEX Module
 
-Status of each item below was re-verified against the working tree (not against
-commit messages) on the `claude/bug-fixes-improvements-review-pjnx9k` branch.
+The native-DEX baseline below was re-verified against the working tree (not
+commit messages) on `claude/bug-fixes-improvements-review-pjnx9k`. The subsequent
+[master/feature reconciliation](docs/BRANCH_RECONCILIATION.md) retains those
+fixes and adds the release-gated cross-chain client and combined test gate.
 Several items in the previous revision of this file were marked "Implemented"
 for components and tests that do not exist in the repository — those have been
 corrected, and the artefacts they referred to are listed under
@@ -10,6 +12,14 @@ corrected, and the artefacts they referred to are listed under
 **Legend** — ✅ Done · 🟡 Partial · ❌ Not started · ❓ Not assessed
 
 ---
+
+> **Review history and current baseline:** independent reviews from
+> [`2026-08-24`](DEVELOPMENT_REVIEW_2026-08-24.md) through
+> [`2026-09-07`](DEVELOPMENT_REVIEW_2026-09-07.md) preserve the evidence behind
+> earlier status corrections. The current tree now also contains the separately
+> tested cross-chain client described in §25; that implementation does **not**
+> mean funding is release-enabled. Dependency upgrades remain deferred pending
+> Nexus Interface compatibility validation.
 
 ## 1. Code Quality & Maintainability
 
@@ -44,8 +54,9 @@ corrected, and the artefacts they referred to are listed under
 - `npm test` works now (`jest`, `babel-jest`, `jest-environment-jsdom` and
   `identity-obj-proxy` were missing from `package.json`, so the existing
   `jest.config.js` and test file could not run at all).
-- Current suites: `apiCache`, `reducers`, `fetchExecuted`, `marketData` —
-  38 tests, all passing, run by CI on every pull request.
+- Current Jest suites: `apiCache`, `reducers`, `fetchExecuted`, `marketData`,
+  `configureStore` — 41 tests. The independent swap suite has 110 tests.
+  `npm run test:all` runs both; both pass and are run by CI on every pull request.
 - The `nexus-module` mock now exports named bindings; it previously only had a
   default export, so any component test would have received `undefined` for
   `apiCall`, `showErrorDialog`, etc.
@@ -100,10 +111,14 @@ corrected, and the artefacts they referred to are listed under
   the injection surface is small. NFT `image_url` values are rendered as `<img
   src>` from arbitrary remote origins — worth a scheme allow-list.
 
-### c. Secure storage — ❓ Not assessed
-- The module persists only `settings` to disk and a filtered `ui` slice to the
-  session. Neither contains credentials — the wallet owns PIN handling via
-  `secureApiCall`. No `localStorage`/`sessionStorage` use in `src`.
+### c. Secure storage — 🟡 Partial
+- The module persists `settings` and a scoped swap journal to module storage,
+  plus a filtered `ui` slice to the session. None contains credentials — the
+  wallet owns PIN handling via `secureApiCall`, and the external Solana signer
+  receives no seed phrase or private key.
+- Financial journal writes fail closed unless the host supplies a real durable
+  acknowledgement. Current Nexus Interface does not provide that capability, so
+  new funding remains blocked; see `docs/CROSS_CHAIN_SWAPS.md`.
 
 ## 5. User Experience Improvements
 
@@ -143,10 +158,11 @@ corrected, and the artefacts they referred to are listed under
 - Plain Redux with hand-written action creators and reducers; no Redux Toolkit.
 - Selectors are inline arrow functions, so no memoized selector layer.
 - The store is not normalized — orders are stored as raw API payloads.
-- The persistence selectors in `configureStore.js` are now memoized on their
-  source slice; before, they rebuilt a new object on every call, which made
-  nexus-module's reference comparison always fail and wrote state to disk / IPC
-  on **every dispatched action**.
+- The session persistence selector in `configureStore.js` is now memoized on its
+  source slice; before, it rebuilt a new object on every call, which made
+  nexus-module's reference comparison always fail and sent session state over
+  IPC on **every dispatched action**. Settings writes are separately gated on a
+  settings reference change so they cannot overwrite the swap journal.
 
 ### c. Error handling — 🟡 Partial
 - `ErrorBoundary` + `apiCallWithRetry` are in place.
@@ -187,9 +203,11 @@ corrected, and the artefacts they referred to are listed under
   (`concurrency.cancel-in-progress`).
 - This would have caught the broken `useMemo` described in §9a before it
   reached master.
-- **Not yet enforced:** ESLint warnings do not fail the run (there are 42, most
-  of them in `stablecoinSwap.js`). Once that file is resolved (§20), add
-  `--max-warnings 0` to the `lint` script to stop new ones accumulating.
+- **Partially enforced:** the main lint command still allows warnings, while
+  `npm run lint:swap` applies `--max-warnings 0` to the cross-chain client.
+- CI runs the Node swap suite beside Jest, applies the strict swap lint gate,
+  builds the module, validates every manifest-listed file and uploads the full
+  distributable bundle plus `nxs_package.json`.
 - Possible additions: `npm audit` as a non-blocking step (§4a), and a coverage
   threshold in `jest.config.js` once the suite is broader (§2a).
 
@@ -252,8 +270,9 @@ corrected, and the artefacts they referred to are listed under
 - Production build emits a single `app.js` of ~635 KiB, over webpack's 244 KiB
   advisory, and the build warns about it on every run.
 - `victory`, `highcharts`, `lightweight-charts`, `@solana/web3.js` and
-  `@solana/spl-token` are all in `dependencies`. Both `highcharts` and the Solana
-  packages are only reachable from the disabled Stablecoin Swap tab.
+  `@solana/spl-token` are all in `dependencies`. The Solana packages are now
+  reachable from the inspection-capable Cross-chain swaps tab, so bundle impact
+  should be re-measured rather than attributed to dead code.
 
 ### b. Asset optimization — ❌ Not started
 - `dist/` ships SVGs unoptimized (`distordia-large.svg` is 13 KB). No lazy
@@ -332,11 +351,12 @@ this class of bug and is now running.
 and a reducer logged on every removal. Removed. `no-console` is enabled as a
 warning; consider promoting it to an error for `src/`.
 
-### 20. Retire or finish the disabled Stablecoin Swap tab — ❌ Not started
-`src/App/stablecoinSwap.js` is 1,300 lines behind a commented-out tab. It carries
-the `@solana/*` dependencies into the bundle, uses loose equality in ~10 places,
-and had 16 silently-swallowed catch blocks (now annotated). Either finish it on a
-branch or remove it and its dependencies from `master`.
+### 20. Replace the legacy Stablecoin Swap prototype — 🟡 Partial
+The 1,300-line disabled prototype has been superseded by a provider-aware
+Cross-chain swaps client and decomposed adapters (§25). Its tab is available for
+provider inspection, quote review and recovery, but funding remains fail-closed:
+there are no accepted deployments and the current wallet lacks acknowledged
+durable module storage. Release acceptance is still outstanding.
 
 ### 21. Remove the dead `solanaProvider.js` — ❌ Not started
 TypeScript syntax in a `.js` file, importing three `@solana/wallet-adapter-*`
@@ -411,6 +431,29 @@ prefer surfacing a distinguishable "unavailable" state. And endpoint strings and
 parameter names duplicated across components drift apart until one of them is
 simply wrong; that is the case for **A3**, the API client layer.
 
+### 25. Provider-aware cross-chain client — 🟡 Implemented, not activated
+The cross-chain workstream described by
+[`SWAP_SERVICE_EVALUATION.md`](SWAP_SERVICE_EVALUATION.md),
+[`SWAP_SERVICE_DEVELOPMENT_PLAN.md`](SWAP_SERVICE_DEVELOPMENT_PLAN.md), and
+[`docs/CROSS_CHAIN_SWAPS.md`](docs/CROSS_CHAIN_SWAPS.md) now has an implemented
+client boundary rather than the legacy monolith:
+
+- known-schema provider discovery and immutable network/token/custody checks;
+- exact integer-unit quotes and versioned Nexus/Solana protocol adapters;
+- a profile/network/provider-scoped journal with serialized, intent-first state
+  transitions and no automatic resend after an unknown submission outcome;
+- external Phantom/Solflare signing without custody of seed phrases or private
+  keys, plus exact source, routing and payout evidence checks;
+- a dedicated `node:test` suite (`npm run test:swap`) and strict swap lint gate.
+
+This is **inspection/recovery-capable, not release-enabled**.
+`src/swap/deployment.js` deliberately keeps `ACCEPTED_DEPLOYMENTS` empty, and
+financial mutation additionally requires the future
+`NEXUS.utilities.updateStorageAcknowledged` host capability. No live transfer or
+production activation is implied by exposing the tab or by offline tests. The
+remaining target-wallet/testnet, fault-injection, provider acceptance and
+operator-side service checks in `docs/CROSS_CHAIN_SWAPS.md` remain mandatory.
+
 ---
 
 # Roadmap to a professional DEX module
@@ -420,7 +463,8 @@ the module as it stands from something a serious trader would choose to use.
 
 Items are grouped as **A**rchitecture, **V**isual, **F**unctional, and each is
 tagged with rough effort (S/M/L) and whether it is a prerequisite for others.
-Nothing here is started.
+Nothing in this core-DEX roadmap is started; §25 is a separate cross-chain
+workstream and does not advance these items.
 
 ## A. Architecture
 
@@ -664,25 +708,26 @@ exist in the repository at any commit on this branch:
 
 ## Implementation priority
 
-This covers the remediation items (§1–§23). For the forward-looking work see
+This covers the remediation items (§1–§25). For the forward-looking work see
 [Suggested sequencing](#suggested-sequencing) in the roadmap above — the two
 lists are independent, and the roadmap's Phase 1 can start in parallel.
 
 **Highest value:**
 1. Tests for `fetchOrderBook`'s fallback (§22) and for `placeOrder`'s validation
-   branches. CI runs the suite on every PR now, so each new test permanently
+   branches. CI runs the Jest suite on every PR now, so each new test permanently
    protects a path — and §23 showed that a silent normalization bug can sit in
    the most-read numbers in the UI indefinitely.
 2. Summarise the `contract`/`order` and NXS 1e6 conventions in `ARCHITECTURE.md`,
    pointing at `utils/marketData.js` as the enforcement point (§7a, §23).
-3. Resolve `stablecoinSwap.js` (§20), then turn on `--max-warnings 0` in the
-   `lint` script so CI holds the line on warnings too (§8a).
+3. Keep the swap regressions and zero-warning lint gate green in CI, and keep
+   funding blocked until every release prerequisite in §25 is independently
+   satisfied.
 
 **Medium:**
 4. `React.memo` + a `useMarketPair()` hook (§3a, §6a).
 5. Route the remaining fetch thunks through `apiCallWithRetry` (§3c).
-6. Decide the fate of Stablecoin Swap and `solanaProvider.js` (§20, §21), then
-   re-measure the bundle (§10a).
+6. Remove or convert the dead `solanaProvider.js` (§21), then re-measure the
+   bundle with the replacement cross-chain client active (§10a, §20).
 7. Dependency auditing (§4a).
 
 **Lower:**

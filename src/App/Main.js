@@ -13,13 +13,14 @@ import Chart from './chart';
 import MarketDepth from './marketDepth';
 import Markets from './markets';
 import Portfolio from './portfolio';
+import StablecoinSwap from './stablecoinSwap';
 import NFTMarketplace from './nftMarketplace';
 
 import { switchTab } from 'actions/actionCreators';
 import RefreshButton from './RefreshButton';
 import { fetchMarketData } from 'actions/fetchMarketData';
 import { refreshMarket } from 'actions/fetchTokenAttributes';
-import ErrorBoundary from '../components/ErrorBoundary';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const TokenTextField = styled(TextField)({
   maxWidth: 200,
@@ -192,14 +193,12 @@ export default function Main() {
             >
               NFT Art
             </HorizontalTab>
-            {/* Stablecoin Swap tab hidden until ready for release
-          <HorizontalTab
-            active={activeTab === 'StablecoinSwap'}
-            onClick={() => handleSwitchTab('StablecoinSwap')}
-          >
-            Stablecoin Swap
-          </HorizontalTab>
-          */}
+            <HorizontalTab
+              active={activeTab === 'StablecoinSwap'}
+              onClick={() => handleSwitchTab('StablecoinSwap')}
+            >
+              Cross-chain swaps
+            </HorizontalTab>
           </HorizontalTab.TabBar>
         </div>
 
@@ -210,8 +209,7 @@ export default function Main() {
         <div>{activeTab === 'Markets' && <Markets />}</div>
         <div>{activeTab === 'Portfolio' && <Portfolio />}</div>
         <div>{activeTab === 'NFTArt' && <NFTMarketplace />}</div>
-        {/* Stablecoin Swap component hidden until ready for release:
-            re-add the import and <StablecoinSwap /> here when it ships */}
+        <div>{activeTab === 'StablecoinSwap' && <StablecoinSwap />}</div>
       </Panel>
     </ErrorBoundary>
   );

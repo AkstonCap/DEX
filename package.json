@@ -33,7 +33,10 @@
     "lint": "eslint src __tests__ --ext .js",
     "lint:fix": "eslint src __tests__ --ext .js --fix",
     "test": "cross-env NODE_ENV=test jest",
-    "test:watch": "cross-env NODE_ENV=test jest --watch"
+    "test:watch": "cross-env NODE_ENV=test jest --watch",
+    "test:swap": "node --test test/swap/*.test.cjs",
+    "test:all": "npm test -- --ci --runInBand && npm run test:swap",
+    "lint:swap": "eslint src/swap src/App/stablecoinSwap.js --max-warnings 0"
   },
   "dependencies": {
     "@solana/spl-token": "^0.4.13",

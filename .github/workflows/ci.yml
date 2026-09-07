@@ -40,8 +40,17 @@ jobs:
       - name: Test
         run: npm test -- --ci --coverage
 
+      - name: Swap regression tests
+        run: npm run test:swap
+
+      - name: Swap lint (no warnings)
+        run: npm run lint:swap
+
       - name: Build
         run: npm run build
+
+      - name: Verify module manifest files
+        run: node -e "const fs = require('node:fs'); const manifest = require('./nxs_package.json'); for (const file of manifest.files) { if (!fs.statSync(file).isFile()) throw new Error('Missing module file ' + file); } console.log('All module manifest files exist');"
 
       # dist/js is gitignored, so this is the only way to inspect the bundle a
       # PR actually produces
@@ -49,6 +58,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dex-module-bundle
-          path: dist/js/app.js
+          path: |
+            dist/
+            nxs_package.json
           if-no-files-found: error
           retention-days: 14

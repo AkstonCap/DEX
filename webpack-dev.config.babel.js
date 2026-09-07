@@ -2,7 +2,7 @@ const path = require('node:path');
 const baseConfig = require('./webpack.config.babel');
 
 const port = 24011;
-const publicPath = `http://localhost:${port}/`;
+const publicPath = `http://localhost:${port}/js/`;
 
 module.exports = {
   ...baseConfig,

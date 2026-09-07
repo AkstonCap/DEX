@@ -31,28 +31,18 @@ The DEX application uses Redux for state management with the following main stat
 
 ## Tab Navigation State Machine
 
-```
-                                    ┌─────────────────────────────────────────────────────────────┐
-                                    │                     SWITCH_TAB                              │
-                                    ▼                                                             │
-┌─────────────┐  SWITCH_TAB   ┌─────────────┐  SWITCH_TAB   ┌─────────────┐  SWITCH_TAB   ┌───────┴─────┐
-│  Overview   │◄─────────────►│    Trade    │◄─────────────►│    Chart    │◄─────────────►│ MarketDepth │
-│  (default)  │               │             │               │             │               │             │
-└─────────────┘               └─────────────┘               └─────────────┘               └─────────────┘
-      ▲                             ▲                             ▲                             ▲
-      │                             │                             │                             │
-      │         SWITCH_TAB          │         SWITCH_TAB          │         SWITCH_TAB          │
-      │                             │                             │                             │
-      ▼                             ▼                             ▼                             ▼
-┌─────────────┐               ┌─────────────┐               ┌─────────────┐
-│   Markets   │◄─────────────►│  Portfolio  │◄─────────────►│ Stablecoin  │
-│             │  SWITCH_TAB   │             │  SWITCH_TAB   │    Swap     │
-└─────────────┘               └─────────────┘               └─────────────┘
-
-States: Overview | Trade | Chart | MarketDepth | Markets | Portfolio | StablecoinSwap
-Initial State: Overview
+```text
+Visible states: Overview | Trade | Chart | MarketDepth | Markets | Portfolio | NFTArt
+Initial state: Overview
 Trigger: switchTab(tab) action
+Disabled prototype: StablecoinSwap (tab and render route both commented out)
 ```
+
+The cross-chain prototype has no durable swap state machine in Redux; its local React state
+and polling must not be interpreted as completed provider discovery or reliable settlement.
+See the [focused evaluation](../SWAP_SERVICE_EVALUATION.md) and
+[proposed swap job states and milestones](../SWAP_SERVICE_DEVELOPMENT_PLAN.md).
+The proposed job states are a development target, not implemented navigation or recovery.
 
 ---
 

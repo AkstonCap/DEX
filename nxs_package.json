@@ -11,6 +11,8 @@
     "dist/index.html", 
     "dist/react.svg", 
     "dist/js/app.js", 
+    "dist/solana-sign.html",
+    "dist/js/solana-signer.js",
     "dist/syncing.svg",
     "dist/distordia-large.svg",
     "dist/distordia-small.svg",
